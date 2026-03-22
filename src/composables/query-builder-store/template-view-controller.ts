@@ -1,14 +1,13 @@
-import { ref, type Ref } from "vue"
+import type { Ref } from "vue"
 
-import { applyViewConfigToTemplate, cloneSnapshot, createDefaultViewConfig, createId, hydrateViewConfig } from "@/core/query/catalog"
+import { applyViewConfigToTemplate, createId } from "@/core/query/catalog"
 import type { QueryBuilderSnapshot, QueryTemplate, QueryTemplateBundle, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { showMessage } from "@/external/siyuan"
-import { migrateLegacyTemplateSnapshots } from "@/core/storage/migrations"
-import { createQueryTemplateStore } from "@/core/storage/query-template-store"
-import { buildSavedTemplateSummary, pickTemplateView } from "@/core/storage/template-view"
-import { createViewConfigStore } from "@/core/storage/view-config-store"
 
-import { createDraft, createSnapshot } from "./shared"
+import { createSnapshot } from "./shared"
+import { createExportedTemplateBundle, createImportedTemplateBundle, isTemplateBundle } from "./template-view-controller/bundle"
+import { applyTemplateAndViewState, resetDraftState } from "./template-view-controller/draft-state"
+import { createTemplateViewStorage } from "./template-view-controller/storage"
 
 interface StorageAdapter {
   loadData(key: string): Promise<unknown>
@@ -37,124 +36,53 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     recordMetric,
   } = options
 
-  const queryTemplateStore = createQueryTemplateStore(plugin)
-  const viewConfigStore = createViewConfigStore(plugin)
-  const storageReadyPromise = ref<Promise<void> | null>(null)
-
-  async function ensureStorageReady() {
-    if (!storageReadyPromise.value) {
-      storageReadyPromise.value = migrateLegacyTemplateSnapshots(plugin)
-    }
-    await storageReadyPromise.value
-  }
+  const storage = createTemplateViewStorage({
+    plugin,
+    draft,
+    savedTemplateSummaries,
+    savedViews,
+  })
 
   function applyTemplateAndView(template: QueryTemplate, view: ViewConfig) {
-    const nextView = hydrateViewConfig(view, template)
-    const next = cloneSnapshot({
-      template: applyViewConfigToTemplate(template, nextView),
-      view: nextView,
-    })
-    draft.template = next.template
-    draft.view = next.view
-    resetResultState()
+    applyTemplateAndViewState(draft, template, view, resetResultState)
   }
 
   function resetDraft() {
-    const next = createDraft()
-    applyTemplateAndView(next.template, next.view)
-    savedViews.value = []
+    resetDraftState(draft, savedViews, resetResultState)
   }
 
   async function savePersistedTemplate(template: QueryTemplate) {
-    await ensureStorageReady()
-    await queryTemplateStore.save(template)
+    await storage.savePersistedTemplate(template)
   }
 
   async function savePersistedView(view: ViewConfig) {
-    await ensureStorageReady()
-    await viewConfigStore.save(view)
-  }
-
-  function cloneValue<T>(value: T): T {
-    return JSON.parse(JSON.stringify(value)) as T
-  }
-
-  function isTemplateBundle(value: unknown): value is QueryTemplateBundle {
-    if (!value || typeof value !== "object") {
-      return false
-    }
-
-    const bundle = value as Partial<QueryTemplateBundle>
-    return bundle.schema === "siyuan-query-builder/template-bundle"
-      && bundle.version === 1
-      && Boolean(bundle.template)
-      && Array.isArray(bundle.views)
-  }
-
-  function normalizeImportedViews(template: QueryTemplate, views: ViewConfig[]) {
-    const sourceViews = views.length
-      ? views
-      : [createDefaultViewConfig(template.id, template.viewType, template)]
-    const defaultIndex = Math.max(sourceViews.findIndex(view => view.defaultView), 0)
-
-    return sourceViews.map((view, index) => ({
-      ...hydrateViewConfig(view, template),
-      id: createId("view"),
-      queryTemplateId: template.id,
-      defaultView: index === defaultIndex,
-      type: view.type || template.viewType,
-    }))
+    await storage.savePersistedView(view)
   }
 
   async function persistCurrentTemplateAndView() {
-    const snapshot = createSnapshot(draft)
-    snapshot.template.viewType = snapshot.view.type
-    snapshot.view.queryTemplateId = snapshot.template.id
-    await ensureStorageReady()
-    await queryTemplateStore.save(snapshot.template)
-    await viewConfigStore.save(snapshot.view)
-    return snapshot
+    return storage.persistCurrentTemplateAndView()
   }
 
   async function refreshSavedTemplateSummaries() {
-    await ensureStorageReady()
-    const [templates, views] = await Promise.all([
-      queryTemplateStore.list(),
-      viewConfigStore.list(),
-    ])
-    savedTemplateSummaries.value = templates.map(template => buildSavedTemplateSummary(
-      template,
-      views.filter(view => view.queryTemplateId === template.id),
-    ))
+    await storage.refreshSavedTemplateSummaries()
   }
 
   async function refreshSavedViews(templateId = draft.template.id) {
-    await ensureStorageReady()
-    if (!templateId) {
-      savedViews.value = []
-      return
-    }
-    savedViews.value = await viewConfigStore.listByTemplate(templateId)
+    await storage.refreshSavedViews(templateId)
   }
 
   async function exportTemplateBundle(templateId: string) {
-    await ensureStorageReady()
+    await storage.ensureStorageReady()
     const [template, views] = await Promise.all([
-      queryTemplateStore.get(templateId),
-      viewConfigStore.listByTemplate(templateId),
+      storage.queryTemplateStore.get(templateId),
+      storage.viewConfigStore.listByTemplate(templateId),
     ])
 
     if (!template) {
       throw new Error("模板不存在")
     }
 
-    return {
-      schema: "siyuan-query-builder/template-bundle",
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      template: cloneValue(template),
-      views: cloneValue(views.map(view => hydrateViewConfig(view, template))),
-    } satisfies QueryTemplateBundle
+    return createExportedTemplateBundle(template, views)
   }
 
   async function importTemplateBundle(payload: string | QueryTemplateBundle) {
@@ -167,16 +95,14 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
         throw new Error("导入文件格式不正确")
       }
 
-      const importedTemplate: QueryTemplate = {
-        ...cloneValue(parsed.template),
-        id: createId("template"),
-      }
-      const importedViews = normalizeImportedViews(importedTemplate, parsed.views)
+      const importedBundle = createImportedTemplateBundle(parsed)
+      const importedTemplate = importedBundle.template
+      const importedViews = importedBundle.views
 
-      await ensureStorageReady()
-      await queryTemplateStore.save(importedTemplate)
+      await storage.ensureStorageReady()
+      await storage.queryTemplateStore.save(importedTemplate)
       for (const view of importedViews) {
-        await viewConfigStore.save(view)
+        await storage.viewConfigStore.save(view)
       }
 
       const defaultView = importedViews.find(view => view.defaultView) || importedViews[0]
@@ -195,16 +121,12 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
   }
 
   async function loadTemplate(templateId: string) {
-    await ensureStorageReady()
-    const [template, views] = await Promise.all([
-      queryTemplateStore.get(templateId),
-      viewConfigStore.listByTemplate(templateId),
-    ])
-    if (!template) {
+    const snapshot = await storage.loadTemplateSnapshot(templateId)
+    if (!snapshot) {
       return false
     }
 
-    applyTemplateAndView(template, pickTemplateView(template, views))
+    applyTemplateAndView(snapshot.template, snapshot.view)
     await refreshSavedViews(templateId)
     return true
   }
@@ -226,8 +148,8 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
 
   async function deleteTemplate(templateId: string) {
     try {
-      await ensureStorageReady()
-      const template = await queryTemplateStore.get(templateId)
+      await storage.ensureStorageReady()
+      const template = await storage.queryTemplateStore.get(templateId)
       if (!template) {
         return false
       }
@@ -237,8 +159,8 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       if (!confirmed) {
         return false
       }
-      await queryTemplateStore.remove(templateId)
-      await viewConfigStore.removeByTemplate(templateId)
+      await storage.queryTemplateStore.remove(templateId)
+      await storage.viewConfigStore.removeByTemplate(templateId)
       await refreshSavedTemplateSummaries()
       if (draft.template.id === templateId) {
         resetDraft()
@@ -280,9 +202,9 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
   }
 
   async function loadSavedView(viewId: string) {
-    const view = savedViews.value.find(item => item.id === viewId)
-    if (!view) {
-      return false
+      const view = savedViews.value.find(item => item.id === viewId)
+      if (!view) {
+        return false
     }
     applyTemplateAndView(draft.template, view)
     draft.template.viewType = view.type
@@ -302,7 +224,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       if (draft.view.id === viewId) {
         draft.view.defaultView = true
       }
-      const template = await queryTemplateStore.get(view.queryTemplateId)
+      const template = await storage.queryTemplateStore.get(view.queryTemplateId)
       if (template) {
         await savePersistedTemplate({
           ...applyViewConfigToTemplate(template, view),
@@ -325,8 +247,8 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     }
     try {
       const deletedView = savedViews.value.find(item => item.id === viewId)
-      await ensureStorageReady()
-      await viewConfigStore.remove(viewId)
+      await storage.ensureStorageReady()
+      await storage.viewConfigStore.remove(viewId)
       await refreshSavedViews(draft.template.id)
       let replacement = savedViews.value.find(item => item.defaultView) || savedViews.value[0]
 
@@ -336,7 +258,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
           defaultView: true,
         }
         await savePersistedView(replacement)
-        const template = await queryTemplateStore.get(replacement.queryTemplateId)
+        const template = await storage.queryTemplateStore.get(replacement.queryTemplateId)
         if (template) {
           await savePersistedTemplate({
             ...applyViewConfigToTemplate(template, replacement),
@@ -351,7 +273,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
           draft.template.viewType = replacement.type
         }
       } else if (deletedView?.defaultView && replacement) {
-        const template = await queryTemplateStore.get(replacement.queryTemplateId)
+        const template = await storage.queryTemplateStore.get(replacement.queryTemplateId)
         if (template) {
           await savePersistedTemplate({
             ...applyViewConfigToTemplate(template, replacement),
@@ -372,7 +294,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     applyTemplateAndView,
     deleteSavedView,
     deleteTemplate,
-    ensureStorageReady,
+    ensureStorageReady: storage.ensureStorageReady,
     exportTemplateBundle,
     importTemplateBundle,
     loadSavedView,

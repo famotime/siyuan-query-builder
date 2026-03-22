@@ -1,9 +1,9 @@
-import { applyViewConfigToTemplate } from "@/core/query/catalog"
 import type { QueryBuilderSnapshot, QueryTemplate, ViewConfig } from "@/core/query/types"
 
+import { createMigrationGate } from "./migration-gate"
 import { migrateLegacyTemplateSnapshots } from "./migrations"
 import { createQueryTemplateStore } from "./query-template-store"
-import { pickTemplateViewById } from "./template-view"
+import { createTemplateViewLoader } from "./template-view-loader"
 import { createViewConfigStore } from "./view-config-store"
 
 interface StorageAdapter {
@@ -12,49 +12,20 @@ interface StorageAdapter {
   removeData(key: string): Promise<void>
 }
 
-function toSnapshot(template: QueryTemplate, views: ViewConfig[], viewId?: string): QueryBuilderSnapshot {
-  const view = pickTemplateViewById(template, views, viewId)
-
-  return {
-    template: applyViewConfigToTemplate(template, view),
-    view,
-  }
-}
-
 export function createTemplateStore(storage: StorageAdapter) {
   const templateStore = createQueryTemplateStore(storage)
   const viewStore = createViewConfigStore(storage)
-  let migrationPromise: Promise<void> | null = null
-
-  async function ensureMigrated() {
-    if (!migrationPromise) {
-      migrationPromise = migrateLegacyTemplateSnapshots(storage)
-    }
-    await migrationPromise
-  }
+  const loadTemplateViews = createTemplateViewLoader(templateStore, viewStore)
+  const ensureMigrated = createMigrationGate(() => migrateLegacyTemplateSnapshots(storage))
 
   return {
     async list() {
       await ensureMigrated()
-      const [templates, views] = await Promise.all([
-        templateStore.list(),
-        viewStore.list(),
-      ])
-      return templates.map(template => toSnapshot(
-        template,
-        views.filter(view => view.queryTemplateId === template.id),
-      ))
+      return loadTemplateViews.listSnapshots()
     },
     async get(templateId: string, viewId?: string) {
       await ensureMigrated()
-      const [template, views] = await Promise.all([
-        templateStore.get(templateId),
-        viewStore.listByTemplate(templateId),
-      ])
-      if (!template) {
-        return null
-      }
-      return toSnapshot(template, views, viewId)
+      return loadTemplateViews.getSnapshot(templateId, viewId)
     },
     async save(snapshot: QueryBuilderSnapshot) {
       await ensureMigrated()

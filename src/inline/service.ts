@@ -1,10 +1,7 @@
 import { createApp } from "vue"
-import { showMessage } from "siyuan"
-import type { Plugin } from "siyuan"
 
 import { lsNotebooks } from "@/api"
 import {
-  SQB_EMBED_BRIDGE_KEY,
   type InlineEmbedPayload,
   parseInlineEmbedPayload,
 } from "@/core/embed"
@@ -12,8 +9,12 @@ import { buildQuery } from "@/core/query/compiler"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createTemplateStore } from "@/core/storage/template-store"
+import { showMessage } from "@/external/siyuan"
+import type { Plugin } from "@/external/siyuan"
+import { createInlineBridgeRegistry } from "@/inline/bridge-registry"
 import InlineQueryWidget from "@/inline/InlineQueryWidget.vue"
 import { createInlineRenderController } from "@/inline/render-controller"
+import { createInlineScanLifecycle } from "@/inline/scan-lifecycle"
 
 const EVENTS_TO_STOP = [
   "compositionstart",
@@ -46,8 +47,6 @@ export function createInlineBlockRenderer(plugin: Plugin) {
   const notebooksPromise = lsNotebooks()
     .then(result => result?.notebooks || [])
     .catch(() => [])
-  const bridgeMounted = new Map<HTMLElement, DisposeFn | undefined>()
-
   const mountPayload = async (element: HTMLElement, payload: InlineEmbedPayload) => {
     const snapshot = await templateStore.get(payload.templateId, payload.viewId)
     const notebooks = await notebooksPromise
@@ -90,86 +89,40 @@ export function createInlineBlockRenderer(plugin: Plugin) {
     },
   })
 
-  let frame = 0
-  let started = false
-  let scheduledRoot: ParentNode = document.body
-  let scanQueued = false
-
-  const runScan = async () => {
-    scanQueued = false
+  const runScan = (root: ParentNode) => {
     try {
-      await controller.scan(scheduledRoot)
+      void controller.scan(root)
       controller.cleanup()
     } catch (error) {
       console.error("[siyuan-query-builder] inline scan failed", error)
       showMessage(`块内渲染失败：${error instanceof Error ? error.message : "未知错误"}`, 5000, "error")
-    } finally {
-      scheduledRoot = document.body
     }
   }
 
-  const scheduleScan = (root: ParentNode = document.body) => {
-    if (!started) {
-      return
-    }
-    scheduledRoot = root
-    if (scanQueued) {
-      return
-    }
-    scanQueued = true
-    cancelAnimationFrame(frame)
-    frame = requestAnimationFrame(runScan)
-  }
-
-  const onLoaded = (...args: unknown[]) => {
-    const maybeRoot = args.find((item): item is ParentNode => item instanceof Node)
-    scheduleScan(maybeRoot || document.body)
-  }
-
-  const bridge = {
-    renderHost: async (element: HTMLElement, payload: InlineEmbedPayload) => {
-      const currentDispose = bridgeMounted.get(element)
-      currentDispose?.()
-      bridgeMounted.delete(element)
-
-      try {
-        const dispose = await mountPayload(element, payload)
-        bridgeMounted.set(element, dispose || undefined)
-      } catch (error) {
-        console.error("[siyuan-query-builder] inline bridge render failed", error)
-        renderInlineError(element, `块内渲染失败：${error instanceof Error ? error.message : "未知错误"}`)
-      }
+  const bridgeRegistry = createInlineBridgeRegistry({
+    mount: mountPayload,
+    onError: (element, error) => {
+      console.error("[siyuan-query-builder] inline bridge render failed", error)
+      renderInlineError(element, `块内渲染失败：${error instanceof Error ? error.message : "未知错误"}`)
     },
-  }
+  })
+  const scanLifecycle = createInlineScanLifecycle({
+    plugin,
+    bridge: bridgeRegistry.bridge,
+    runScan,
+  })
 
   return {
     start() {
-      if (started) {
-        return
-      }
-      started = true
-      window[SQB_EMBED_BRIDGE_KEY] = bridge
-      plugin.eventBus.on("loaded-protyle-static", onLoaded)
-      plugin.eventBus.on("loaded-protyle-dynamic", onLoaded)
-      scheduleScan()
+      scanLifecycle.start()
     },
     scan() {
-      scheduleScan()
+      scanLifecycle.scan()
     },
     destroy() {
-      started = false
-      cancelAnimationFrame(frame)
-      scanQueued = false
-      if (window[SQB_EMBED_BRIDGE_KEY] === bridge) {
-        delete window[SQB_EMBED_BRIDGE_KEY]
-      }
-      plugin.eventBus.off("loaded-protyle-static", onLoaded)
-      plugin.eventBus.off("loaded-protyle-dynamic", onLoaded)
+      scanLifecycle.destroy()
       controller.destroy()
-      for (const dispose of bridgeMounted.values()) {
-        dispose?.()
-      }
-      bridgeMounted.clear()
+      bridgeRegistry.destroy()
     },
   }
 }

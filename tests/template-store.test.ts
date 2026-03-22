@@ -5,8 +5,10 @@ import type { QueryBuilderSnapshot, QueryTemplate } from "@/core/query/types"
 
 class FakePluginStorage {
   private data = new Map<string, unknown>()
+  private loadCounts = new Map<string, number>()
 
   async loadData(key: string) {
+    this.loadCounts.set(key, (this.loadCounts.get(key) || 0) + 1)
     return this.data.get(key)
   }
 
@@ -16,6 +18,10 @@ class FakePluginStorage {
 
   async removeData(key: string) {
     this.data.delete(key)
+  }
+
+  readLoadCount(key: string) {
+    return this.loadCounts.get(key) || 0
   }
 }
 
@@ -164,5 +170,45 @@ describe("createTemplateStore", () => {
     expect(loaded?.template.viewType).toBe("board")
     expect(loaded?.template.groupBy).toBe("attr:status")
     expect(loaded?.template.fields).toEqual(["content", "attr:status"])
+  })
+
+  it("runs legacy migration only once per template-store instance", async () => {
+    const storage = new FakePluginStorage()
+    const store = createTemplateStore(storage)
+    await storage.saveData("query-builder.templates.v1", [
+      {
+        template: {
+          id: "template-1",
+          version: 1,
+          name: "Reading Queue",
+          scope: {
+            type: "all_blocks",
+          },
+          filters: [],
+          sorts: [],
+          fields: ["content"],
+          viewType: "table",
+        },
+        view: {
+          id: "view-1",
+          queryTemplateId: "template-1",
+          type: "board",
+          defaultView: true,
+          fieldMappings: {
+            status: "status",
+            dueDate: "dueDate",
+            priority: "priority",
+            project: "project",
+            owner: "owner",
+          },
+        },
+      },
+    ])
+
+    await store.list()
+    await store.get("template-1")
+    await store.remove("template-1")
+
+    expect(storage.readLoadCount("query-builder.templates.v1")).toBe(1)
   })
 })

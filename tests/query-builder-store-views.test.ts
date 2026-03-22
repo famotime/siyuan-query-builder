@@ -151,6 +151,51 @@ describe("createQueryBuilderStore view management", () => {
     expect(store.draft.view.type).toBe("board")
   })
 
+  it("builds saved template summaries from legacy snapshot storage after migration", async () => {
+    currentPlugin.seed("query-builder.templates.v1", [
+      {
+        template: {
+          id: "template-1",
+          version: 1,
+          name: "遗留任务视图",
+          scope: {
+            type: "all_blocks",
+          },
+          filters: [],
+          sorts: [],
+          fields: ["content"],
+          viewType: "table",
+        },
+        view: {
+          id: "view-legacy",
+          queryTemplateId: "template-1",
+          type: "list",
+          defaultView: true,
+          fieldMappings: {
+            status: "status",
+            dueDate: "dueDate",
+            priority: "priority",
+            project: "project",
+            owner: "owner",
+          },
+        },
+      },
+    ])
+
+    const store = createQueryBuilderStore()
+    await store.refreshSavedTemplateSummaries()
+
+    expect(store.savedTemplateSummaries).toEqual([
+      {
+        templateId: "template-1",
+        templateName: "遗留任务视图",
+        defaultViewId: "view-legacy",
+        defaultViewType: "list",
+        viewCount: 1,
+      },
+    ])
+  })
+
   it("exports a saved template bundle with all of its saved views", async () => {
     currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
       {
@@ -214,6 +259,62 @@ describe("createQueryBuilderStore view management", () => {
         }),
       ],
     }))
+  })
+
+  it("hydrates missing view state when exporting a template bundle", async () => {
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: "template-1",
+        version: 1,
+        name: "项目看板",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [
+          {
+            field: "updated",
+            direction: "desc",
+          },
+        ],
+        fields: ["content", "updated"],
+        groupBy: "attr:status",
+        viewType: "board",
+      },
+    ])
+    currentPlugin.seed(VIEW_CONFIG_STORAGE_KEY, [
+      {
+        id: "view-board",
+        queryTemplateId: "template-1",
+        type: "board",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    const store = createQueryBuilderStore()
+    const bundle = await (store as any).exportTemplateBundle("template-1")
+
+    expect(bundle.views).toEqual([
+      expect.objectContaining({
+        id: "view-board",
+        type: "board",
+        fields: ["content", "updated"],
+        sorts: [
+          {
+            field: "updated",
+            direction: "desc",
+          },
+        ],
+        groupBy: "attr:status",
+      }),
+    ])
   })
 
   it("promotes a replacement default view after deleting the current default view", async () => {
@@ -379,6 +480,141 @@ describe("createQueryBuilderStore view management", () => {
       }),
     ])
     expect(showMessage).not.toHaveBeenCalledWith("已删除模板", 3000, "info")
+  })
+
+  it("resets the active draft and clears saved views after deleting the active template", async () => {
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: "template-1",
+        version: 1,
+        name: "任务清单",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "table",
+      },
+    ])
+    currentPlugin.seed(VIEW_CONFIG_STORAGE_KEY, [
+      {
+        id: "view-table",
+        queryTemplateId: "template-1",
+        type: "table",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    const store = createQueryBuilderStore()
+    await store.loadTemplate("template-1")
+    await store.refreshSavedViews("template-1")
+
+    await store.deleteTemplate("template-1")
+
+    expect(store.draft.template.id).not.toBe("template-1")
+    expect(store.savedViews).toEqual([])
+    expect(currentPlugin.read(QUERY_TEMPLATE_STORAGE_KEY)).toBeUndefined()
+    expect(currentPlugin.read(VIEW_CONFIG_STORAGE_KEY)).toBeUndefined()
+  })
+
+  it("sets one default saved view and syncs template state to the promoted view", async () => {
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: "template-1",
+        version: 1,
+        name: "任务清单",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [
+          {
+            field: "updated",
+            direction: "desc",
+          },
+        ],
+        fields: ["content", "updated"],
+        viewType: "table",
+      },
+    ])
+    currentPlugin.seed(VIEW_CONFIG_STORAGE_KEY, [
+      {
+        id: "view-table",
+        queryTemplateId: "template-1",
+        type: "table",
+        defaultView: true,
+        fields: ["content", "updated"],
+        sorts: [
+          {
+            field: "updated",
+            direction: "desc",
+          },
+        ],
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+      {
+        id: "view-board",
+        queryTemplateId: "template-1",
+        type: "board",
+        defaultView: false,
+        fields: ["content", "attr:status"],
+        groupBy: "attr:status",
+        sorts: [
+          {
+            field: "attr:status",
+            direction: "asc",
+          },
+        ],
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    const store = createQueryBuilderStore()
+    await store.refreshSavedViews("template-1")
+
+    await expect(store.setDefaultSavedView("view-board")).resolves.toBe(true)
+
+    const storedTemplates = currentPlugin.read(QUERY_TEMPLATE_STORAGE_KEY) as any[]
+    const storedViews = currentPlugin.read(VIEW_CONFIG_STORAGE_KEY) as any[]
+
+    expect(storedViews.filter(view => view.defaultView)).toEqual([
+      expect.objectContaining({
+        id: "view-board",
+        defaultView: true,
+      }),
+    ])
+    expect(storedTemplates[0]).toEqual(expect.objectContaining({
+      id: "template-1",
+      viewType: "board",
+      fields: ["content", "attr:status"],
+      groupBy: "attr:status",
+      sorts: [
+        {
+          field: "attr:status",
+          direction: "asc",
+        },
+      ],
+    }))
   })
 
   it("records metrics for view switches, query runs, template saves and saved views", async () => {

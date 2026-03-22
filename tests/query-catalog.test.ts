@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { createPresets, DEFAULT_FIELD_MAPPINGS } from "@/core/query/catalog"
+import {
+  applyViewConfigToTemplate,
+  cloneSnapshot,
+  createFieldOptions,
+  createPresets,
+  DEFAULT_FIELD_MAPPINGS,
+  hydrateViewConfig,
+} from "@/core/query/catalog"
 
 describe("createPresets", () => {
   it("includes a preset for core documents ranked by backlinks", () => {
@@ -49,6 +56,127 @@ describe("createPresets", () => {
         field: "linkCount",
         operator: "gt",
         value: "0",
+      }),
+    ]))
+  })
+
+  it("hydrates missing view state from the template and applies it back symmetrically", () => {
+    const template = {
+      id: "template-1",
+      version: 1,
+      name: "任务清单",
+      scope: {
+        type: "all_blocks" as const,
+      },
+      filters: [],
+      sorts: [
+        {
+          field: "updated",
+          direction: "desc" as const,
+        },
+      ],
+      fields: ["content", "updated"],
+      groupBy: "attr:status",
+      aggregation: {
+        function: "count" as const,
+      },
+      viewType: "board" as const,
+    }
+    const partialView = {
+      id: "view-1",
+      queryTemplateId: "template-1",
+      type: "board" as const,
+      defaultView: true,
+      fieldMappings: {
+        status: "status",
+        dueDate: "dueDate",
+        priority: "priority",
+        project: "project",
+        owner: "owner",
+      },
+    }
+
+    const hydratedView = hydrateViewConfig(partialView, template)
+    const appliedTemplate = applyViewConfigToTemplate(template, partialView)
+
+    expect(hydratedView).toEqual(expect.objectContaining({
+      fields: ["content", "updated"],
+      sorts: [
+        {
+          field: "updated",
+          direction: "desc",
+        },
+      ],
+      groupBy: "attr:status",
+      aggregation: {
+        function: "count",
+      },
+    }))
+    expect(appliedTemplate).toEqual(expect.objectContaining({
+      viewType: "board",
+      fields: hydratedView.fields,
+      sorts: hydratedView.sorts,
+      groupBy: hydratedView.groupBy,
+      aggregation: hydratedView.aggregation,
+    }))
+  })
+
+  it("deep clones snapshots instead of sharing template or view references", () => {
+    const snapshot = {
+      template: {
+        id: "template-1",
+        version: 1,
+        name: "任务清单",
+        scope: {
+          type: "all_blocks" as const,
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "table" as const,
+      },
+      view: {
+        id: "view-1",
+        queryTemplateId: "template-1",
+        type: "table" as const,
+        defaultView: true,
+        fields: ["content"],
+        sorts: [],
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    }
+
+    const cloned = cloneSnapshot(snapshot)
+    cloned.template.fields.push("updated")
+    cloned.view.fieldMappings.status = "workflowStatus"
+
+    expect(snapshot.template.fields).toEqual(["content"])
+    expect(snapshot.view.fieldMappings.status).toBe("status")
+  })
+
+  it("builds mapped attribute field options from custom field mappings", () => {
+    const options = createFieldOptions({
+      ...DEFAULT_FIELD_MAPPINGS,
+      status: "workflowStatus",
+      owner: "assignee",
+    })
+
+    expect(options).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        value: "attr:workflowStatus",
+        label: "状态",
+        hint: "workflowStatus",
+      }),
+      expect.objectContaining({
+        value: "attr:assignee",
+        label: "负责人",
+        hint: "assignee",
       }),
     ]))
   })
