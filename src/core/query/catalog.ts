@@ -15,6 +15,9 @@ export const DEFAULT_FIELD_MAPPINGS: FieldMappings = {
   owner: "owner",
 }
 
+export const AGGREGATE_VALUE_FIELD = "agg:value"
+export const TAG_COUNT_FIELD = "tagCount"
+
 export interface FieldOption {
   value: FieldId
   label: string
@@ -42,6 +45,7 @@ export function createEmptyTemplate(name = "未命名查询"): QueryTemplate {
     },
     filters: [],
     sorts: [],
+    limit: 200,
     fields: ["content", "updated", `attr:${DEFAULT_FIELD_MAPPINGS.status}`, `attr:${DEFAULT_FIELD_MAPPINGS.dueDate}`],
     viewType: "table",
   }
@@ -67,9 +71,11 @@ export function createFieldOptions(mappings: FieldMappings): FieldOption[] {
     { value: "updated", label: "更新时间" },
     { value: "created", label: "创建时间" },
     { value: "tag", label: "标签" },
+    { value: TAG_COUNT_FIELD, label: "标签数量" },
     { value: "box", label: "笔记本" },
     { value: "path", label: "路径" },
     { value: "type", label: "块类型" },
+    { value: AGGREGATE_VALUE_FIELD, label: "统计值" },
     { value: `attr:${mappings.status}`, label: "状态", hint: mappings.status },
     { value: `attr:${mappings.dueDate}`, label: "截止日期", hint: mappings.dueDate },
     { value: `attr:${mappings.priority}`, label: "优先级", hint: mappings.priority },
@@ -179,6 +185,26 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     viewType: "table",
   }
 
+  const topTaggedDocumentsTemplate: QueryTemplate = {
+    id: createId("preset"),
+    version: 1,
+    name: "标签最多文档",
+    scope: {
+      type: "block_type",
+      value: "d",
+    },
+    filters: [],
+    sorts: [
+      {
+        field: TAG_COUNT_FIELD,
+        direction: "desc",
+      },
+    ],
+    limit: 10,
+    fields: ["content", "tag", TAG_COUNT_FIELD],
+    viewType: "table",
+  }
+
   return [
     {
       id: "preset-weekly-tasks",
@@ -214,6 +240,15 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
       snapshot: {
         template: meetingTemplate,
         view: createDefaultViewConfig(meetingTemplate.id, "table"),
+      },
+    },
+    {
+      id: "preset-top-tagged-documents",
+      title: "标签最多文档",
+      description: "统计标签数量并查看 Top 10 文档",
+      snapshot: {
+        template: topTaggedDocumentsTemplate,
+        view: createDefaultViewConfig(topTaggedDocumentsTemplate.id, "table"),
       },
     },
   ]

@@ -2,11 +2,52 @@
   <section class="results">
     <article class="card">
       <div class="section-head">
-        <div>
+        <div class="summary">
           <h3>结果面板</h3>
           <p class="muted">
             {{ store.resultSummary }}
           </p>
+          <div class="view-switcher">
+            <span class="view-switcher__label">视图类型</span>
+            <div class="tabs">
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
+                data-view-type="table"
+                type="button"
+                @click="store.draft.view.type = 'table'"
+              >
+                表格
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
+                data-view-type="board"
+                type="button"
+                @click="store.draft.view.type = 'board'"
+              >
+                看板
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
+                data-view-type="list"
+                type="button"
+                @click="store.draft.view.type = 'list'"
+              >
+                列表
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
+                data-view-type="cards"
+                type="button"
+                @click="store.draft.view.type = 'cards'"
+              >
+                卡片
+              </button>
+            </div>
+          </div>
         </div>
         <div class="actions">
           <div class="embed-targets">
@@ -128,7 +169,7 @@
           <thead>
             <tr>
               <th
-                v-for="field in store.draft.template.fields"
+                v-for="field in store.resultFields"
                 :key="field"
               >
                 {{ store.fieldLabel(field) }}
@@ -141,16 +182,17 @@
               :key="row.id"
             >
               <td
-                v-for="field in store.draft.template.fields"
+                v-for="field in store.resultFields"
                 :key="`${row.id}-${field}`"
               >
                 <button
-                  v-if="field === 'content'"
+                  v-if="field === 'content' && store.canOpenRow(row)"
                   class="link"
                   @click="store.openBlock(row.id)"
                 >
                   {{ store.displayValue(row, field) || "打开原始块" }}
                 </button>
+                <span v-else-if="field === 'content'">{{ store.displayValue(row, field) || "—" }}</span>
                 <select
                   v-else-if="store.editableField(field) === 'status'"
                   class="control control--compact"
@@ -354,6 +396,11 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 
+.summary {
+  display: grid;
+  gap: 10px;
+}
+
 h3,
 h4 {
   margin: 0;
@@ -394,6 +441,7 @@ h4 {
 }
 
 .btn {
+  transition: transform 140ms ease;
   border: none;
   border-radius: 12px;
   padding: 8px 12px;
@@ -402,8 +450,49 @@ h4 {
   font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
 }
 
+.btn:hover,
+.tabs__item:hover {
+  transform: translateY(-1px);
+}
+
 .btn--ghost {
   border: 1px solid rgba(59, 46, 32, 0.16);
+}
+
+.view-switcher {
+  display: grid;
+  gap: 6px;
+}
+
+.view-switcher__label {
+  color: rgba(32, 26, 21, 0.68);
+  font: 13px/1.25 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 18px;
+  background: rgba(59, 46, 32, 0.08);
+}
+
+.tabs__item {
+  transition: transform 140ms ease;
+  border: none;
+  cursor: pointer;
+  flex: 1 1 calc(50% - 8px);
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(32, 26, 21, 0.62);
+  font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.tabs__item--active {
+  background: #201a15;
+  color: #f8f1e6;
 }
 
 .embed-targets {

@@ -15,6 +15,8 @@ import {
   type EmbedTargetPreview,
 } from "@/core/embed-target"
 import {
+  AGGREGATE_VALUE_FIELD,
+  TAG_COUNT_FIELD,
   cloneSnapshot,
   createDefaultViewConfig,
   createEmptyTemplate,
@@ -100,6 +102,19 @@ export function createQueryBuilderStore() {
 
   const presets = computed(() => createPresets(draft.view.fieldMappings))
   const fieldOptions = computed(() => createFieldOptions(draft.view.fieldMappings))
+  const selectableFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD))
+  const sortFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
+  const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => option.value === TAG_COUNT_FIELD))
+  const resultFields = computed(() => {
+    if (!draft.template.aggregation) {
+      return draft.template.fields
+    }
+
+    return [
+      ...(draft.template.groupBy ? [draft.template.groupBy] : []),
+      AGGREGATE_VALUE_FIELD,
+    ]
+  })
   const boardColumns = computed(() => {
     if (!resultSet.value?.rows.length || !draft.template.groupBy) {
       return []
@@ -126,6 +141,51 @@ export function createQueryBuilderStore() {
     get: () => draft.template.groupBy || "",
     set: (value: string) => {
       draft.template.groupBy = value || undefined
+      syncAggregateFields()
+    },
+  })
+  const aggregationEnabled = computed({
+    get: () => Boolean(draft.template.aggregation),
+    set: (value: boolean) => {
+      if (!value) {
+        draft.template.aggregation = undefined
+        return
+      }
+
+      draft.template.aggregation = {
+        function: "count",
+      }
+      syncAggregateFields()
+    },
+  })
+  const aggregationFunctionProxy = computed({
+    get: () => draft.template.aggregation?.function || "count",
+    set: (value: "count" | "sum" | "avg" | "min" | "max") => {
+      draft.template.aggregation = {
+        function: value,
+        field: value === "count" ? undefined : (draft.template.aggregation?.field || TAG_COUNT_FIELD),
+      }
+      syncAggregateFields()
+    },
+  })
+  const aggregationFieldProxy = computed({
+    get: () => draft.template.aggregation?.field || TAG_COUNT_FIELD,
+    set: (value: string) => {
+      if (!draft.template.aggregation) {
+        draft.template.aggregation = {
+          function: "sum",
+          field: value,
+        }
+      } else {
+        draft.template.aggregation.field = value
+      }
+    },
+  })
+  const limitProxy = computed({
+    get: () => String(draft.template.limit ?? 200),
+    set: (value: string) => {
+      const normalized = Math.trunc(Number(value))
+      draft.template.limit = Number.isFinite(normalized) && normalized > 0 ? normalized : 200
     },
   })
   const resultSummary = computed(() => {
@@ -137,6 +197,9 @@ export function createQueryBuilderStore() {
       board: "看板",
       list: "列表",
       cards: "统计卡片",
+    }
+    if (draft.template.aggregation) {
+      return `最近一次运行返回 ${resultSet.value.total} 组统计结果，当前为${viewNameMap[draft.view.type]}视图。`
     }
     return `最近一次运行返回 ${resultSet.value.total} 条结果，当前为${viewNameMap[draft.view.type]}视图。`
   })
@@ -182,6 +245,28 @@ export function createQueryBuilderStore() {
     return fieldOptions.value.find(option => option.value === field)?.label || field
   }
 
+  function syncAggregateFields() {
+    if (!draft.template.aggregation) {
+      return
+    }
+
+    draft.template.fields = resultFields.value
+    const allowedSortFields = new Set([
+      AGGREGATE_VALUE_FIELD,
+      ...(draft.template.groupBy ? [draft.template.groupBy] : []),
+    ])
+    const nextSorts = draft.template.sorts.filter(sort => allowedSortFields.has(sort.field))
+
+    draft.template.sorts = nextSorts.length
+      ? nextSorts
+      : [
+          {
+            field: AGGREGATE_VALUE_FIELD,
+            direction: "desc",
+          },
+        ]
+  }
+
   function requiresValue(operator: FilterOperator) {
     return !["empty", "not_empty"].includes(operator)
   }
@@ -206,7 +291,7 @@ export function createQueryBuilderStore() {
 
   function addSort() {
     draft.template.sorts.push({
-      field: "updated",
+      field: draft.template.aggregation ? AGGREGATE_VALUE_FIELD : "updated",
       direction: "desc",
     })
   }
@@ -216,6 +301,9 @@ export function createQueryBuilderStore() {
   }
 
   function toggleField(field: string) {
+    if (draft.template.aggregation) {
+      return
+    }
     if (draft.template.fields.includes(field)) {
       draft.template.fields = draft.template.fields.filter(item => item !== field)
       return
@@ -224,6 +312,9 @@ export function createQueryBuilderStore() {
   }
 
   function addCustomField() {
+    if (draft.template.aggregation) {
+      return
+    }
     const value = customFieldName.value.trim()
     if (!value) {
       return
@@ -261,13 +352,19 @@ export function createQueryBuilderStore() {
   }
 
   function displayValue(row: ResultRow, field: string) {
+    if (field === AGGREGATE_VALUE_FIELD) {
+      return String(row.agg_value ?? "")
+    }
     if (field.startsWith("attr:")) {
       return row.attrs[field.slice("attr:".length)] || ""
     }
-    return String(row[field] || "")
+    return String(row[field] ?? "")
   }
 
   function editableField(field: string): EditableField | null {
+    if (draft.template.aggregation) {
+      return null
+    }
     if (field === `attr:${draft.view.fieldMappings.status}`) {
       return "status"
     }
@@ -361,6 +458,10 @@ export function createQueryBuilderStore() {
 
   function openBlock(blockId: string) {
     window.open(`siyuan://blocks/${blockId}`)
+  }
+
+  function canOpenRow(row: ResultRow) {
+    return !draft.template.aggregation && isLikelyBlockId(row.id)
   }
 
   async function dropToColumn(columnId: string) {
@@ -543,9 +644,16 @@ export function createQueryBuilderStore() {
     error,
     fieldLabel,
     fieldOptions,
+    selectableFieldOptions,
+    sortFieldOptions,
+    statisticalFieldOptions,
     groupByProxy,
+    aggregationEnabled,
+    aggregationFunctionProxy,
+    aggregationFieldProxy,
     initialize,
     insertEmbed,
+    limitProxy,
     loading,
     listItems,
     mappingKeys,
@@ -562,6 +670,7 @@ export function createQueryBuilderStore() {
     removeFilter,
     removeSort,
     requiresValue,
+    resultFields,
     resetDraft,
     resultSet,
     resultSummary,
@@ -575,5 +684,6 @@ export function createQueryBuilderStore() {
     scopePlaceholder,
     toggleField,
     updateDateRange,
+    canOpenRow,
   })
 }

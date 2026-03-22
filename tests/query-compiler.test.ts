@@ -77,4 +77,74 @@ describe("buildQuery", () => {
 
     expect(() => buildQuery(template)).toThrow(/requires a date range/i)
   })
+
+  it("builds aggregate SQL with a common statistical function and custom limit", () => {
+    const template: QueryTemplate = {
+      id: "template-3",
+      version: 1,
+      name: "Notebook Tag Totals",
+      scope: {
+        type: "all_blocks",
+      },
+      filters: [],
+      sorts: [
+        {
+          field: "agg:value",
+          direction: "desc",
+        },
+      ],
+      groupBy: "box",
+      fields: ["box", "agg:value"],
+      aggregation: {
+        function: "sum",
+        field: "tagCount",
+      },
+      limit: 10,
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.meta.selectedFields).toEqual(["box", "agg:value"])
+    expect(compiled.meta.aggregation).toEqual({
+      function: "sum",
+      field: "tagCount",
+    })
+    expect(compiled.sql).toContain("SUM(")
+    expect(compiled.sql).toContain("AS agg_value")
+    expect(compiled.sql).toContain("GROUP BY")
+    expect(compiled.sql).toContain("blocks.box")
+    expect(compiled.sql).toContain("ORDER BY agg_value DESC")
+    expect(compiled.sql).toContain("LIMIT 10")
+  })
+
+  it("supports counting tags as a numeric statistical field", () => {
+    const template: QueryTemplate = {
+      id: "template-4",
+      version: 1,
+      name: "Document Tag Count",
+      scope: {
+        type: "block_type",
+        value: "d",
+      },
+      filters: [],
+      sorts: [
+        {
+          field: "tagCount",
+          direction: "desc",
+        },
+      ],
+      fields: ["content", "tagCount"],
+      limit: 10,
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("length(COALESCE(blocks.tag, ''))")
+    expect(compiled.sql).toContain("replace(COALESCE(blocks.tag, ''), '#', '')")
+    expect(compiled.sql).toContain("AS tagCount")
+    expect(compiled.sql).toContain("ORDER BY")
+    expect(compiled.sql).toContain("tagCount DESC")
+  })
 })

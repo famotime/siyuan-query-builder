@@ -1,5 +1,7 @@
 export type ViewType = "table" | "board" | "list" | "cards"
 
+export type AggregationFunction = "count" | "sum" | "avg" | "min" | "max"
+
 export type ScopeType =
   | "all_blocks"
   | "notebook"
@@ -38,6 +40,11 @@ export interface QuerySort {
   direction: "asc" | "desc"
 }
 
+export interface QueryAggregation {
+  function: AggregationFunction
+  field?: FieldId
+}
+
 export interface QueryTemplate {
   id: string
   version: number
@@ -46,6 +53,8 @@ export interface QueryTemplate {
   filters: QueryFilter[]
   sorts: QuerySort[]
   groupBy?: FieldId
+  aggregation?: QueryAggregation
+  limit?: number
   fields: FieldId[]
   viewType: ViewType
 }
@@ -89,5 +98,6 @@ export interface CompiledQuery {
   meta: {
     selectedFields: FieldId[]
     groupBy?: FieldId
+    aggregation?: QueryAggregation
   }
 }

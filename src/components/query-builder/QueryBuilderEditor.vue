@@ -312,7 +312,7 @@
                   不分组
                 </option>
                 <option
-                  v-for="option in store.fieldOptions"
+                  v-for="option in store.selectableFieldOptions"
                   :key="option.value"
                   :value="option.value"
                 >
@@ -321,37 +321,71 @@
               </select>
             </label>
             <label class="field">
-              <span>视图类型</span>
-              <div class="tabs">
-                <button
-                  class="tabs__item"
-                  :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
-                  @click="store.draft.view.type = 'table'"
+              <span>结果上限</span>
+              <input
+                v-model="store.limitProxy"
+                class="control"
+                type="number"
+                min="1"
+                max="1000"
+              >
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label class="chip chip--toggle">
+              <input
+                v-model="store.aggregationEnabled"
+                type="checkbox"
+              >
+              <span>启用统计函数</span>
+            </label>
+          </div>
+
+          <div
+            v-if="store.aggregationEnabled"
+            class="form-grid form-grid--aggregation"
+          >
+            <label class="field">
+              <span>统计函数</span>
+              <select
+                v-model="store.aggregationFunctionProxy"
+                class="control"
+              >
+                <option value="count">
+                  计数 Count
+                </option>
+                <option value="sum">
+                  求和 Sum
+                </option>
+                <option value="avg">
+                  平均值 Avg
+                </option>
+                <option value="min">
+                  最小值 Min
+                </option>
+                <option value="max">
+                  最大值 Max
+                </option>
+              </select>
+            </label>
+            <label
+              v-if="store.aggregationFunctionProxy !== 'count'"
+              class="field"
+            >
+              <span>统计字段</span>
+              <select
+                v-model="store.aggregationFieldProxy"
+                class="control"
+              >
+                <option
+                  v-for="option in store.statisticalFieldOptions"
+                  :key="option.value"
+                  :value="option.value"
                 >
-                  表格
-                </button>
-                <button
-                  class="tabs__item"
-                  :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
-                  @click="store.draft.view.type = 'board'"
-                >
-                  看板
-                </button>
-                <button
-                  class="tabs__item"
-                  :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
-                  @click="store.draft.view.type = 'list'"
-                >
-                  列表
-                </button>
-                <button
-                  class="tabs__item"
-                  :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
-                  @click="store.draft.view.type = 'cards'"
-                >
-                  卡片
-                </button>
-              </div>
+                  {{ option.label }}
+                </option>
+              </select>
             </label>
           </div>
 
@@ -375,7 +409,7 @@
                 class="control"
               >
                 <option
-                  v-for="option in store.fieldOptions"
+                  v-for="option in store.sortFieldOptions"
                   :key="option.value"
                   :value="option.value"
                 >
@@ -405,32 +439,39 @@
           <div class="section-head section-head--top">
             <span class="muted">输出字段</span>
           </div>
-          <label
-            v-for="option in store.fieldOptions"
-            :key="option.value"
-            class="check"
-          >
-            <input
-              type="checkbox"
-              :checked="store.draft.template.fields.includes(option.value)"
-              @change="store.toggleField(option.value)"
+          <template v-if="store.aggregationEnabled">
+            <p class="muted">
+              统计查询会自动输出分组字段和统计值。
+            </p>
+          </template>
+          <template v-else>
+            <label
+              v-for="option in store.selectableFieldOptions"
+              :key="option.value"
+              class="check"
             >
-            <span>{{ option.label }}</span>
-            <small v-if="option.hint">{{ option.hint }}</small>
-          </label>
-          <div class="actions actions--inline">
-            <input
-              v-model="store.customFieldName"
-              class="control"
-              placeholder="自定义属性名，如 sprint"
-            >
-            <button
-              class="btn btn--ghost btn--small"
-              @click="store.addCustomField"
-            >
-              添加属性字段
-            </button>
-          </div>
+              <input
+                type="checkbox"
+                :checked="store.draft.template.fields.includes(option.value)"
+                @change="store.toggleField(option.value)"
+              >
+              <span>{{ option.label }}</span>
+              <small v-if="option.hint">{{ option.hint }}</small>
+            </label>
+            <div class="actions actions--inline">
+              <input
+                v-model="store.customFieldName"
+                class="control"
+                placeholder="自定义属性名，如 sprint"
+              >
+              <button
+                class="btn btn--ghost btn--small"
+                @click="store.addCustomField"
+              >
+                添加属性字段
+              </button>
+            </div>
+          </template>
         </template>
       </article>
     </div>
@@ -557,16 +598,14 @@ h3 {
   box-shadow: 0 0 0 3px rgba(242, 126, 34, 0.12);
 }
 
-.btn,
-.tabs__item {
+.btn {
   transition: transform 140ms ease;
   border: none;
   cursor: pointer;
   font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
 }
 
-.btn:hover,
-.tabs__item:hover {
+.btn:hover {
   transform: translateY(-1px);
 }
 
@@ -601,6 +640,10 @@ h3 {
   font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
 }
 
+.chip--toggle {
+  justify-content: center;
+}
+
 .muted {
   margin: 0;
   color: rgba(32, 26, 21, 0.68);
@@ -611,6 +654,10 @@ h3 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.form-grid--aggregation {
+  margin-top: 14px;
 }
 
 .field {
@@ -633,28 +680,6 @@ h3 {
 
 .filter-row--sort {
   grid-template-columns: minmax(0, 1fr) 120px auto;
-}
-
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px;
-  border-radius: 18px;
-  background: rgba(59, 46, 32, 0.08);
-}
-
-.tabs__item {
-  flex: 1 1 calc(50% - 8px);
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(32, 26, 21, 0.62);
-}
-
-.tabs__item--active {
-  background: #201a15;
-  color: #f8f1e6;
 }
 
 .section-head--top {

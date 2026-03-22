@@ -35,6 +35,8 @@ function createStore() {
         sorts: [],
         fields: ["content", "updated"],
         groupBy: undefined,
+        aggregation: undefined,
+        limit: 200,
       },
       view: {
         type: "table",
@@ -52,9 +54,31 @@ function createStore() {
     fieldOptions: [
       { value: "content", label: "标题 / 内容" },
       { value: "updated", label: "更新时间" },
+      { value: "tagCount", label: "标签数量" },
+      { value: "agg:value", label: "统计值" },
       { value: "attr:status", label: "状态" },
     ],
+    selectableFieldOptions: [
+      { value: "content", label: "标题 / 内容" },
+      { value: "updated", label: "更新时间" },
+      { value: "tagCount", label: "标签数量" },
+      { value: "attr:status", label: "状态" },
+    ],
+    sortFieldOptions: [
+      { value: "content", label: "标题 / 内容" },
+      { value: "updated", label: "更新时间" },
+      { value: "tagCount", label: "标签数量" },
+      { value: "agg:value", label: "统计值" },
+      { value: "attr:status", label: "状态" },
+    ],
+    statisticalFieldOptions: [
+      { value: "tagCount", label: "标签数量" },
+    ],
     groupByProxy: "",
+    aggregationEnabled: false,
+    aggregationFunctionProxy: "count",
+    aggregationFieldProxy: "tagCount",
+    limitProxy: "200",
     customFieldName: "",
     addFilter: () => {},
     removeFilter: () => {},
@@ -76,6 +100,7 @@ describe("QueryBuilderEditor", () => {
     const wrapper = mount(QueryBuilderEditor)
 
     expect(wrapper.text()).toContain("范围类型")
+    expect(wrapper.text()).not.toContain("视图类型")
 
     const toggle = wrapper.get("[data-section-toggle=\"scope\"]")
     await toggle.trigger("click")
@@ -85,5 +110,16 @@ describe("QueryBuilderEditor", () => {
     await toggle.trigger("click")
 
     expect(wrapper.text()).toContain("范围类型")
+  })
+
+  it("shows statistical function controls for aggregate queries", () => {
+    currentStore = createStore()
+    currentStore.aggregationEnabled = true
+    currentStore.aggregationFunctionProxy = "sum"
+    const wrapper = mount(QueryBuilderEditor)
+
+    expect(wrapper.text()).toContain("统计函数")
+    expect(wrapper.text()).toContain("统计字段")
+    expect(wrapper.find('input[type="number"]').exists()).toBe(true)
   })
 })

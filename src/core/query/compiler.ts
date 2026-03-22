@@ -1,11 +1,13 @@
 import type {
   CompiledQuery,
   FieldId,
+  QueryAggregation,
   QueryFilter,
   QueryScope,
   QuerySort,
   QueryTemplate,
 } from "./types"
+import { AGGREGATE_VALUE_FIELD, TAG_COUNT_FIELD } from "./catalog"
 
 const BASE_FIELD_MAP: Record<string, string> = {
   id: "blocks.id",
@@ -29,11 +31,19 @@ function isAttrField(field: FieldId) {
   return field.startsWith("attr:")
 }
 
+function isAggregateValueField(field: FieldId) {
+  return field === AGGREGATE_VALUE_FIELD
+}
+
 function getAttrName(field: FieldId) {
   return field.slice("attr:".length)
 }
 
 function getFieldExpression(field: FieldId) {
+  if (field === TAG_COUNT_FIELD) {
+    return "(length(COALESCE(blocks.tag, '')) - length(replace(COALESCE(blocks.tag, ''), '#', ''))) / 2"
+  }
+
   if (isAttrField(field)) {
     const attrName = escapeSqlLiteral(getAttrName(field))
     return `(SELECT value FROM attributes WHERE attributes.block_id = blocks.id AND attributes.name = '${attrName}' LIMIT 1)`
@@ -47,6 +57,9 @@ function getFieldExpression(field: FieldId) {
 }
 
 function getFieldAlias(field: FieldId) {
+  if (isAggregateValueField(field)) {
+    return "agg_value"
+  }
   if (isAttrField(field)) {
     return `attr_${getAttrName(field).replaceAll(/[^a-zA-Z0-9_]/g, "_")}`
   }
@@ -67,6 +80,19 @@ function buildSelectFields(fields: FieldId[]) {
   }
 
   return selected
+}
+
+function normalizeLimit(limit?: number) {
+  if (limit == null) {
+    return 200
+  }
+
+  const normalized = Math.trunc(Number(limit))
+  if (!Number.isFinite(normalized) || normalized <= 0) {
+    throw new Error("limit requires a positive integer")
+  }
+
+  return normalized
 }
 
 function buildScopeClause(scope: QueryScope) {
@@ -132,39 +158,101 @@ function buildFilterClause(filter: QueryFilter) {
   }
 }
 
-function buildOrderClause(sorts: QuerySort[], groupBy?: FieldId) {
+function buildAggregationExpression(aggregation: QueryAggregation) {
+  switch (aggregation.function) {
+    case "count":
+      return "COUNT(*)"
+    case "sum":
+    case "avg":
+    case "min":
+    case "max":
+      if (!aggregation.field) {
+        throw new Error(`${aggregation.function} requires a field`)
+      }
+      return `${aggregation.function.toUpperCase()}(${getFieldExpression(aggregation.field)})`
+    default:
+      throw new Error(`Unsupported aggregation: ${aggregation.function satisfies never}`)
+  }
+}
+
+function buildGroupClause(groupBy?: FieldId) {
+  if (!groupBy) {
+    return ""
+  }
+
+  return `GROUP BY ${getFieldExpression(groupBy)}`
+}
+
+function buildAggregateSelectFields(template: QueryTemplate, aggregation: QueryAggregation) {
+  const selected: string[] = []
+
+  if (template.groupBy) {
+    const groupExpression = getFieldExpression(template.groupBy)
+    const groupAlias = getFieldAlias(template.groupBy)
+    selected.push(`COALESCE(CAST(${groupExpression} AS TEXT), '') AS id`)
+    selected.push(`COALESCE(CAST(${groupExpression} AS TEXT), '') AS content`)
+    if (!["id", "content"].includes(groupAlias)) {
+      selected.push(`${groupExpression} AS ${groupAlias}`)
+    }
+  } else {
+    selected.push("'aggregate-row' AS id")
+    selected.push("'统计结果' AS content")
+  }
+
+  selected.push(`${buildAggregationExpression(aggregation)} AS ${getFieldAlias(AGGREGATE_VALUE_FIELD)}`)
+  return selected
+}
+
+function getOrderExpression(field: FieldId) {
+  if (isAggregateValueField(field) || field === TAG_COUNT_FIELD) {
+    return getFieldAlias(field)
+  }
+
+  return getFieldExpression(field)
+}
+
+function buildOrderClause(sorts: QuerySort[], groupBy?: FieldId, aggregation?: QueryAggregation) {
   const orderParts: string[] = []
 
-  if (groupBy) {
+  if (groupBy && !aggregation) {
     orderParts.push(`${getFieldExpression(groupBy)} ASC`)
   }
 
   for (const sort of sorts) {
-    orderParts.push(`${getFieldExpression(sort.field)} ${sort.direction.toUpperCase()}`)
+    orderParts.push(`${getOrderExpression(sort.field)} ${sort.direction.toUpperCase()}`)
   }
 
   if (!orderParts.length) {
-    orderParts.push("blocks.updated DESC")
+    if (aggregation) {
+      orderParts.push(`${getFieldAlias(AGGREGATE_VALUE_FIELD)} DESC`)
+    } else {
+      orderParts.push("blocks.updated DESC")
+    }
   }
 
   return `ORDER BY ${orderParts.join(", ")}`
 }
 
 export function buildQuery(template: QueryTemplate): CompiledQuery {
-  const selectFields = buildSelectFields(template.fields)
+  const aggregation = template.aggregation
+  const selectFields = aggregation
+    ? buildAggregateSelectFields(template, aggregation)
+    : buildSelectFields(template.fields)
   const whereClauses = [
-    "blocks.type != 'd'",
+    template.scope.type === "block_type" && template.scope.value === "d" ? "" : "blocks.type != 'd'",
     buildScopeClause(template.scope),
     ...template.filters.map(buildFilterClause),
   ].filter(Boolean)
+  const limit = normalizeLimit(template.limit)
 
   const sql = [
     "SELECT",
     `  ${selectFields.join(",\n  ")}`,
     "FROM blocks",
     whereClauses.length ? `WHERE ${whereClauses.join("\n  AND ")}` : "",
-    buildOrderClause(template.sorts, template.groupBy),
-    "LIMIT 200",
+    aggregation ? buildGroupClause(template.groupBy) : "",
+    buildOrderClause(template.sorts, template.groupBy, aggregation),
+    `LIMIT ${limit}`,
   ].filter(Boolean).join("\n")
 
   return {
@@ -172,6 +260,7 @@ export function buildQuery(template: QueryTemplate): CompiledQuery {
     meta: {
       selectedFields: template.fields,
       groupBy: template.groupBy,
+      aggregation,
     },
   }
 }
