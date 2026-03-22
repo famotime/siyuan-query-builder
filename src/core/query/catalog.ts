@@ -58,7 +58,7 @@ export function createDefaultViewConfig(templateId: string, type: ViewType = "ta
 }
 
 export function cloneSnapshot(snapshot: QueryBuilderSnapshot): QueryBuilderSnapshot {
-  return structuredClone(snapshot)
+  return JSON.parse(JSON.stringify(snapshot)) as QueryBuilderSnapshot
 }
 
 export function createFieldOptions(mappings: FieldMappings): FieldOption[] {

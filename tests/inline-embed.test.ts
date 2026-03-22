@@ -6,16 +6,19 @@ import {
 } from "@/core/embed"
 
 describe("inline embed payload", () => {
-  it("creates mountable html markup for inline rendering", () => {
+  it("creates a mountable JS query embed block for inline rendering", () => {
     const markdown = createEmbedBlockMarkdown({
       templateId: "template-7",
       viewType: "cards",
       title: "任务概览",
     })
 
-    expect(markdown).toContain("data-sqb-inline")
+    expect(markdown).toContain("{{//!js")
+    expect(markdown).toContain("_esc_newline_")
+    expect(markdown).toContain("window.__siyuanQueryBuilderBridge")
     expect(markdown).toContain("template-7")
     expect(markdown).toContain("\"viewType\":\"cards\"")
+    expect(markdown).not.toContain("\n")
   })
 
   it("parses inline payload from rendered html", () => {

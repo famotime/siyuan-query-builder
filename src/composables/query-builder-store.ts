@@ -1,8 +1,16 @@
-import { computed, inject, proxyRefs, reactive, ref } from "vue"
-import type { InjectionKey, Ref } from "vue"
+import { computed, inject, proxyRefs, reactive, ref, toRaw, watch } from "vue"
+import type { InjectionKey } from "vue"
 import { showMessage } from "siyuan"
 
-import { lsNotebooks } from "@/api"
+import { getBlockByID, lsNotebooks } from "@/api"
+import {
+  formatEmbedTargetHint,
+  getActiveDocumentTarget,
+  isLikelyBlockId,
+  summarizeBlockLabel,
+  type ActiveDocumentTarget,
+  type EmbedTargetPreview,
+} from "@/core/embed-target"
 import {
   cloneSnapshot,
   createDefaultViewConfig,
@@ -27,6 +35,7 @@ import { buildCardsSummary, buildListItems } from "@/inline/view-models"
 import { usePlugin } from "@/main"
 
 type EditableField = keyof FieldMappings
+const EMBED_TARGET_PREFS_KEY = "query-builder.embed-target.v1"
 
 function createDraft(): QueryBuilderSnapshot {
   const template = createEmptyTemplate()
@@ -63,7 +72,11 @@ export function createQueryBuilderStore() {
   const error = ref("")
   const customFieldName = ref("")
   const embedParentId = ref("")
+  const embedTargetHint = ref("可输入父块或文档 ID，或下拉选择当前打开文档")
+  const embedTargetPreview = ref<EmbedTargetPreview | null>(null)
+  const currentDocumentTarget = ref<ActiveDocumentTarget | null>(null)
   const draggingRowId = ref("")
+  let embedTargetResolveToken = 0
 
   const mappingKeys: EditableField[] = ["status", "dueDate", "priority", "project", "owner"]
   const mappingLabels: Record<EditableField, string> = {
@@ -213,8 +226,8 @@ export function createQueryBuilderStore() {
 
   function createSnapshot() {
     return cloneSnapshot({
-      template: structuredClone(draft.template),
-      view: structuredClone(draft.view),
+      template: toRaw(draft.template),
+      view: toRaw(draft.view),
     })
   }
 
@@ -234,7 +247,6 @@ export function createQueryBuilderStore() {
     resultSet.value = null
     advancedSql.value = ""
     error.value = ""
-    embedParentId.value = ""
   }
 
   function displayValue(row: ResultRow, field: string) {
@@ -345,8 +357,77 @@ export function createQueryBuilderStore() {
   async function initialize() {
     const notebookResult = await lsNotebooks()
     notebooks.value = notebookResult?.notebooks || []
+    currentDocumentTarget.value = getActiveDocumentTarget(window)
+    const prefs = await plugin.loadData(EMBED_TARGET_PREFS_KEY) as { lastParentId?: string } | null
+    embedParentId.value = typeof prefs?.lastParentId === "string" ? prefs.lastParentId : ""
     await loadTemplates()
+    await resolveEmbedTargetPreview(embedParentId.value)
   }
+
+  async function persistEmbedParentId() {
+    await plugin.saveData(EMBED_TARGET_PREFS_KEY, {
+      lastParentId: embedParentId.value.trim(),
+    })
+  }
+
+  async function resolveEmbedTargetPreview(value: string) {
+    const id = value.trim()
+    const token = ++embedTargetResolveToken
+    embedTargetPreview.value = null
+
+    if (!id) {
+      embedTargetHint.value = currentDocumentTarget.value
+        ? `当前文档：${currentDocumentTarget.value.title}`
+        : "可输入父块或文档 ID，或下拉选择当前打开文档"
+      return
+    }
+
+    if (!isLikelyBlockId(id)) {
+      embedTargetHint.value = "输入完整 ID 后显示文档标题或块内容"
+      return
+    }
+
+    try {
+      const block = await getBlockByID(id)
+      if (token !== embedTargetResolveToken || embedParentId.value.trim() !== id) {
+        return
+      }
+
+      if (!block?.id) {
+        embedTargetHint.value = "未找到该 ID 对应的块或文档"
+        return
+      }
+
+      const preview: EmbedTargetPreview = {
+        id,
+        type: block.type === "d" ? "document" : "block",
+        title: summarizeBlockLabel(String(block.content || block.name || id), 40),
+        content: summarizeBlockLabel(String(block.content || block.fcontent || block.name || id), 48),
+      }
+
+      embedTargetPreview.value = preview
+      embedTargetHint.value = formatEmbedTargetHint(preview)
+    } catch {
+      if (token !== embedTargetResolveToken || embedParentId.value.trim() !== id) {
+        return
+      }
+      embedTargetHint.value = "未找到该 ID 对应的块或文档"
+    }
+  }
+
+  function selectCurrentDocumentTarget() {
+    currentDocumentTarget.value = getActiveDocumentTarget(window)
+    if (!currentDocumentTarget.value) {
+      showMessage("未找到当前打开的文档", 3500, "error")
+      return
+    }
+    embedParentId.value = currentDocumentTarget.value.id
+  }
+
+  watch(embedParentId, async value => {
+    await persistEmbedParentId()
+    await resolveEmbedTargetPreview(value)
+  })
 
   return proxyRefs({
     advancedMode,
@@ -365,6 +446,8 @@ export function createQueryBuilderStore() {
     dropToColumn,
     editableField,
     embedParentId,
+    embedTargetHint,
+    embedTargetPreview,
     error,
     fieldLabel,
     fieldOptions,
@@ -376,6 +459,7 @@ export function createQueryBuilderStore() {
     mappingKeys,
     mappingLabels,
     notebooks,
+    currentDocumentTarget,
     openBlock,
     presets,
     quickEdit,
@@ -387,6 +471,7 @@ export function createQueryBuilderStore() {
     resultSummary,
     runQuery,
     saveTemplate,
+    selectCurrentDocumentTarget,
     savedTemplates,
     saving,
     scopeLabel,

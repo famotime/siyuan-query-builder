@@ -9,11 +9,31 @@
           </p>
         </div>
         <div class="actions">
-          <input
-            v-model="store.embedParentId"
-            class="control control--embed"
-            placeholder="父块或文档 ID"
-          >
+          <div class="embed-targets">
+            <select
+              class="control control--embed-select"
+              :value="store.embedParentId === store.currentDocumentTarget?.id ? store.currentDocumentTarget.id : ''"
+              @change="($event) => ($event.target as HTMLSelectElement).value && store.selectCurrentDocumentTarget()"
+            >
+              <option value="">
+                选择当前打开文档
+              </option>
+              <option
+                v-if="store.currentDocumentTarget"
+                :value="store.currentDocumentTarget.id"
+              >
+                {{ store.currentDocumentTarget.title }} · {{ store.currentDocumentTarget.id }}
+              </option>
+            </select>
+            <input
+              v-model="store.embedParentId"
+              class="control control--embed"
+              placeholder="父块或文档 ID"
+            >
+            <p class="muted muted--embed-target">
+              {{ store.embedTargetHint }}
+            </p>
+          </div>
           <button
             class="btn btn--ghost btn--small"
             @click="store.insertEmbed"
@@ -266,6 +286,10 @@ h4 {
   min-width: 220px;
 }
 
+.control--embed-select {
+  min-width: 280px;
+}
+
 .control:focus {
   outline: none;
   border-color: rgba(208, 93, 13, 0.46);
@@ -283,6 +307,16 @@ h4 {
 
 .btn--ghost {
   border: 1px solid rgba(59, 46, 32, 0.16);
+}
+
+.embed-targets {
+  display: grid;
+  gap: 8px;
+  min-width: min(520px, 100%);
+}
+
+.muted--embed-target {
+  font-size: 13px;
 }
 
 .alert {
@@ -450,6 +484,10 @@ h4 {
   .actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .embed-targets {
+    min-width: 100%;
   }
 }
 </style>

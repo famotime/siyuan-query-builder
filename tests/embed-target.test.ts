@@ -1,0 +1,58 @@
+import { describe, expect, it } from "vitest"
+
+import {
+  formatEmbedTargetHint,
+  getActiveDocumentTarget,
+  isLikelyBlockId,
+  summarizeBlockLabel,
+} from "@/core/embed-target"
+
+describe("embed target helpers", () => {
+  it("detects likely SiYuan block ids", () => {
+    expect(isLikelyBlockId("20260322194501-abc1234")).toBe(true)
+    expect(isLikelyBlockId("not-an-id")).toBe(false)
+    expect(isLikelyBlockId("")).toBe(false)
+  })
+
+  it("summarizes block labels into a short hint", () => {
+    expect(summarizeBlockLabel("   这是一个很长的块内容\n第二行也要压缩   ", 10)).toBe("这是一个很长的块内容…")
+    expect(summarizeBlockLabel("短文本", 10)).toBe("短文本")
+    expect(summarizeBlockLabel("", 10)).toBe("")
+  })
+
+  it("formats document and block hints", () => {
+    expect(formatEmbedTargetHint({
+      id: "doc-1",
+      type: "document",
+      title: "周报",
+      content: "不会显示",
+    })).toBe("文档：周报")
+
+    expect(formatEmbedTargetHint({
+      id: "block-1",
+      type: "block",
+      title: "",
+      content: "这是块内容摘要",
+    })).toBe("块：这是块内容摘要")
+  })
+
+  it("resolves current document from active editor", () => {
+    const result = getActiveDocumentTarget({
+      siyuan: {
+        getActiveEditor: () => ({
+          protyle: {
+            block: {
+              rootID: "20260322194501-abc1234",
+            },
+          },
+          title: "日报",
+        }),
+      },
+    })
+
+    expect(result).toEqual({
+      id: "20260322194501-abc1234",
+      title: "日报",
+    })
+  })
+})

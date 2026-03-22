@@ -121,9 +121,17 @@ interface Window {
     user: any;
     ws: any;
     languages: any;
+    getActiveEditor?: () => any;
   };
   _sy_plugin_sample: {
     [key: string]: any;
+  };
+  __siyuanQueryBuilderBridge?: {
+    renderHost: (element: HTMLElement, payload: {
+      templateId: string;
+      viewType: "table" | "board" | "list" | "cards";
+      title?: string;
+    }) => Promise<void> | void;
   };
 }
 

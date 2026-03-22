@@ -71,7 +71,7 @@ describe("createQueryRuntime", () => {
     ])
   })
 
-  it("creates an embed descriptor block in markdown mode", async () => {
+  it("creates a SiYuan JS embed block in markdown mode", async () => {
     const adapter = new FakeKernelAdapter()
     const runtime = createQueryRuntime(adapter)
 
@@ -83,6 +83,7 @@ describe("createQueryRuntime", () => {
     })
 
     expect(adapter.appendedBlocks[0]?.parentID).toBe("doc-1")
+    expect(adapter.appendedBlocks[0]?.data).toContain("{{//!js")
     expect(adapter.appendedBlocks[0]?.data).toContain("template-1")
   })
 })

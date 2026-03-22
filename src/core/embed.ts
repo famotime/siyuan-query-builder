@@ -6,6 +6,12 @@ export interface InlineEmbedPayload {
   title?: string
 }
 
+export const SQB_EMBED_BRIDGE_KEY = "__siyuanQueryBuilderBridge"
+
+function toSingleLineJsEmbed(script: string) {
+  return `{{${script.trim().replace(/\r?\n/g, "_esc_newline_")}}}`
+}
+
 function encodePayload(payload: InlineEmbedPayload) {
   return encodeURIComponent(JSON.stringify(payload))
 }
@@ -38,17 +44,53 @@ export function parseInlineEmbedPayload(input: string | HTMLElement) {
     }
   }
 
+  const scriptMarkerMatch = input.match(/siyuan-query-builder:(\{.+?\})/s)
+  if (scriptMarkerMatch?.[1]) {
+    try {
+      return JSON.parse(scriptMarkerMatch[1]) as InlineEmbedPayload
+    } catch {
+      return null
+    }
+  }
+
   return null
 }
 
 export function createEmbedBlockMarkdown(payload: InlineEmbedPayload) {
-  const title = payload.title || "未命名视图"
   const encoded = encodePayload(payload)
-  return `<div class="sqb-inline-host" data-sqb-inline="${encoded}">
-  <div class="sqb-inline-host__fallback">
-    <strong>${title}</strong>
-    <span>siyuan-query-builder · ${payload.viewType}</span>
-  </div>
-</div>
-<!--siyuan-query-builder:${JSON.stringify(payload)}-->`
+  const payloadJson = JSON.stringify(payload)
+
+  const script = `//!js
+/* siyuan-query-builder:${payloadJson} */
+return (async () => {
+  const payload = ${payloadJson};
+  const host = document.createElement("div");
+  host.className = "sqb-inline-host";
+  host.dataset.sqbInline = ${JSON.stringify(encoded)};
+
+  const fallback = document.createElement("div");
+  fallback.className = "sqb-inline-host__fallback";
+
+  const title = document.createElement("strong");
+  title.textContent = payload.title || "未命名视图";
+
+  const meta = document.createElement("span");
+  meta.textContent = "siyuan-query-builder · " + payload.viewType;
+
+  fallback.append(title, meta);
+  host.appendChild(fallback);
+
+  item.innerHTML = "";
+  item.appendChild(host);
+
+  const bridge = window.${SQB_EMBED_BRIDGE_KEY};
+  if (bridge && typeof bridge.renderHost === "function") {
+    await bridge.renderHost(host, payload);
+  }
+
+  return [];
+})();
+`
+
+  return toSingleLineJsEmbed(script)
 }
