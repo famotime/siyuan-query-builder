@@ -10,27 +10,66 @@
         </div>
         <div class="actions">
           <div class="embed-targets">
-            <select
-              class="control control--embed-select"
-              :value="store.embedParentId === store.currentDocumentTarget?.id ? store.currentDocumentTarget.id : ''"
-              @focus="store.refreshCurrentDocumentTarget"
-              @change="($event) => ($event.target as HTMLSelectElement).value && store.selectCurrentDocumentTarget()"
+            <div
+              ref="embedTargetPickerRef"
+              class="embed-target-picker"
             >
-              <option value="">
-                选择当前打开文档
-              </option>
-              <option
-                v-if="store.currentDocumentTarget"
-                :value="store.currentDocumentTarget.id"
+              <input
+                v-model="store.embedParentId"
+                class="control control--embed-merged"
+                placeholder="父块或文档 ID"
+                @focus="store.refreshCurrentDocumentTarget"
               >
-                {{ store.currentDocumentTarget.title }} · {{ store.currentDocumentTarget.id }}
-              </option>
-            </select>
-            <input
-              v-model="store.embedParentId"
-              class="control control--embed"
-              placeholder="父块或文档 ID"
-            >
+              <button
+                class="embed-target-picker__toggle"
+                type="button"
+                aria-label="选择当前文档或历史 ID"
+                :aria-expanded="embedTargetMenuOpen"
+                @click="toggleEmbedTargetMenu"
+              >
+                <span
+                  class="embed-target-picker__chevron"
+                  :class="{ 'is-open': embedTargetMenuOpen }"
+                >⌄</span>
+              </button>
+              <div
+                v-if="embedTargetMenuOpen"
+                class="embed-target-menu"
+              >
+                <button
+                  v-if="store.currentDocumentTarget"
+                  class="embed-target-menu__item"
+                  type="button"
+                  @click="selectCurrentDocumentTarget"
+                >
+                  <span class="embed-target-menu__eyebrow">当前文档</span>
+                  <strong>{{ store.currentDocumentTarget.title }}</strong>
+                  <small>{{ store.currentDocumentTarget.id }}</small>
+                </button>
+                <template v-if="recentTargetOptions.length">
+                  <div class="embed-target-menu__section">
+                    历史 ID
+                  </div>
+                  <button
+                    v-for="target in recentTargetOptions"
+                    :key="target.id"
+                    class="embed-target-menu__item"
+                    type="button"
+                    @click="selectRecentTarget(target.id)"
+                  >
+                    <strong>{{ target.title || target.id }}</strong>
+                    <small>{{ target.type === "document" ? "文档" : "块" }} · {{ target.id }}</small>
+                    <small v-if="target.content && target.content !== target.title">{{ target.content }}</small>
+                  </button>
+                </template>
+                <p
+                  v-if="!store.currentDocumentTarget && !recentTargetOptions.length"
+                  class="embed-target-menu__empty"
+                >
+                  暂无当前文档或历史 ID，可直接输入。
+                </p>
+              </div>
+            </div>
             <p class="muted muted--embed-target">
               {{ store.embedTargetHint }}
             </p>
@@ -228,9 +267,50 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
+const embedTargetMenuOpen = ref(false)
+const embedTargetPickerRef = ref<HTMLElement | null>(null)
+const recentTargetOptions = computed(() => store.recentEmbedTargets.filter(target => target.id !== store.currentDocumentTarget?.id))
+
+async function toggleEmbedTargetMenu() {
+  if (!embedTargetMenuOpen.value) {
+    await store.refreshCurrentDocumentTarget()
+  }
+  embedTargetMenuOpen.value = !embedTargetMenuOpen.value
+}
+
+async function selectCurrentDocumentTarget() {
+  const selected = await store.selectCurrentDocumentTarget()
+  if (selected) {
+    embedTargetMenuOpen.value = false
+  }
+}
+
+async function selectRecentTarget(targetId: string) {
+  await store.selectEmbedTarget(targetId)
+  embedTargetMenuOpen.value = false
+}
+
+function handleDocumentPointerDown(event: Event) {
+  const picker = embedTargetPickerRef.value
+  const target = event.target
+  if (!picker || !(target instanceof Node) || picker.contains(target)) {
+    return
+  }
+  embedTargetMenuOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener("pointerdown", handleDocumentPointerDown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", handleDocumentPointerDown)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -283,12 +363,9 @@ h4 {
   padding: 8px 10px;
 }
 
-.control--embed {
-  min-width: 220px;
-}
-
-.control--embed-select {
-  min-width: 280px;
+.control--embed-merged {
+  min-width: 360px;
+  padding-right: 50px;
 }
 
 .control:focus {
@@ -314,6 +391,91 @@ h4 {
   display: grid;
   gap: 8px;
   min-width: min(520px, 100%);
+}
+
+.embed-target-picker {
+  position: relative;
+}
+
+.embed-target-picker__toggle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  bottom: 4px;
+  width: 38px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(242, 126, 34, 0.12);
+  color: #7b3404;
+  cursor: pointer;
+  font: 600 18px/1 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.embed-target-picker__chevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.embed-target-picker__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.embed-target-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(59, 46, 32, 0.12);
+  background: rgba(255, 251, 245, 0.98);
+  box-shadow: 0 18px 36px rgba(59, 46, 32, 0.16);
+}
+
+.embed-target-menu__section {
+  padding: 4px 6px 0;
+  color: rgba(32, 26, 21, 0.58);
+  font: 600 12px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.embed-target-menu__item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #201a15;
+  cursor: pointer;
+  text-align: left;
+}
+
+.embed-target-menu__item:hover {
+  background: rgba(242, 126, 34, 0.14);
+}
+
+.embed-target-menu__item strong {
+  font: 600 14px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.embed-target-menu__item small,
+.embed-target-menu__eyebrow,
+.embed-target-menu__empty {
+  color: rgba(32, 26, 21, 0.68);
+  font: 12px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.embed-target-menu__eyebrow {
+  color: #a24004;
+}
+
+.embed-target-menu__empty {
+  margin: 0;
+  padding: 8px 10px;
 }
 
 .muted--embed-target {

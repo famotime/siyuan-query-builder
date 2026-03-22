@@ -10,6 +10,25 @@ export interface ActiveDocumentTarget {
   title: string
 }
 
+export function normalizeRecentEmbedTargetIds(values: string[], maxItems = 6) {
+  const normalized: string[] = []
+  const seen = new Set<string>()
+
+  for (const value of values) {
+    const id = value.trim()
+    if (!id || !isLikelyBlockId(id) || seen.has(id)) {
+      continue
+    }
+    seen.add(id)
+    normalized.push(id)
+    if (normalized.length >= maxItems) {
+      break
+    }
+  }
+
+  return normalized
+}
+
 function isTabLike(value: unknown): value is Record<string, any> {
   if (!value || typeof value !== "object") {
     return false
@@ -95,6 +114,24 @@ export function formatEmbedTargetHint(target: EmbedTargetPreview | null) {
     return `文档：${target.title || target.id}`
   }
   return `块：${target.content || target.title || target.id}`
+}
+
+export function createEmbedTargetPreview(block: Partial<Block> | null | undefined, fallbackId: string): EmbedTargetPreview | null {
+  if (!block?.id && !fallbackId) {
+    return null
+  }
+
+  const id = String(block?.id || fallbackId).trim()
+  if (!id) {
+    return null
+  }
+
+  return {
+    id,
+    type: block?.type === "d" ? "document" : "block",
+    title: summarizeBlockLabel(String(block?.content || block?.name || id), 40),
+    content: summarizeBlockLabel(String(block?.content || block?.fcontent || block?.name || id), 48),
+  }
 }
 
 export function getActiveDocumentTarget(input: { siyuan?: { getActiveEditor?: () => any } } | Window): ActiveDocumentTarget | null {

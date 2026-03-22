@@ -4,6 +4,7 @@ import {
   formatEmbedTargetHint,
   getActiveDocumentTarget,
   isLikelyBlockId,
+  normalizeRecentEmbedTargetIds,
   summarizeBlockLabel,
 } from "@/core/embed-target"
 
@@ -34,6 +35,20 @@ describe("embed target helpers", () => {
       title: "",
       content: "这是块内容摘要",
     })).toBe("块：这是块内容摘要")
+  })
+
+  it("normalizes recent embed target ids with trim, dedupe and max size", () => {
+    expect(normalizeRecentEmbedTargetIds([
+      " 20260322194501-abc1234 ",
+      "20260322195501-def5678",
+      "20260322194501-abc1234",
+      "",
+      "not-an-id",
+      "20260322200501-hij9012",
+    ], 2)).toEqual([
+      "20260322194501-abc1234",
+      "20260322195501-def5678",
+    ])
   })
 
   it("resolves current document from active editor", () => {

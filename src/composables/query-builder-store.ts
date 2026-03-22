@@ -4,9 +4,11 @@ import { showMessage } from "siyuan"
 
 import { getBlockByID, lsNotebooks } from "@/api"
 import {
+  createEmbedTargetPreview,
   formatEmbedTargetHint,
   getActiveDocumentTarget,
   isLikelyBlockId,
+  normalizeRecentEmbedTargetIds,
   summarizeBlockLabel,
   type ActiveDocumentTarget,
   type EmbedTargetPreview,
@@ -36,6 +38,11 @@ import { usePlugin } from "@/main"
 
 type EditableField = keyof FieldMappings
 const EMBED_TARGET_PREFS_KEY = "query-builder.embed-target.v1"
+
+interface EmbedTargetPrefs {
+  lastParentId?: string
+  recentParentIds?: string[]
+}
 
 function createDraft(): QueryBuilderSnapshot {
   const template = createEmptyTemplate()
@@ -75,6 +82,8 @@ export function createQueryBuilderStore() {
   const embedTargetHint = ref("可输入父块或文档 ID，或下拉选择当前打开文档")
   const embedTargetPreview = ref<EmbedTargetPreview | null>(null)
   const currentDocumentTarget = ref<ActiveDocumentTarget | null>(null)
+  const recentEmbedTargetIds = ref<string[]>([])
+  const recentEmbedTargets = ref<EmbedTargetPreview[]>([])
   const draggingRowId = ref("")
   let embedTargetResolveToken = 0
 
@@ -331,6 +340,7 @@ export function createQueryBuilderStore() {
         title: draft.template.name,
         viewType: draft.view.type,
       })
+      await rememberEmbedTarget(embedParentId.value)
       showMessage("已插入嵌入描述块", 3500, "info")
     } catch (insertError) {
       showMessage(insertError instanceof Error ? insertError.message : "插入嵌入块失败", 5000, "error")
@@ -381,20 +391,64 @@ export function createQueryBuilderStore() {
     }
   }
 
+  async function lookupEmbedTargetPreview(id: string) {
+    if (!isLikelyBlockId(id)) {
+      return null
+    }
+
+    try {
+      const block = await getBlockByID(id)
+      return createEmbedTargetPreview(block, id)
+    } catch {
+      return null
+    }
+  }
+
+  async function refreshRecentEmbedTargets(ids = recentEmbedTargetIds.value) {
+    const normalized = normalizeRecentEmbedTargetIds(ids)
+    recentEmbedTargetIds.value = normalized
+    recentEmbedTargets.value = await Promise.all(normalized.map(async (id) => {
+      const preview = await lookupEmbedTargetPreview(id)
+      if (preview) {
+        return preview
+      }
+      return {
+        id,
+        type: "block",
+        title: id,
+        content: "未找到对应块或文档",
+      } satisfies EmbedTargetPreview
+    }))
+  }
+
   async function initialize() {
     const notebookResult = await lsNotebooks()
     notebooks.value = notebookResult?.notebooks || []
     await refreshCurrentDocumentTarget()
-    const prefs = await plugin.loadData(EMBED_TARGET_PREFS_KEY) as { lastParentId?: string } | null
+    const prefs = await plugin.loadData(EMBED_TARGET_PREFS_KEY) as EmbedTargetPrefs | null
     embedParentId.value = typeof prefs?.lastParentId === "string" ? prefs.lastParentId : ""
+    recentEmbedTargetIds.value = normalizeRecentEmbedTargetIds(prefs?.recentParentIds || [])
     await loadTemplates()
+    await refreshRecentEmbedTargets(recentEmbedTargetIds.value)
     await resolveEmbedTargetPreview(embedParentId.value)
   }
 
-  async function persistEmbedParentId() {
+  async function persistEmbedTargetPrefs() {
     await plugin.saveData(EMBED_TARGET_PREFS_KEY, {
       lastParentId: embedParentId.value.trim(),
+      recentParentIds: recentEmbedTargetIds.value,
     })
+  }
+
+  async function rememberEmbedTarget(value: string) {
+    const id = value.trim()
+    const next = normalizeRecentEmbedTargetIds([id, ...recentEmbedTargetIds.value])
+    const changed = next.join("|") !== recentEmbedTargetIds.value.join("|")
+    recentEmbedTargetIds.value = next
+    await persistEmbedTargetPrefs()
+    if (changed) {
+      await refreshRecentEmbedTargets(next)
+    }
   }
 
   async function resolveEmbedTargetPreview(value: string) {
@@ -415,21 +469,14 @@ export function createQueryBuilderStore() {
     }
 
     try {
-      const block = await getBlockByID(id)
+      const preview = await lookupEmbedTargetPreview(id)
       if (token !== embedTargetResolveToken || embedParentId.value.trim() !== id) {
         return
       }
 
-      if (!block?.id) {
+      if (!preview) {
         embedTargetHint.value = "未找到该 ID 对应的块或文档"
         return
-      }
-
-      const preview: EmbedTargetPreview = {
-        id,
-        type: block.type === "d" ? "document" : "block",
-        title: summarizeBlockLabel(String(block.content || block.name || id), 40),
-        content: summarizeBlockLabel(String(block.content || block.fcontent || block.name || id), 48),
       }
 
       embedTargetPreview.value = preview
@@ -442,18 +489,28 @@ export function createQueryBuilderStore() {
     }
   }
 
-  function selectCurrentDocumentTarget() {
-    refreshCurrentDocumentTarget().then(() => {
-      if (!currentDocumentTarget.value) {
-        showMessage("未找到当前打开的文档", 3500, "error")
-        return
-      }
-      embedParentId.value = currentDocumentTarget.value.id
-    })
+  async function selectEmbedTarget(targetId: string) {
+    const id = targetId.trim()
+    if (!id) {
+      return false
+    }
+    embedParentId.value = id
+    await rememberEmbedTarget(id)
+    return true
+  }
+
+  async function selectCurrentDocumentTarget() {
+    await refreshCurrentDocumentTarget()
+    if (!currentDocumentTarget.value) {
+      showMessage("未找到当前打开的文档", 3500, "error")
+      return false
+    }
+    await selectEmbedTarget(currentDocumentTarget.value.id)
+    return true
   }
 
   watch(embedParentId, async value => {
-    await persistEmbedParentId()
+    await persistEmbedTargetPrefs()
     await resolveEmbedTargetPreview(value)
   })
 
@@ -491,6 +548,7 @@ export function createQueryBuilderStore() {
     openBlock,
     presets,
     quickEdit,
+    recentEmbedTargets,
     refreshCurrentDocumentTarget,
     removeFilter,
     removeSort,
@@ -503,6 +561,7 @@ export function createQueryBuilderStore() {
     selectCurrentDocumentTarget,
     savedTemplates,
     saving,
+    selectEmbedTarget,
     scopeLabel,
     scopePlaceholder,
     toggleField,
