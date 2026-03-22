@@ -1,9 +1,9 @@
 import type { App as VueApp } from "vue"
 import { createApp } from "vue"
-import { Dialog, showMessage } from "siyuan"
-import type { Plugin } from "siyuan"
 
 import App from "./App.vue"
+import { Dialog, showMessage } from "@/external/siyuan"
+import type { Plugin } from "@/external/siyuan"
 
 let pluginInstance: Plugin | null = null
 let app: VueApp | null = null

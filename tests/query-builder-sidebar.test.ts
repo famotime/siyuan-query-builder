@@ -13,19 +13,18 @@ import QueryBuilderSidebar from "@/components/query-builder/QueryBuilderSidebar.
 function createStore() {
   return reactive({
     loading: false,
-    savedTemplates: [
+    currentTemplateId: "template-1",
+    savedTemplateSummaries: [
       {
-        template: {
-          id: "template-1",
-          name: "任务清单",
-        },
-        view: {
-          type: "table",
-        },
+        templateId: "template-1",
+        templateName: "任务清单",
+        defaultViewType: "table",
+        viewCount: 1,
       },
     ],
     presets: [],
     applySnapshot: vi.fn(),
+    loadTemplate: vi.fn(),
     deleteTemplate: vi.fn(),
     resetDraft: vi.fn(),
     runQuery: vi.fn(),
@@ -80,24 +79,18 @@ describe("QueryBuilderSidebar", () => {
 
   it("shows the saved default view label from the actual view type", () => {
     currentStore = createStore()
-    currentStore.savedTemplates = [
+    currentStore.savedTemplateSummaries = [
       {
-        template: {
-          id: "template-1",
-          name: "任务清单",
-        },
-        view: {
-          type: "cards",
-        },
+        templateId: "template-1",
+        templateName: "任务清单",
+        defaultViewType: "cards",
+        viewCount: 2,
       },
       {
-        template: {
-          id: "template-2",
-          name: "阅读清单",
-        },
-        view: {
-          type: "list",
-        },
+        templateId: "template-2",
+        templateName: "阅读清单",
+        defaultViewType: "list",
+        viewCount: 3,
       },
     ]
 
@@ -105,5 +98,35 @@ describe("QueryBuilderSidebar", () => {
 
     expect(wrapper.text()).toContain("统计卡片")
     expect(wrapper.text()).toContain("列表")
+    expect(wrapper.text()).toContain("2 个视图")
+    expect(wrapper.text()).toContain("3 个视图")
+  })
+
+  it("loads a template by id instead of replaying a stored snapshot", async () => {
+    currentStore = createStore()
+    currentStore.currentTemplateId = "template-2"
+    currentStore.savedTemplateSummaries = [
+      {
+        templateId: "template-1",
+        templateName: "任务清单",
+        defaultViewType: "table",
+        viewCount: 1,
+      },
+      {
+        templateId: "template-2",
+        templateName: "项目看板",
+        defaultViewType: "board",
+        viewCount: 2,
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderSidebar)
+
+    expect(wrapper.get('[data-template-load="template-2"]').attributes("data-active")).toBe("true")
+
+    await wrapper.get('[data-template-load="template-1"]').trigger("click")
+
+    expect(currentStore.loadTemplate).toHaveBeenCalledWith("template-1")
+    expect(currentStore.applySnapshot).not.toHaveBeenCalled()
   })
 })

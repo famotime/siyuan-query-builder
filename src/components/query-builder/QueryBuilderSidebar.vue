@@ -9,7 +9,7 @@
           <p class="eyebrow">
             Terra Query
           </p>
-          <h1>查询工作台</h1>
+          <h1>易搭</h1>
         </div>
       </div>
       <p class="muted">
@@ -86,7 +86,7 @@
             <span class="section-kicker">Saved Templates</span>
             <h2>已保存模板</h2>
           </div>
-          <span class="pill">{{ store.savedTemplates.length }}</span>
+          <span class="pill">{{ store.savedTemplateSummaries.length }}</span>
         </div>
         <button
           data-section-toggle="saved-templates"
@@ -118,38 +118,33 @@
       </p>
       <template v-if="savedTemplatesExpanded">
         <div
-          v-for="snapshot in store.savedTemplates"
-          :key="snapshot.template.id"
+          v-for="summary in store.savedTemplateSummaries"
+          :key="summary.templateId"
           class="item item--row"
         >
           <button
             class="item-main"
-            @click="store.applySnapshot(snapshot)"
-          >
-            <strong>{{ snapshot.template.name }}</strong>
-            <span>{{ viewTypeLabel(snapshot.view.type) }}</span>
-          </button>
-          <button
-            :data-template-delete="snapshot.template.id"
-            class="item-delete"
             type="button"
+            :data-template-load="summary.templateId"
+            :data-active="String(store.currentTemplateId === summary.templateId)"
+            @click="store.loadTemplate(summary.templateId)"
+          >
+            <span class="item-main__copy">
+              <strong>{{ summary.templateName }}</strong>
+              <span>默认：{{ viewTypeLabel(summary.defaultViewType) }}</span>
+            </span>
+            <span class="item-main__meta">{{ summary.viewCount }} 个视图</span>
+          </button>
+          <DeleteIconButton
+            :data-template-delete="summary.templateId"
+            class="item-delete"
             title="删除模板"
             aria-label="删除模板"
-            @click.stop="store.deleteTemplate(snapshot.template.id)"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M9 3h6l1 2h4v2H4V5h4l1-2zm-1 6h2v8H8V9zm6 0h2v8h-2V9zM7 9h10l-.7 11.1c-.1 1-.9 1.9-2 1.9H9.7c-1.1 0-1.9-.8-2-1.9L7 9z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
+            @click.stop="store.deleteTemplate(summary.templateId)"
+          />
         </div>
         <p
-          v-if="!store.savedTemplates.length"
+          v-if="!store.savedTemplateSummaries.length"
           class="muted"
         >
           先保存一个查询模板。
@@ -167,6 +162,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
+import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
@@ -386,15 +382,13 @@ h1 {
   gap: 10px;
 }
 
-.item-main,
-.item-delete {
+.item-main {
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease;
   cursor: pointer;
   color: var(--sqb-text);
 }
 
-.item-main:hover,
-.item-delete:hover {
+.item-main:hover {
   transform: translateY(-1px);
 }
 
@@ -413,28 +407,20 @@ h1 {
   border: none;
 }
 
-.item-delete {
+.item-main__copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.item-main__meta {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: var(--sqb-danger-soft);
-  border: 1px solid rgba(184, 50, 48, 0.24);
-  color: var(--sqb-danger);
+  color: var(--sqb-text-muted);
+  font: 12px/1.4 var(--sqb-sans);
 }
 
-.item-delete svg {
-  width: 15px;
-  height: 15px;
-}
-
-.item-delete:hover {
-  background: rgba(184, 50, 48, 0.18);
-  border-color: rgba(184, 50, 48, 0.32);
+.item-delete {
+  margin-right: -2px;
 }
 
 .pill {

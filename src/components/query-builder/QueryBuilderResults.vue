@@ -125,14 +125,13 @@
               >
                 设为默认
               </button>
-              <button
-                class="btn btn--ghost btn--small"
-                type="button"
+              <DeleteIconButton
                 :data-view-delete="view.id"
+                class="saved-views__delete"
+                title="删除视图"
+                aria-label="删除视图"
                 @click="store.deleteSavedView(view.id)"
-              >
-                删除
-              </button>
+              />
             </div>
           </article>
         </div>
@@ -419,6 +418,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 
+import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
@@ -648,6 +648,10 @@ h3 {
   cursor: pointer;
   color: inherit;
   justify-content: flex-start;
+}
+
+.saved-views__delete {
+  margin-right: -2px;
 }
 
 .saved-views__badge {

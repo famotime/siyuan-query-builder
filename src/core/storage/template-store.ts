@@ -1,8 +1,8 @@
-import { createDefaultViewConfig } from "@/core/query/catalog"
 import type { QueryBuilderSnapshot, QueryTemplate, ViewConfig } from "@/core/query/types"
 
 import { migrateLegacyTemplateSnapshots } from "./migrations"
 import { createQueryTemplateStore } from "./query-template-store"
+import { pickTemplateView } from "./template-view"
 import { createViewConfigStore } from "./view-config-store"
 
 interface StorageAdapter {
@@ -11,18 +11,10 @@ interface StorageAdapter {
   removeData(key: string): Promise<void>
 }
 
-function pickView(template: QueryTemplate, views: ViewConfig[]) {
-  const preferred = views.find(item => item.defaultView)
-    || views.find(item => item.type === template.viewType)
-    || views[0]
-
-  return preferred || createDefaultViewConfig(template.id, template.viewType)
-}
-
 function toSnapshot(template: QueryTemplate, views: ViewConfig[]): QueryBuilderSnapshot {
   return {
     template,
-    view: pickView(template, views),
+    view: pickTemplateView(template, views),
   }
 }
 

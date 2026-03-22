@@ -265,12 +265,13 @@
                 :value="String(filter.value || '')"
                 @input="filter.value = ($event.target as HTMLInputElement).value"
               >
-              <button
-                class="btn btn--ghost btn--small"
+              <DeleteIconButton
+                :data-filter-delete="filter.id"
+                class="filter-row__delete"
+                title="删除条件"
+                aria-label="删除条件"
                 @click="store.removeFilter(filter.id)"
-              >
-                删除
-              </button>
+              />
             </div>
           </div>
           <p
@@ -431,12 +432,13 @@
                   降序
                 </option>
               </select>
-              <button
-                class="btn btn--ghost btn--small"
+              <DeleteIconButton
+                :data-sort-delete="String(index)"
+                class="filter-row__delete"
+                title="删除排序"
+                aria-label="删除排序"
                 @click="store.removeSort(index)"
-              >
-                删除
-              </button>
+              />
             </div>
           </div>
 
@@ -485,6 +487,7 @@
 <script setup lang="ts">
 import { reactive } from "vue"
 
+import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
@@ -768,6 +771,10 @@ h3 {
 
 .filter-row--sort {
   grid-template-columns: minmax(0, 1fr) 120px auto;
+}
+
+.filter-row__delete {
+  justify-self: end;
 }
 
 .section-head--top {

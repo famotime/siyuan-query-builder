@@ -8,6 +8,25 @@
 - [PRD Gap 分析与后续开发指引](./siyuan-query-builder-prd-gap-analysis.md)
 - [现有开发计划](./siyuan-query-builder-dev-plan.md)
 
+## 当前执行状态
+
+截至 2026-03-22，本计划中用于 PRD MVP 收口的任务已完成：
+
+- Phase A：A1 / A2 / A3 已完成
+- Phase B：B1 / B2 / B3 已完成
+- Phase C：C1 / C2 已完成
+
+当前 Definition of Done 已满足：
+
+- 运行前校验可见且阻断错误配置
+- 模板与视图存储已解耦并完成 v1 -> v2 迁移
+- 同模板支持多个持久化视图，并可设置/恢复默认视图
+- 侧边栏已展示模板默认视图与视图数量
+- 已落地本地指标采集
+- 关键链路测试与构建均稳定通过
+
+后续若继续开发，建议只进入 Phase D / PRD Phase 2 扩展项，例如日历视图、时间线视图和更多预设模板。
+
 ## 1. 目标
 
 本计划将 PRD gap 转换为可执行开发任务，目标是：

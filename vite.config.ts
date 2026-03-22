@@ -16,6 +16,7 @@ const pluginInfo = require("./plugin.json")
 export default defineConfig(({
   mode,
 }) => {
+  const isTest = mode === "test"
 
   console.log('mode=>', mode)
   const env = loadEnv(mode, process.cwd())
@@ -47,6 +48,11 @@ export default defineConfig(({
     resolve: {
       alias: {
         "@": resolve(__dirname, "src"),
+        ...(isTest
+          ? {
+              siyuan: resolve(__dirname, "tests/mocks/siyuan.ts"),
+            }
+          : {}),
       },
     },
 

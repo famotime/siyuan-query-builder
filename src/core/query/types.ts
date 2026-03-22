@@ -75,6 +75,14 @@ export interface ViewConfig {
   fieldMappings: FieldMappings
 }
 
+export interface SavedTemplateSummary {
+  templateId: string
+  templateName: string
+  defaultViewId?: string
+  defaultViewType: ViewType
+  viewCount: number
+}
+
 export interface QueryBuilderSnapshot {
   template: QueryTemplate
   view: ViewConfig
