@@ -2,6 +2,7 @@ import type { ViewType } from "@/core/query/types"
 
 export interface InlineEmbedPayload {
   templateId: string
+  viewId?: string
   viewType: ViewType
   title?: string
 }

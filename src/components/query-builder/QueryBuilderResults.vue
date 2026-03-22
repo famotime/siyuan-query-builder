@@ -87,14 +87,18 @@
             type="button"
             @click="store.saveViewAs"
           >
-            另存当前视图
+            添加为新视图
           </button>
         </div>
-        <div class="saved-views__list">
+        <div
+          class="saved-views__list"
+          data-saved-views-grid
+        >
           <article
             v-for="view in store.savedViews"
             :key="view.id"
             class="saved-views__item"
+            data-saved-view-card
             :class="{ 'saved-views__item--active': view.id === store.draft.view.id }"
           >
             <button
@@ -648,21 +652,27 @@ h3 {
 
 .saved-views__list {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
 }
 
 .saved-views__item {
   display: grid;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
+  gap: 12px;
+  min-height: 126px;
+  padding: 14px;
+  border-radius: 20px;
   border: 1px solid rgba(59, 46, 32, 0.1);
-  background: rgba(255, 251, 245, 0.78);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 245, 0.88), rgba(248, 244, 237, 0.74));
+  box-shadow: 0 10px 22px rgba(57, 61, 52, 0.05);
 }
 
 .saved-views__item--active {
   border-color: rgba(74, 124, 89, 0.26);
-  background: rgba(74, 124, 89, 0.08);
+  background:
+    linear-gradient(180deg, rgba(74, 124, 89, 0.12), rgba(255, 255, 255, 0.82));
+  box-shadow: 0 14px 26px rgba(74, 124, 89, 0.08);
 }
 
 .saved-views__main {
@@ -672,10 +682,26 @@ h3 {
   cursor: pointer;
   color: inherit;
   justify-content: flex-start;
+  align-items: flex-start;
+  min-height: 42px;
 }
 
 .saved-views__delete {
   margin-right: -2px;
+}
+
+.saved-views__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.saved-views__actions .btn {
+  width: 100%;
+  min-height: 40px;
+  padding-inline: 12px;
+  justify-content: center;
 }
 
 .saved-views__badge {

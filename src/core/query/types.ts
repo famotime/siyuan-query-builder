@@ -73,6 +73,10 @@ export interface ViewConfig {
   type: ViewType
   defaultView: boolean
   fieldMappings: FieldMappings
+  fields?: FieldId[]
+  sorts?: QuerySort[]
+  groupBy?: FieldId | null
+  aggregation?: QueryAggregation | null
 }
 
 export interface SavedTemplateSummary {

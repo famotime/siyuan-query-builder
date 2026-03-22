@@ -139,7 +139,7 @@
 
     <div class="sidebar-footnote">
       <span class="sidebar-footnote__title">Workspace Note</span>
-      <p>当前界面只优化视觉层，查询、保存、嵌入和拖拽行为保持不变。</p>
+      <p>QUINCYZOU 2026</p>
     </div>
   </aside>
 </template>

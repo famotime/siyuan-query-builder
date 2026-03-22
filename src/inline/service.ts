@@ -45,7 +45,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
   const bridgeMounted = new Map<HTMLElement, DisposeFn | undefined>()
 
   const mountPayload = async (element: HTMLElement, payload: InlineEmbedPayload) => {
-    const snapshot = await templateStore.get(payload.templateId)
+    const snapshot = await templateStore.get(payload.templateId, payload.viewId)
     const host = document.createElement("div")
     host.className = "sqb-inline-root"
     shieldInlineElement(host)

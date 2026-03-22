@@ -100,4 +100,69 @@ describe("createTemplateStore", () => {
     expect(loaded[0]?.template.viewType).toBe("board")
     expect(loaded[0]?.view.type).toBe("board")
   })
+
+  it("loads a specific saved view when a view id is provided", async () => {
+    const storage = new FakePluginStorage()
+    const store = createTemplateStore(storage)
+    await storage.saveData("query-builder.templates.v2", [
+      {
+        id: "template-1",
+        version: 1,
+        name: "Reading Queue",
+        scope: {
+          type: "tag",
+          value: "#unread#",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "table",
+      },
+    ])
+    await storage.saveData("query-builder.views.v2", [
+      {
+        id: "view-1",
+        queryTemplateId: "template-1",
+        type: "table",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+        fields: ["content"],
+        sorts: [],
+      },
+      {
+        id: "view-2",
+        queryTemplateId: "template-1",
+        type: "board",
+        defaultView: false,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+        fields: ["content", "attr:status"],
+        sorts: [
+          {
+            field: "attr:status",
+            direction: "asc",
+          },
+        ],
+        groupBy: "attr:status",
+      },
+    ])
+
+    const loaded = await store.get("template-1", "view-2")
+
+    expect(loaded?.view.id).toBe("view-2")
+    expect(loaded?.template.viewType).toBe("board")
+    expect(loaded?.template.groupBy).toBe("attr:status")
+    expect(loaded?.template.fields).toEqual(["content", "attr:status"])
+  })
 })

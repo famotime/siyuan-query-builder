@@ -16,12 +16,15 @@ import {
 import {
   AGGREGATE_VALUE_FIELD,
   TAG_COUNT_FIELD,
+  applyViewConfigToTemplate,
   cloneSnapshot,
   createDefaultViewConfig,
   createEmptyTemplate,
   createFieldOptions,
   createId,
   createPresets,
+  hydrateViewConfig,
+  type FieldOption,
 } from "@/core/query/catalog"
 import { buildQuery } from "@/core/query/compiler"
 import { validateSnapshot } from "@/core/query/validation"
@@ -59,8 +62,42 @@ function createDraft(): QueryBuilderSnapshot {
   const template = createEmptyTemplate()
   return {
     template,
-    view: createDefaultViewConfig(template.id),
+    view: createDefaultViewConfig(template.id, "table", template),
   }
+}
+
+function createDynamicFieldOption(field: string): FieldOption {
+  if (field.startsWith("attr:")) {
+    const attrName = field.slice("attr:".length)
+    return {
+      value: field,
+      label: attrName,
+      hint: attrName,
+    }
+  }
+
+  return {
+    value: field,
+    label: field,
+  }
+}
+
+function mergeFieldOptions(baseOptions: FieldOption[], template: QueryTemplate): FieldOption[] {
+  const seen = new Set(baseOptions.map(option => option.value))
+  const extraFields = new Set<string>([
+    ...template.fields,
+    ...template.filters.map(filter => filter.field),
+    ...template.sorts.map(sort => sort.field),
+    template.groupBy || "",
+    template.aggregation?.field || "",
+  ].filter(Boolean))
+
+  return [
+    ...baseOptions,
+    ...Array.from(extraFields)
+      .filter(field => !seen.has(field))
+      .map(createDynamicFieldOption),
+  ]
 }
 
 export type QueryBuilderStore = ReturnType<typeof createQueryBuilderStore>
@@ -113,7 +150,10 @@ export function createQueryBuilderStore() {
   }
 
   const presets = computed(() => createPresets(draft.view.fieldMappings))
-  const fieldOptions = computed(() => createFieldOptions(draft.view.fieldMappings))
+  const fieldOptions = computed(() => mergeFieldOptions(
+    createFieldOptions(draft.view.fieldMappings),
+    draft.template,
+  ))
   const selectableFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD))
   const sortFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
   const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => option.value === TAG_COUNT_FIELD))
@@ -238,9 +278,9 @@ export function createQueryBuilderStore() {
       cards: "统计卡片",
     }
     if (draft.template.aggregation) {
-      return `最近一次运行返回 ${resultSet.value.total} 组统计结果，当前为${viewNameMap[draft.view.type]}视图。`
+      return `返回 ${resultSet.value.total} 组统计结果`
     }
-    return `最近一次运行返回 ${resultSet.value.total} 条结果，当前为${viewNameMap[draft.view.type]}视图。`
+    return `返回 ${resultSet.value.total} 条结果`
   })
   const validationIssues = computed(() => validateSnapshot(createSnapshot()))
   const blockingValidationIssues = computed(() => validationIssues.value.filter(issue => issue.level === "error"))
@@ -283,11 +323,11 @@ export function createQueryBuilderStore() {
   }
 
   function recordMetric(metric: "queryRuns" | "templateSaves" | "viewSaves" | "embedInsertions" | "quickEdits" | "boardDrags", amount = 1) {
-    void metricsStore.increment(metric, amount).catch(() => {})
+    void metricsStore.increment(metric, amount).catch(() => { })
   }
 
   function recordViewSwitch(type: ViewConfig["type"]) {
-    void metricsStore.incrementViewSwitch(type).catch(() => {})
+    void metricsStore.incrementViewSwitch(type).catch(() => { })
   }
 
   function resetResultState() {
@@ -297,9 +337,10 @@ export function createQueryBuilderStore() {
   }
 
   function applyTemplateAndView(template: QueryTemplate, view: ViewConfig) {
+    const nextView = hydrateViewConfig(view, template)
     const next = cloneSnapshot({
-      template,
-      view,
+      template: applyViewConfigToTemplate(template, nextView),
+      view: nextView,
     })
     draft.template = next.template
     draft.view = next.view
@@ -363,11 +404,11 @@ export function createQueryBuilderStore() {
     draft.template.sorts = nextSorts.length
       ? nextSorts
       : [
-          {
-            field: AGGREGATE_VALUE_FIELD,
-            direction: "desc",
-          },
-        ]
+        {
+          field: AGGREGATE_VALUE_FIELD,
+          direction: "desc",
+        },
+      ]
   }
 
   function requiresValue(operator: FilterOperator) {
@@ -430,9 +471,19 @@ export function createQueryBuilderStore() {
   }
 
   function createSnapshot() {
+    const template = toRaw(draft.template)
+    const nextView = {
+      ...toRaw(draft.view),
+      type: template.viewType,
+      fields: [...template.fields],
+      sorts: template.sorts.map(sort => ({ ...sort })),
+      groupBy: template.groupBy || null,
+      aggregation: template.aggregation ? { ...template.aggregation } : null,
+    } satisfies ViewConfig
+
     return cloneSnapshot({
-      template: toRaw(draft.template),
-      view: toRaw(draft.view),
+      template,
+      view: nextView,
     })
   }
 
@@ -588,6 +639,7 @@ export function createQueryBuilderStore() {
       await runtime.insertEmbedBlock({
         parentID: embedParentId.value.trim(),
         templateId: draft.template.id,
+        viewId: draft.view.id,
         title: draft.template.name,
         viewType: draft.view.type,
       })
@@ -780,7 +832,7 @@ export function createQueryBuilderStore() {
       await refreshSavedViews(draft.template.id)
       await refreshSavedTemplateSummaries()
       recordMetric("viewSaves")
-      showMessage("已另存当前视图", 3000, "info")
+      showMessage("已添加为新视图", 3000, "info")
       return true
     } catch (saveError) {
       showMessage(saveError instanceof Error ? saveError.message : "另存视图失败", 5000, "error")
@@ -814,8 +866,7 @@ export function createQueryBuilderStore() {
       const template = await queryTemplateStore.get(view.queryTemplateId)
       if (template) {
         await savePersistedTemplate({
-          ...template,
-          viewType: view.type,
+          ...applyViewConfigToTemplate(template, view),
         })
       }
       await refreshSavedViews(draft.template.id)
@@ -849,8 +900,7 @@ export function createQueryBuilderStore() {
         const template = await queryTemplateStore.get(replacement.queryTemplateId)
         if (template) {
           await savePersistedTemplate({
-            ...template,
-            viewType: replacement.type,
+            ...applyViewConfigToTemplate(template, replacement),
           })
         }
         await refreshSavedViews(draft.template.id)
@@ -865,8 +915,7 @@ export function createQueryBuilderStore() {
         const template = await queryTemplateStore.get(replacement.queryTemplateId)
         if (template) {
           await savePersistedTemplate({
-            ...template,
-            viewType: replacement.type,
+            ...applyViewConfigToTemplate(template, replacement),
           })
         }
       }

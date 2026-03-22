@@ -229,4 +229,69 @@ describe("createQueryBuilderStore view management", () => {
       },
     })
   })
+
+  it("includes added custom attributes in selectable output fields", () => {
+    const store = createQueryBuilderStore()
+
+    store.customFieldName = "sprint"
+    store.addCustomField()
+
+    expect(store.draft.template.fields).toContain("attr:sprint")
+    expect(store.selectableFieldOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        value: "attr:sprint",
+      }),
+    ]))
+  })
+
+  it("restores distinct fields and grouping from different saved views under one template", async () => {
+    const store = createQueryBuilderStore()
+
+    store.draft.template.name = "任务清单"
+    store.draft.template.fields = ["content", "updated"]
+    store.draft.template.sorts = [
+      {
+        field: "updated",
+        direction: "desc",
+      },
+    ]
+    await store.saveTemplate()
+    const tableViewId = store.draft.view.id
+
+    store.setViewType("board")
+    store.draft.template.fields = ["content", `attr:${store.draft.view.fieldMappings.status}`]
+    store.draft.template.groupBy = `attr:${store.draft.view.fieldMappings.status}`
+    store.draft.template.sorts = [
+      {
+        field: `attr:${store.draft.view.fieldMappings.status}`,
+        direction: "asc",
+      },
+    ]
+    await store.saveViewAs()
+    const boardViewId = store.draft.view.id
+
+    expect(boardViewId).not.toBe(tableViewId)
+
+    await store.loadSavedView(tableViewId)
+    expect(store.draft.view.type).toBe("table")
+    expect(store.draft.template.fields).toEqual(["content", "updated"])
+    expect(store.draft.template.groupBy).toBeUndefined()
+    expect(store.draft.template.sorts).toEqual([
+      {
+        field: "updated",
+        direction: "desc",
+      },
+    ])
+
+    await store.loadSavedView(boardViewId)
+    expect(store.draft.view.type).toBe("board")
+    expect(store.draft.template.fields).toEqual(["content", "attr:status"])
+    expect(store.draft.template.groupBy).toBe("attr:status")
+    expect(store.draft.template.sorts).toEqual([
+      {
+        field: "attr:status",
+        direction: "asc",
+      },
+    ])
+  })
 })

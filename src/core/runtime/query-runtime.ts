@@ -51,11 +51,13 @@ export function createQueryRuntime(adapter: KernelAdapter) {
     async insertEmbedBlock(payload: {
       parentID: string
       templateId: string
+      viewId?: string
       title?: string
       viewType: ViewType
     }) {
       const markdown = createEmbedBlockMarkdown({
         templateId: payload.templateId,
+        viewId: payload.viewId,
         title: payload.title,
         viewType: payload.viewType,
       })

@@ -88,7 +88,7 @@ function createStore() {
     requiresValue: () => true,
     addSort: () => {},
     removeSort: () => {},
-    toggleField: () => {},
+    toggleField: vi.fn(),
     addCustomField: () => {},
     saveTemplate: () => {},
     runQuery: () => {},
@@ -142,5 +142,26 @@ describe("QueryBuilderEditor", () => {
 
     expect(wrapper.text()).toContain('看板视图需要设置分组字段。')
     expect(wrapper.text()).toContain('当前分组不支持拖拽回写。')
+  })
+
+  it('renders output fields in a collapsible multiselect picker', async () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderEditor)
+
+    const compactRow = wrapper.get('[data-view-config-row]')
+    expect(compactRow.get('[data-sort-panel]').exists()).toBe(true)
+    expect(compactRow.get('[data-field-panel]').exists()).toBe(true)
+
+    const toggle = wrapper.get('[data-field-picker-toggle]')
+    expect(toggle.text()).toContain('已选 2 项')
+    expect(wrapper.find('[data-field-option="content"]').exists()).toBe(false)
+
+    await toggle.trigger('click')
+
+    expect(wrapper.find('[data-field-option="content"]').exists()).toBe(true)
+
+    await wrapper.get('[data-field-option="attr:status"]').trigger('change')
+
+    expect(currentStore.toggleField).toHaveBeenCalledWith('attr:status')
   })
 })

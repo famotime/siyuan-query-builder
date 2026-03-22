@@ -86,4 +86,19 @@ describe("createQueryRuntime", () => {
     expect(adapter.appendedBlocks[0]?.data).toContain("{{//!js")
     expect(adapter.appendedBlocks[0]?.data).toContain("template-1")
   })
+
+  it("passes the selected view id into embed markdown payload", async () => {
+    const adapter = new FakeKernelAdapter()
+    const runtime = createQueryRuntime(adapter)
+
+    await runtime.insertEmbedBlock({
+      parentID: "doc-2",
+      templateId: "template-2",
+      viewId: "view-2",
+      title: "任务列表",
+      viewType: "table",
+    })
+
+    expect(adapter.appendedBlocks[0]?.data).toContain("\"viewId\":\"view-2\"")
+  })
 })

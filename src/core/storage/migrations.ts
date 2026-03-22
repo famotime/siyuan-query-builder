@@ -1,3 +1,4 @@
+import { hydrateViewConfig } from "@/core/query/catalog"
 import type { QueryBuilderSnapshot, QueryTemplate, ViewConfig } from "@/core/query/types"
 
 import { QUERY_TEMPLATE_STORAGE_KEY } from "./query-template-store"
@@ -54,7 +55,7 @@ export async function migrateLegacyTemplateSnapshots(storage: StorageAdapter) {
 
   const snapshots = legacy as QueryBuilderSnapshot[]
   const templates = normalizeTemplates(snapshots.map(item => item.template))
-  const views = normalizeViews(snapshots.map(item => item.view))
+  const views = normalizeViews(snapshots.map(item => hydrateViewConfig(item.view, item.template)))
 
   if (templates.length) {
     await storage.saveData(QUERY_TEMPLATE_STORAGE_KEY, templates)

@@ -130,9 +130,11 @@ describe("QueryBuilderResults", () => {
     currentStore.saveViewAs = vi.fn(async () => true)
 
     const wrapper = mount(QueryBuilderResults)
+    const grid = wrapper.get("[data-saved-views-grid]")
 
     expect(wrapper.text()).toContain("已保存视图")
     expect(wrapper.text()).toContain("默认")
+    expect(grid.findAll("[data-saved-view-card]").length).toBe(2)
 
     await wrapper.get('[data-view-load="view-2"]').trigger("click")
     await wrapper.get('[data-view-default="view-2"]').trigger("click")

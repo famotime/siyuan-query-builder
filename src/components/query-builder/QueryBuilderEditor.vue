@@ -394,90 +394,126 @@
             </label>
           </div>
 
-          <div class="section-head section-head--top">
-            <span class="muted">排序规则</span>
-            <button
-              class="btn btn--ghost btn--small"
-              @click="store.addSort"
+          <div
+            class="view-config-row"
+            data-view-config-row
+          >
+            <section
+              class="view-config-panel"
+              data-sort-panel
             >
-              添加排序
-            </button>
-          </div>
-          <div class="stack gap-sm">
-            <div
-              v-for="(sort, index) in store.draft.template.sorts"
-              :key="`${sort.field}-${index}`"
-              class="filter-row filter-row--sort"
-            >
-              <select
-                v-model="sort.field"
-                class="control"
-              >
-                <option
-                  v-for="option in store.sortFieldOptions"
-                  :key="option.value"
-                  :value="option.value"
+              <div class="section-head section-head--top section-head--compact">
+                <span class="muted">排序规则</span>
+                <button
+                  class="btn btn--ghost btn--small"
+                  @click="store.addSort"
                 >
-                  {{ option.label }}
-                </option>
-              </select>
-              <select
-                v-model="sort.direction"
-                class="control"
-              >
-                <option value="asc">
-                  升序
-                </option>
-                <option value="desc">
-                  降序
-                </option>
-              </select>
-              <DeleteIconButton
-                :data-sort-delete="String(index)"
-                class="filter-row__delete"
-                title="删除排序"
-                aria-label="删除排序"
-                @click="store.removeSort(index)"
-              />
-            </div>
-          </div>
+                  添加排序
+                </button>
+              </div>
+              <div class="stack gap-sm">
+                <div
+                  v-for="(sort, index) in store.draft.template.sorts"
+                  :key="`${sort.field}-${index}`"
+                  class="filter-row filter-row--sort"
+                >
+                  <select
+                    v-model="sort.field"
+                    class="control"
+                  >
+                    <option
+                      v-for="option in store.sortFieldOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+                  </select>
+                  <select
+                    v-model="sort.direction"
+                    class="control"
+                  >
+                    <option value="asc">
+                      升序
+                    </option>
+                    <option value="desc">
+                      降序
+                    </option>
+                  </select>
+                  <DeleteIconButton
+                    :data-sort-delete="String(index)"
+                    class="filter-row__delete"
+                    title="删除排序"
+                    aria-label="删除排序"
+                    @click="store.removeSort(index)"
+                  />
+                </div>
+              </div>
+            </section>
 
-          <div class="section-head section-head--top">
-            <span class="muted">输出字段</span>
-          </div>
-          <template v-if="store.aggregationEnabled">
-            <p class="muted">
-              统计查询会自动输出分组字段和统计值。
-            </p>
-          </template>
-          <template v-else>
-            <label
-              v-for="option in store.selectableFieldOptions"
-              :key="option.value"
-              class="check"
+            <section
+              class="view-config-panel"
+              data-field-panel
             >
-              <input
-                type="checkbox"
-                :checked="store.draft.template.fields.includes(option.value)"
-                @change="store.toggleField(option.value)"
-              >
-              <span>{{ option.label }}</span>
-              <small v-if="option.hint">{{ option.hint }}</small>
-            </label>
-            <div class="actions actions--inline">
-              <input
-                v-model="store.customFieldName"
-                class="control"
-                placeholder="自定义属性名，如 sprint"
-              >
-              <button
-                class="btn btn--ghost btn--small"
-                @click="store.addCustomField"
-              >
-                添加属性字段
-              </button>
-            </div>
-          </template>
+              <div class="section-head section-head--top section-head--compact">
+                <span class="muted">输出字段</span>
+              </div>
+              <template v-if="store.aggregationEnabled">
+                <p class="muted">
+                  统计查询会自动输出分组字段和统计值。
+                </p>
+              </template>
+              <template v-else>
+                <div class="field-picker">
+                  <button
+                    class="field-picker__toggle"
+                    data-field-picker-toggle
+                    type="button"
+                    :aria-expanded="String(fieldPickerOpen)"
+                    @click="fieldPickerOpen = !fieldPickerOpen"
+                  >
+                    <span class="field-picker__summary">{{ selectedFieldSummary }}</span>
+                    <span
+                      class="field-picker__chevron"
+                      :class="{ 'field-picker__chevron--open': fieldPickerOpen }"
+                    >⌄</span>
+                  </button>
+                  <div
+                    v-if="fieldPickerOpen"
+                    class="field-picker__menu"
+                  >
+                    <label
+                      v-for="option in store.selectableFieldOptions"
+                      :key="option.value"
+                      class="field-picker__option"
+                    >
+                      <input
+                        :data-field-option="option.value"
+                        type="checkbox"
+                        :checked="store.draft.template.fields.includes(option.value)"
+                        @change="store.toggleField(option.value)"
+                      >
+                      <span>{{ option.label }}</span>
+                      <small v-if="option.hint">{{ option.hint }}</small>
+                    </label>
+                  </div>
+                </div>
+                <div class="actions actions--inline">
+                  <input
+                    v-model="store.customFieldName"
+                    class="control"
+                    placeholder="自定义属性名，如 sprint"
+                  >
+                  <button
+                    class="btn btn--ghost btn--small"
+                    @click="store.addCustomField"
+                  >
+                    添加属性字段
+                  </button>
+                </div>
+              </template>
+            </section>
+          </div>
         </template>
       </article>
     </div>
@@ -485,18 +521,21 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue"
+import { computed, reactive, ref } from "vue"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
+const fieldPickerOpen = ref(false)
 const collapsedSections = reactive({
   filters: false,
   mappings: false,
   scope: false,
   view: false,
 })
+
+const selectedFieldSummary = computed(() => `已选 ${store.draft.template.fields.length} 项`)
 
 function toggleSection(section: keyof typeof collapsedSections) {
   collapsedSections[section] = !collapsedSections[section]
@@ -781,24 +820,83 @@ h3 {
   margin-top: 20px;
 }
 
-.check {
+.section-head--compact {
+  margin-top: 0;
+}
+
+.view-config-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.view-config-panel {
+  display: grid;
   gap: 10px;
-  margin-top: 8px;
+}
+
+.field-picker {
+  margin-top: 0;
+}
+
+.field-picker__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 14px;
   border-radius: 18px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-soft);
+  color: var(--sqb-text);
+  cursor: pointer;
+  text-align: left;
+  font: 600 14px/1.35 var(--sqb-sans);
 }
 
-.check span {
+.field-picker__summary {
+  min-width: 0;
+}
+
+.field-picker__chevron {
+  flex: 0 0 auto;
+  color: var(--sqb-text-muted);
+  font: 600 18px/1 var(--sqb-sans);
+  transition: transform 140ms ease;
+}
+
+.field-picker__chevron--open {
+  transform: rotate(180deg);
+}
+
+.field-picker__menu {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid var(--sqb-border);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.field-picker__option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--sqb-surface-soft);
+}
+
+.field-picker__option span {
   color: var(--sqb-text);
   font: 600 14px/1.35 var(--sqb-sans);
 }
 
-.check small {
+.field-picker__option small {
   color: var(--sqb-text-muted);
 }
 
@@ -811,7 +909,8 @@ h3 {
   .card--scope,
   .card--mappings,
   .card--full,
-  .form-grid {
+  .form-grid,
+  .view-config-row {
     grid-template-columns: 1fr;
     grid-column: auto;
   }

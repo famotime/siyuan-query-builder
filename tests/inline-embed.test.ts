@@ -24,6 +24,7 @@ describe("inline embed payload", () => {
   it("parses inline payload from rendered html", () => {
     const html = createEmbedBlockMarkdown({
       templateId: "template-8",
+      viewId: "view-8",
       viewType: "list",
       title: "阅读清单",
     })
@@ -32,6 +33,7 @@ describe("inline embed payload", () => {
 
     expect(payload).toEqual({
       templateId: "template-8",
+      viewId: "view-8",
       viewType: "list",
       title: "阅读清单",
     })

@@ -68,7 +68,13 @@ describe('migrateLegacyTemplateSnapshots', () => {
       legacySnapshots[0].template,
     ])
     expect(storage.read('query-builder.views.v2')).toEqual([
-      legacySnapshots[0].view,
+      {
+        ...legacySnapshots[0].view,
+        fields: ['content'],
+        sorts: [],
+        groupBy: undefined,
+        aggregation: undefined,
+      },
     ])
     expect(storage.read('query-builder.templates.v1')).toBeUndefined()
   })

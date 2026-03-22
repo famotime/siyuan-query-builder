@@ -1,7 +1,9 @@
 import type {
   FieldMappings,
   FieldId,
+  QueryAggregation,
   QueryBuilderSnapshot,
+  QuerySort,
   QueryTemplate,
   ViewConfig,
   ViewType,
@@ -17,6 +19,12 @@ export const DEFAULT_FIELD_MAPPINGS: FieldMappings = {
 
 export const AGGREGATE_VALUE_FIELD = "agg:value"
 export const TAG_COUNT_FIELD = "tagCount"
+export const DEFAULT_VIEW_FIELDS = [
+  "content",
+  "updated",
+  `attr:${DEFAULT_FIELD_MAPPINGS.status}`,
+  `attr:${DEFAULT_FIELD_MAPPINGS.dueDate}`,
+]
 
 export interface FieldOption {
   value: FieldId
@@ -46,18 +54,79 @@ export function createEmptyTemplate(name = "未命名查询"): QueryTemplate {
     filters: [],
     sorts: [],
     limit: 200,
-    fields: ["content", "updated", `attr:${DEFAULT_FIELD_MAPPINGS.status}`, `attr:${DEFAULT_FIELD_MAPPINGS.dueDate}`],
+    fields: [...DEFAULT_VIEW_FIELDS],
     viewType: "table",
   }
 }
 
-export function createDefaultViewConfig(templateId: string, type: ViewType = "table"): ViewConfig {
+function cloneSorts(sorts: QuerySort[] = []) {
+  return sorts.map(sort => ({
+    ...sort,
+  }))
+}
+
+function cloneAggregation(aggregation?: QueryAggregation) {
+  return aggregation
+    ? {
+      ...aggregation,
+    }
+    : undefined
+}
+
+function buildViewState(template?: Pick<QueryTemplate, "fields" | "sorts" | "groupBy" | "aggregation"> | {
+  fields?: FieldId[]
+  sorts?: QuerySort[]
+  groupBy?: FieldId | null
+  aggregation?: QueryAggregation | null
+}) {
+  return {
+    fields: [...(template?.fields || DEFAULT_VIEW_FIELDS)],
+    sorts: cloneSorts(template?.sorts || []),
+    groupBy: template?.groupBy || undefined,
+    aggregation: cloneAggregation(template?.aggregation || undefined),
+  }
+}
+
+export function createDefaultViewConfig(templateId: string, type: ViewType = "table", template?: QueryTemplate): ViewConfig {
   return {
     id: createId("view"),
     queryTemplateId: templateId,
     type,
     defaultView: true,
     fieldMappings: { ...DEFAULT_FIELD_MAPPINGS },
+    ...buildViewState(template),
+  }
+}
+
+export function hydrateViewConfig(view: ViewConfig, template: QueryTemplate): ViewConfig {
+  const hasOwn = <K extends keyof ViewConfig>(key: K) => Object.prototype.hasOwnProperty.call(view, key)
+
+  return {
+    ...view,
+    type: view.type || template.viewType,
+    fieldMappings: {
+      ...DEFAULT_FIELD_MAPPINGS,
+      ...view.fieldMappings,
+    },
+    ...buildViewState({
+      fields: hasOwn("fields") ? view.fields : template.fields,
+      sorts: hasOwn("sorts") ? view.sorts : template.sorts,
+      groupBy: hasOwn("groupBy") ? view.groupBy : template.groupBy,
+      aggregation: hasOwn("aggregation") ? view.aggregation : template.aggregation,
+    }),
+  }
+}
+
+export function applyViewConfigToTemplate(template: QueryTemplate, view: ViewConfig): QueryTemplate {
+  const hydratedView = hydrateViewConfig(view, template)
+
+  return {
+    ...template,
+    viewType: hydratedView.type,
+    fields: [...(hydratedView.fields || DEFAULT_VIEW_FIELDS)],
+    sorts: cloneSorts(hydratedView.sorts || []),
+    groupBy: hydratedView.groupBy,
+    aggregation: cloneAggregation(hydratedView.aggregation),
   }
 }
 
