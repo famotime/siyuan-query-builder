@@ -148,6 +148,44 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("tagCount DESC")
   })
 
+  it("builds document link count fields from refs and supports numeric comparisons", () => {
+    const template: QueryTemplate = {
+      id: "template-6",
+      version: 1,
+      name: "Linked Documents",
+      scope: {
+        type: "block_type",
+        value: "d",
+      },
+      filters: [
+        {
+          id: "filter-link-count",
+          field: "linkCount",
+          operator: "gt",
+          value: "0",
+        },
+      ],
+      sorts: [
+        {
+          field: "backlinkCount",
+          direction: "desc",
+        },
+      ],
+      fields: ["content", "backlinkCount", "outLinkCount", "linkCount", "updated", "box"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("SELECT COUNT(DISTINCT refs.root_id)")
+    expect(compiled.sql).toContain("SELECT COUNT(DISTINCT refs.def_block_root_id)")
+    expect(compiled.sql).toContain("AS backlinkCount")
+    expect(compiled.sql).toContain("AS outLinkCount")
+    expect(compiled.sql).toContain("AS linkCount")
+    expect(compiled.sql).toContain("> 0")
+    expect(compiled.sql).toContain("ORDER BY")
+  })
+
   it("builds nested filter clauses with mixed and/or relations in row order", () => {
     const template = {
       id: "template-5",

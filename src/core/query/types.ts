@@ -13,6 +13,7 @@ export type ScopeType =
 export type FilterOperator =
   | "eq"
   | "neq"
+  | "gt"
   | "contains"
   | "not_contains"
   | "empty"

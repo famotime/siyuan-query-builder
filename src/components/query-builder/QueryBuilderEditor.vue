@@ -242,6 +242,9 @@
                 <option value="neq">
                   不等于
                 </option>
+                <option value="gt">
+                  大于
+                </option>
                 <option value="contains">
                   包含
                 </option>

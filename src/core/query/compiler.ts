@@ -7,7 +7,7 @@ import type {
   QuerySort,
   QueryTemplate,
 } from "./types"
-import { AGGREGATE_VALUE_FIELD, TAG_COUNT_FIELD } from "./catalog"
+import { AGGREGATE_VALUE_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD } from "./catalog"
 
 const BASE_FIELD_MAP: Record<string, string> = {
   id: "blocks.id",
@@ -42,6 +42,18 @@ function getAttrName(field: FieldId) {
 function getFieldExpression(field: FieldId) {
   if (field === TAG_COUNT_FIELD) {
     return "(length(COALESCE(blocks.tag, '')) - length(replace(COALESCE(blocks.tag, ''), '#', ''))) / 2"
+  }
+
+  if (field === BACKLINK_COUNT_FIELD) {
+    return `(SELECT COUNT(DISTINCT refs.root_id) FROM refs WHERE refs.def_block_root_id = blocks.id AND refs.root_id <> '' AND refs.root_id <> blocks.id)`
+  }
+
+  if (field === OUT_LINK_COUNT_FIELD) {
+    return `(SELECT COUNT(DISTINCT refs.def_block_root_id) FROM refs WHERE refs.root_id = blocks.id AND refs.def_block_root_id <> '' AND refs.def_block_root_id <> blocks.id)`
+  }
+
+  if (field === LINK_COUNT_FIELD) {
+    return `(${getFieldExpression(BACKLINK_COUNT_FIELD)} + ${getFieldExpression(OUT_LINK_COUNT_FIELD)})`
   }
 
   if (isAttrField(field)) {
@@ -135,6 +147,13 @@ function buildFilterClause(filter: QueryFilter) {
       return `${expression} = '${escapeSqlLiteral(String(filter.value || ""))}'`
     case "neq":
       return `COALESCE(${expression}, '') <> '${escapeSqlLiteral(String(filter.value || ""))}'`
+    case "gt": {
+      const number = Number(filter.value)
+      if (!Number.isFinite(number)) {
+        throw new Error("gt requires a numeric value")
+      }
+      return `CAST(COALESCE(${expression}, 0) AS REAL) > ${number}`
+    }
     case "contains":
       return `instr(COALESCE(${expression}, ''), '${escapeSqlLiteral(String(filter.value || ""))}') > 0`
     case "not_contains":

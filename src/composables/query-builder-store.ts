@@ -3,7 +3,7 @@ import type { InjectionKey } from "vue"
 
 import { lsNotebooks } from "@/api"
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
-import { AGGREGATE_VALUE_FIELD, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
+import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, createFieldOptions, createPresets } from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
 import type { QueryBuilderSnapshot, QueryHistoryEntry, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
@@ -166,7 +166,7 @@ export function createQueryBuilderStore() {
   ))
   const selectableFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD))
   const sortFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
-  const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => option.value === TAG_COUNT_FIELD))
+  const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => NUMERIC_FIELD_IDS.includes(option.value)))
   const resultFields = computed(() => defaultAggregationFieldResult(draft.template))
   const boardColumns = computed(() => {
     if (!resultSet.value?.rows.length || !draft.template.groupBy) {
