@@ -1,5 +1,22 @@
 <template>
   <section class="editor">
+    <div
+      v-if="store.validationIssues?.length"
+      class="validation-list"
+    >
+      <article
+        v-for="issue in store.validationIssues"
+        :key="`${issue.level}-${issue.code}`"
+        class="validation-item"
+        :class="{
+          'validation-item--error': issue.level === 'error',
+          'validation-item--warning': issue.level === 'warning',
+        }"
+      >
+        <strong>{{ issue.level === "error" ? "错误" : "提示" }}</strong>
+        <span>{{ issue.message }}</span>
+      </article>
+    </div>
     <div class="grid">
       <article class="card card--scope">
         <div class="section-head">
@@ -487,7 +504,43 @@ function toggleSection(section: keyof typeof collapsedSections) {
 .editor {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 16px;
+}
+
+.validation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.validation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface-soft);
+  font: 14px/1.5 var(--sqb-sans);
+}
+
+.validation-item strong {
+  flex: 0 0 auto;
+}
+
+.validation-item span {
+  color: var(--sqb-text);
+}
+
+.validation-item--error {
+  border-color: rgba(182, 67, 48, 0.26);
+  background: rgba(182, 67, 48, 0.08);
+  color: #8c2f22;
+}
+
+.validation-item--warning {
+  border-color: rgba(171, 118, 28, 0.26);
+  background: rgba(171, 118, 28, 0.08);
+  color: #8a6211;
 }
 
 .section-head,

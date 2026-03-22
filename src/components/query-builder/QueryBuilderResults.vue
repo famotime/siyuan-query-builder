@@ -30,7 +30,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
               data-view-type="table"
               type="button"
-              @click="store.draft.view.type = 'table'"
+              @click="store.setViewType('table')"
             >
               表格
             </button>
@@ -39,7 +39,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
               data-view-type="board"
               type="button"
-              @click="store.draft.view.type = 'board'"
+              @click="store.setViewType('board')"
             >
               看板
             </button>
@@ -48,7 +48,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
               data-view-type="list"
               type="button"
-              @click="store.draft.view.type = 'list'"
+              @click="store.setViewType('list')"
             >
               列表
             </button>
@@ -57,7 +57,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
               data-view-type="cards"
               type="button"
-              @click="store.draft.view.type = 'cards'"
+              @click="store.setViewType('cards')"
             >
               卡片
             </button>
@@ -77,6 +77,72 @@
         class="sql-box"
       >
         <pre>{{ store.advancedSql || "运行查询后会显示生成后的 SQL 表达。" }}</pre>
+      </div>
+
+      <section
+        v-if="store.savedViews?.length"
+        class="saved-views"
+      >
+        <div class="saved-views__head">
+          <div>
+            <h4>已保存视图</h4>
+            <p class="muted">同一模板下可切换多个视图配置，并可指定默认视图。</p>
+          </div>
+          <button
+            class="btn btn--ghost btn--small"
+            data-view-save-as
+            type="button"
+            @click="store.saveViewAs"
+          >
+            另存当前视图
+          </button>
+        </div>
+        <div class="saved-views__list">
+          <article
+            v-for="view in store.savedViews"
+            :key="view.id"
+            class="saved-views__item"
+            :class="{ 'saved-views__item--active': view.id === store.draft.view.id }"
+          >
+            <button
+              class="saved-views__main"
+              type="button"
+              :data-view-load="view.id"
+              @click="store.loadSavedView(view.id)"
+            >
+              <strong>{{ viewTypeLabel(view.type) }}</strong>
+              <span
+                v-if="view.defaultView"
+                class="saved-views__badge"
+              >默认</span>
+            </button>
+            <div class="saved-views__actions">
+              <button
+                class="btn btn--ghost btn--small"
+                type="button"
+                :data-view-default="view.id"
+                @click="store.setDefaultSavedView(view.id)"
+              >
+                设为默认
+              </button>
+              <button
+                class="btn btn--ghost btn--small"
+                type="button"
+                :data-view-delete="view.id"
+                @click="store.deleteSavedView(view.id)"
+              >
+                删除
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div
+        v-if="store.draft.view.type === 'board' && store.boardDragCapability && !store.boardDragCapability.enabled && store.boardDragCapability.reason"
+        class="alert alert--warning"
+      >
+        {{ store.boardDragCapability.reason }}
       </div>
 
       <div
@@ -383,6 +449,19 @@ async function selectRecentTarget(targetId: string) {
   embedTargetMenuOpen.value = false
 }
 
+function viewTypeLabel(type: string) {
+  switch (type) {
+    case "board":
+      return "看板"
+    case "list":
+      return "列表"
+    case "cards":
+      return "统计卡片"
+    default:
+      return "表格"
+  }
+}
+
 function handleDocumentPointerDown(event: Event) {
   const picker = embedTargetPickerRef.value
   const target = event.target
@@ -522,6 +601,63 @@ h3 {
   border-color: rgba(74, 124, 89, 0.22);
   color: #ffffff;
   box-shadow: 0 12px 24px rgba(74, 124, 89, 0.18);
+}
+
+.saved-views {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(59, 46, 32, 0.12);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.saved-views__head,
+.saved-views__actions,
+.saved-views__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.saved-views__list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-views__item {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(59, 46, 32, 0.1);
+  background: rgba(255, 251, 245, 0.78);
+}
+
+.saved-views__item--active {
+  border-color: rgba(74, 124, 89, 0.26);
+  background: rgba(74, 124, 89, 0.08);
+}
+
+.saved-views__main {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  justify-content: flex-start;
+}
+
+.saved-views__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(74, 124, 89, 0.12);
+  color: #365943;
+  font: 700 12px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
 }
 
 .tabs {

@@ -127,7 +127,7 @@
             @click="store.applySnapshot(snapshot)"
           >
             <strong>{{ snapshot.template.name }}</strong>
-            <span>{{ snapshot.view.type === "board" ? "看板" : "表格" }}</span>
+            <span>{{ viewTypeLabel(snapshot.view.type) }}</span>
           </button>
           <button
             :data-template-delete="snapshot.template.id"
@@ -172,6 +172,19 @@ import { useQueryBuilderStore } from "@/composables/query-builder-store"
 const store = useQueryBuilderStore()
 const presetsExpanded = ref(true)
 const savedTemplatesExpanded = ref(true)
+
+function viewTypeLabel(type: string) {
+  switch (type) {
+    case "board":
+      return "看板"
+    case "list":
+      return "列表"
+    case "cards":
+      return "统计卡片"
+    default:
+      return "表格"
+  }
+}
 </script>
 
 <style lang="scss" scoped>

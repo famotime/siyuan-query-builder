@@ -69,16 +69,19 @@
 
 .sqb-inline-host__fallback,
 .sqb-inline-error {
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px dashed var(--sqb-border-strong);
-  background: rgba(245, 241, 234, 0.88);
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px dashed var(--sqb-border);
+  background:
+    radial-gradient(circle at top right, rgba(196, 166, 106, 0.1), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 241, 234, 0.9));
   color: rgba(46, 50, 48, 0.82);
   font: 13px/1.45 var(--sqb-sans);
+  box-shadow: 0 10px 22px rgba(57, 61, 52, 0.05);
 }
 
 .sqb-inline-host__fallback strong {
   display: block;
-  margin-bottom: 4px;
-  color: var(--sqb-text);
+  margin-bottom: 6px;
+  color: var(--sqb-primary-strong);
 }
