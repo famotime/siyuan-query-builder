@@ -18,4 +18,15 @@ describe("createEmbedBlockMarkdown", () => {
     expect(markdown).toContain("window.__siyuanQueryBuilderBridge")
     expect(markdown).not.toContain("\n")
   })
+
+  it("does not return an empty block id list that triggers SiYuan empty-result fallback", () => {
+    const markdown = createEmbedBlockMarkdown({
+      templateId: "template-42",
+      viewType: "board",
+      title: "项目看板",
+    })
+
+    expect(markdown).not.toContain("return [];")
+    expect(markdown).toContain("return;")
+  })
 })

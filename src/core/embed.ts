@@ -88,7 +88,7 @@ return (async () => {
     await bridge.renderHost(host, payload);
   }
 
-  return [];
+  return;
 })();
 `
 
