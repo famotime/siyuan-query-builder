@@ -28,46 +28,126 @@
     <div class="card card--dark">
       <div class="section-head">
         <h2>预设场景</h2>
+        <button
+          data-section-toggle="presets"
+          class="section-toggle"
+          type="button"
+          :title="presetsExpanded ? '收起预设场景' : '展开预设场景'"
+          :aria-label="presetsExpanded ? '收起预设场景' : '展开预设场景'"
+          :aria-expanded="String(presetsExpanded)"
+          @click="presetsExpanded = !presetsExpanded"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            :class="{ 'is-expanded': presetsExpanded }"
+          >
+            <path
+              d="M7 10l5 5 5-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.2"
+            />
+          </svg>
+        </button>
       </div>
-      <button
-        v-for="preset in store.presets"
-        :key="preset.id"
-        class="item"
-        @click="store.applySnapshot(preset.snapshot)"
-      >
-        <strong>{{ preset.title }}</strong>
-        <span>{{ preset.description }}</span>
-      </button>
+      <template v-if="presetsExpanded">
+        <button
+          v-for="preset in store.presets"
+          :key="preset.id"
+          class="item"
+          @click="store.applySnapshot(preset.snapshot)"
+        >
+          <strong>{{ preset.title }}</strong>
+          <span>{{ preset.description }}</span>
+        </button>
+      </template>
     </div>
 
     <div class="card card--dark">
       <div class="section-head">
-        <h2>已保存模板</h2>
-        <span class="pill">{{ store.savedTemplates.length }}</span>
+        <div class="section-head-main">
+          <h2>已保存模板</h2>
+          <span class="pill">{{ store.savedTemplates.length }}</span>
+        </div>
+        <button
+          data-section-toggle="saved-templates"
+          class="section-toggle"
+          type="button"
+          :title="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
+          :aria-label="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
+          :aria-expanded="String(savedTemplatesExpanded)"
+          @click="savedTemplatesExpanded = !savedTemplatesExpanded"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            :class="{ 'is-expanded': savedTemplatesExpanded }"
+          >
+            <path
+              d="M7 10l5 5 5-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.2"
+            />
+          </svg>
+        </button>
       </div>
-      <button
-        v-for="snapshot in store.savedTemplates"
-        :key="snapshot.template.id"
-        class="item item--row"
-        @click="store.applySnapshot(snapshot)"
-      >
-        <strong>{{ snapshot.template.name }}</strong>
-        <span>{{ snapshot.view.type === "board" ? "看板" : "表格" }}</span>
-      </button>
-      <p
-        v-if="!store.savedTemplates.length"
-        class="muted muted--light"
-      >
-        先保存一个查询模板。
-      </p>
+      <template v-if="savedTemplatesExpanded">
+        <div
+          v-for="snapshot in store.savedTemplates"
+          :key="snapshot.template.id"
+          class="item item--row"
+        >
+          <button
+            class="item-main"
+            @click="store.applySnapshot(snapshot)"
+          >
+            <strong>{{ snapshot.template.name }}</strong>
+            <span>{{ snapshot.view.type === "board" ? "看板" : "表格" }}</span>
+          </button>
+          <button
+            :data-template-delete="snapshot.template.id"
+            class="item-delete"
+            type="button"
+            title="删除模板"
+            aria-label="删除模板"
+            @click.stop="store.deleteTemplate(snapshot.template.id)"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M9 3h6l1 2h4v2H4V5h4l1-2zm-1 6h2v8H8V9zm6 0h2v8h-2V9zM7 9h10l-.7 11.1c-.1 1-.9 1.9-2 1.9H9.7c-1.1 0-1.9-.8-2-1.9L7 9z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+        </div>
+        <p
+          v-if="!store.savedTemplates.length"
+          class="muted muted--light"
+        >
+          先保存一个查询模板。
+        </p>
+      </template>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue"
+
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
+const presetsExpanded = ref(true)
+const savedTemplatesExpanded = ref(true)
 </script>
 
 <style lang="scss" scoped>
@@ -122,12 +202,19 @@ h1 {
   gap: 10px;
 }
 
+.section-head-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .actions {
   margin-top: 14px;
 }
 
 .btn,
-.item {
+.item,
+.section-toggle {
   transition: transform 140ms ease;
   border: none;
   cursor: pointer;
@@ -135,7 +222,8 @@ h1 {
 }
 
 .btn:hover,
-.item:hover {
+.item:hover,
+.section-toggle:hover {
   transform: translateY(-1px);
 }
 
@@ -155,6 +243,29 @@ h1 {
   border: 1px solid rgba(255, 248, 236, 0.16);
 }
 
+.section-toggle {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 248, 236, 0.08);
+  color: inherit;
+  border: 1px solid rgba(255, 248, 236, 0.16);
+}
+
+.section-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 140ms ease;
+}
+
+.section-toggle svg.is-expanded {
+  transform: rotate(180deg);
+}
+
 .item {
   width: 100%;
   display: flex;
@@ -171,7 +282,59 @@ h1 {
 .item--row {
   flex-direction: row;
   align-items: center;
+  gap: 10px;
+}
+
+.item-main,
+.item-delete {
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.item-main:hover,
+.item-delete:hover {
+  transform: translateY(-1px);
+}
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+}
+
+.item-delete {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(191, 39, 62, 0.14);
+  border: 1px solid rgba(191, 39, 62, 0.3);
+  color: #ff8f9f;
+}
+
+.item-delete svg {
+  width: 15px;
+  height: 15px;
+}
+
+.item-delete:hover {
+  background: rgba(191, 39, 62, 0.24);
+  border-color: rgba(255, 143, 159, 0.55);
+  color: #ffd2d8;
 }
 
 .pill {

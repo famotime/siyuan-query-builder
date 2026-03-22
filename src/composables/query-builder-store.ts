@@ -314,6 +314,16 @@ export function createQueryBuilderStore() {
     }
   }
 
+  async function deleteTemplate(templateId: string) {
+    try {
+      await templateStore.remove(templateId)
+      await loadTemplates()
+      showMessage("已删除模板", 3000, "info")
+    } catch (deleteError) {
+      showMessage(deleteError instanceof Error ? deleteError.message : "删除模板失败", 5000, "error")
+    }
+  }
+
   async function quickEdit(rowId: string, field: EditableField, value: string) {
     try {
       await runtime.updateField(rowId, field, value, draft.view.fieldMappings)
@@ -542,6 +552,7 @@ export function createQueryBuilderStore() {
     mappingLabels,
     notebooks,
     currentDocumentTarget,
+    deleteTemplate,
     openBlock,
     openDocumentTargets,
     presets,
