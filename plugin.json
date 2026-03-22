@@ -1,0 +1,38 @@
+{
+  "name": "siyuan-query-builder",
+  "author": "famotime",
+  "url": "https://github.com/famotime/siyuan-query-builder",
+  "version": "0.0.1",
+  "minAppVersion": "2.10.14",
+  "disabledInPublish": true,
+  "backends": [
+    "all"
+  ],
+  "frontends": [
+    "all"
+  ],
+  "displayName": {
+    "default": "siyuan-query-builder",
+    "en_US": "siyuan-query-builder",
+    "zh_CN": "思源易搭 Query Builder"
+  },
+  "description": {
+    "default": "Visual query builder with table and board views for SiYuan",
+    "en_US": "Visual query builder with table and board views for SiYuan",
+    "zh_CN": "面向思源笔记的可视化查询构建器与多视图结果面板"
+  },
+  "readme": {
+    "default": "README.md",
+    "en_US": "README.md",
+    "zh_CN": "README_zh_CN.md"
+  },
+  "funding": {
+    "custom": []
+  },
+  "keywords": [
+    "query",
+    "board",
+    "table",
+    "productivity"
+  ]
+}

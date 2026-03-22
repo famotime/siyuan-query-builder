@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light;
+}
+
+#siyuan-query-builder-root {
+  height: 100%;
+}
+
+.sqb-inline-host {
+  display: block;
+  margin: 6px 0;
+}
+
+.sqb-inline-host__fallback,
+.sqb-inline-error {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(59, 46, 32, 0.18);
+  background: rgba(248, 241, 230, 0.74);
+  color: rgba(36, 29, 23, 0.76);
+  font: 13px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+}
+
+.sqb-inline-host__fallback strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #241d17;
+}

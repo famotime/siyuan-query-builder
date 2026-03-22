@@ -1,0 +1,93 @@
+export type ViewType = "table" | "board" | "list" | "cards"
+
+export type ScopeType =
+  | "all_blocks"
+  | "notebook"
+  | "document"
+  | "block_type"
+  | "tag"
+  | "attribute"
+
+export type FilterOperator =
+  | "eq"
+  | "neq"
+  | "contains"
+  | "not_contains"
+  | "empty"
+  | "not_empty"
+  | "date_between"
+  | "next_days"
+  | "last_days"
+
+export type FieldId = string
+
+export interface QueryScope {
+  type: ScopeType
+  value?: string
+}
+
+export interface QueryFilter {
+  id: string
+  field: FieldId
+  operator: FilterOperator
+  value?: unknown
+}
+
+export interface QuerySort {
+  field: FieldId
+  direction: "asc" | "desc"
+}
+
+export interface QueryTemplate {
+  id: string
+  version: number
+  name: string
+  scope: QueryScope
+  filters: QueryFilter[]
+  sorts: QuerySort[]
+  groupBy?: FieldId
+  fields: FieldId[]
+  viewType: ViewType
+}
+
+export interface FieldMappings {
+  status: string
+  dueDate: string
+  priority: string
+  project: string
+  owner: string
+}
+
+export interface ViewConfig {
+  id: string
+  queryTemplateId: string
+  type: ViewType
+  defaultView: boolean
+  fieldMappings: FieldMappings
+}
+
+export interface QueryBuilderSnapshot {
+  template: QueryTemplate
+  view: ViewConfig
+}
+
+export interface ResultRow {
+  id: string
+  content: string
+  attrs: Record<string, string>
+  [key: string]: unknown
+}
+
+export interface ResultSet {
+  rows: ResultRow[]
+  total: number
+  executedAt: string
+}
+
+export interface CompiledQuery {
+  sql: string
+  meta: {
+    selectedFields: FieldId[]
+    groupBy?: FieldId
+  }
+}
