@@ -11,23 +11,18 @@
       >
     </div>
     <div class="actions">
-      <label class="chip chip--mode">
-        <input
-          v-model="store.advancedMode"
-          type="checkbox"
-        >
-        <span class="chip__text">高级模式</span>
-        <span
-          class="chip__switch"
-          :class="{ 'chip__switch--active': store.advancedMode }"
-          aria-hidden="true"
-        >
-          <span class="chip__knob" />
-        </span>
-      </label>
+      <button
+        class="btn btn--ghost"
+        data-topbar-reset
+        type="button"
+        @click="store.resetDraft"
+      >
+        新建查询
+      </button>
       <button
         class="btn btn--ghost"
         :disabled="store.saving"
+        type="button"
         @click="store.saveTemplate"
       >
         <svg
@@ -164,68 +159,6 @@ const store = useQueryBuilderStore()
   flex: 0 0 auto;
 }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 14px;
-  border-radius: 999px;
-  background: var(--sqb-surface-soft);
-  border: 1px solid var(--sqb-border);
-  color: var(--sqb-secondary);
-  font: 600 13px/1.2 var(--sqb-sans);
-}
-
-.chip--mode {
-  flex: 0 0 auto;
-  gap: 12px;
-  padding: 10px 14px 10px 18px;
-  background: rgba(245, 241, 234, 0.96);
-  white-space: nowrap;
-}
-
-.chip--mode input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.chip__text {
-  color: var(--sqb-secondary);
-  font: 700 13px/1.2 var(--sqb-sans);
-}
-
-.chip__switch {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  width: 46px;
-  height: 26px;
-  padding: 3px;
-  border-radius: 999px;
-  background: #c7cdc0;
-  transition: background 140ms ease;
-}
-
-.chip__switch--active {
-  background: rgba(74, 124, 89, 0.72);
-}
-
-.chip__knob {
-  display: block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgba(46, 50, 48, 0.18);
-  transform: translateX(0);
-  transition: transform 140ms ease;
-}
-
-.chip__switch--active .chip__knob {
-  transform: translateX(20px);
-}
-
 .actions {
   flex: 0 0 auto;
   flex-wrap: nowrap;
@@ -276,8 +209,7 @@ const store = useQueryBuilderStore()
   }
 
   .btn--solid,
-  .btn--ghost,
-  .chip--mode {
+  .btn--ghost {
     width: 100%;
   }
 }

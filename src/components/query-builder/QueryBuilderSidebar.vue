@@ -7,7 +7,7 @@
         </div>
         <div class="brand__content">
           <p class="eyebrow">
-            Terra Query
+            Query builder
           </p>
           <h1>易搭</h1>
         </div>
@@ -15,21 +15,6 @@
       <p class="muted">
         先定义范围和条件，再切到表格、看板或统计视图，并继续回写块属性。
       </p>
-      <div class="actions actions--stacked">
-        <button
-          class="btn btn--ghost"
-          @click="store.resetDraft"
-        >
-          新建查询
-        </button>
-        <button
-          class="btn btn--solid"
-          :disabled="store.loading"
-          @click="store.runQuery"
-        >
-          {{ store.loading ? "运行中..." : "运行查询" }}
-        </button>
-      </div>
     </div>
 
     <div class="card">
@@ -267,12 +252,6 @@ h1 {
   gap: 10px;
 }
 
-.actions--stacked {
-  margin-top: 18px;
-  flex-direction: column;
-  align-items: stretch;
-}
-
 .section-head-main {
   display: flex;
   align-items: center;
@@ -285,7 +264,6 @@ h1 {
   gap: 4px;
 }
 
-.btn,
 .item,
 .section-toggle {
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
@@ -293,36 +271,9 @@ h1 {
   font: 600 13px/1.2 var(--sqb-sans);
 }
 
-.btn:hover,
 .item:hover,
 .section-toggle:hover {
   transform: translateY(-1px);
-}
-
-.btn {
-  width: 100%;
-  border-radius: 16px;
-  padding: 13px 16px;
-  border: 1px solid transparent;
-}
-
-.btn--solid {
-  background: var(--sqb-primary);
-  color: #ffffff;
-  box-shadow: 0 12px 24px rgba(74, 124, 89, 0.2);
-}
-
-.btn--ghost {
-  background: rgba(255, 255, 255, 0.62);
-  color: var(--sqb-text);
-  border-color: var(--sqb-border);
-}
-
-.btn--solid:disabled,
-.btn--ghost:disabled {
-  cursor: default;
-  opacity: 0.7;
-  transform: none;
 }
 
 .section-toggle {

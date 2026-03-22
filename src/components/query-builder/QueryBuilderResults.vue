@@ -72,13 +72,6 @@
         {{ store.error }}
       </div>
 
-      <div
-        v-if="store.advancedMode"
-        class="sql-box"
-      >
-        <pre>{{ store.advancedSql || "运行查询后会显示生成后的 SQL 表达。" }}</pre>
-      </div>
-
       <section
         v-if="store.savedViews?.length"
         class="saved-views"
@@ -143,6 +136,32 @@
       >
         {{ store.boardDragCapability.reason }}
       </div>
+
+      <section class="advanced-panel">
+        <button
+          class="advanced-panel__toggle"
+          data-advanced-mode-toggle
+          type="button"
+          :aria-expanded="String(store.advancedMode)"
+          @click="store.advancedMode = !store.advancedMode"
+        >
+          <div class="advanced-panel__copy">
+            <strong>SQL</strong>
+            <span>查看当前查询生成的 SQL 表达。</span>
+          </div>
+          <span
+            class="advanced-panel__chevron"
+            :class="{ 'advanced-panel__chevron--open': store.advancedMode }"
+            aria-hidden="true"
+          >⌄</span>
+        </button>
+        <div
+          v-if="store.advancedMode"
+          class="sql-box"
+        >
+          <pre>{{ store.advancedSql || "运行查询后会显示生成后的 SQL 表达。" }}</pre>
+        </div>
+      </section>
 
       <div
         v-if="!store.resultSet?.rows.length"
@@ -512,6 +531,11 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.view-switcher {
+  display: flex;
+  align-items: center;
+}
+
 .summary__header {
   display: flex;
   align-items: center;
@@ -808,8 +832,64 @@ h3 {
   font: 14px/1.45 var(--sqb-sans);
 }
 
+.advanced-panel {
+  margin-top: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(116, 121, 110, 0.14);
+  background:
+    linear-gradient(180deg, rgba(245, 241, 234, 0.92), rgba(255, 255, 255, 0.82));
+  overflow: hidden;
+}
+
+.advanced-panel__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.advanced-panel__copy {
+  display: grid;
+  gap: 3px;
+}
+
+.advanced-panel__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sqb-primary);
+  font: 700 11px/1.2 var(--sqb-sans);
+}
+
+.advanced-panel__copy strong {
+  font: 700 16px/1.25 var(--sqb-sans);
+  color: var(--sqb-text);
+}
+
+.advanced-panel__copy span:last-child {
+  color: var(--sqb-text-muted);
+  font: 13px/1.45 var(--sqb-sans);
+}
+
+.advanced-panel__chevron {
+  flex: 0 0 auto;
+  color: var(--sqb-text-muted);
+  font: 600 18px/1 var(--sqb-sans);
+  transition: transform 140ms ease;
+}
+
+.advanced-panel__chevron--open {
+  transform: rotate(180deg);
+}
+
 .sql-box {
-  margin-top: 14px;
+  padding: 0 18px 18px;
 }
 
 .sql-box pre {
