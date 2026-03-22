@@ -223,7 +223,6 @@ h3 {
   line-height: 1.2;
   font-family: var(--sqb-serif);
 }
-}
 
 .section-toggle {
   width: 100%;
