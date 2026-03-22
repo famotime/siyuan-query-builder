@@ -76,10 +76,7 @@ function resolveTargetFromTab(tab: Record<string, any>): ActiveDocumentTarget | 
 }
 
 function getActiveDocumentTargetFromLayout(input: { siyuan?: any } | Window): ActiveDocumentTarget | null {
-  const tabs: Record<string, any>[] = []
-  const siyuan = input?.siyuan
-  collectTabsFromLayout(siyuan?.layout?.centerLayout, tabs)
-  collectTabsFromLayout(siyuan?.config?.uiLayout?.layout, tabs)
+  const tabs = collectLayoutTabs(input)
   if (!tabs.length) {
     return null
   }
@@ -89,6 +86,14 @@ function getActiveDocumentTargetFromLayout(input: { siyuan?: any } | Window): Ac
     .sort((a, b) => Number(b.activeTime || 0) - Number(a.activeTime || 0))[0]
 
   return activeTab ? resolveTargetFromTab(activeTab) : null
+}
+
+function collectLayoutTabs(input: { siyuan?: any } | Window) {
+  const tabs: Record<string, any>[] = []
+  const siyuan = input?.siyuan
+  collectTabsFromLayout(siyuan?.layout?.centerLayout, tabs)
+  collectTabsFromLayout(siyuan?.config?.uiLayout?.layout, tabs)
+  return tabs
 }
 
 export function isLikelyBlockId(value: string) {
@@ -132,6 +137,28 @@ export function createEmbedTargetPreview(block: Partial<Block> | null | undefine
     title: summarizeBlockLabel(String(block?.content || block?.name || id), 40),
     content: summarizeBlockLabel(String(block?.content || block?.fcontent || block?.name || id), 48),
   }
+}
+
+export function getOpenDocumentTargets(input: { siyuan?: { getActiveEditor?: () => any } } | Window): ActiveDocumentTarget[] {
+  const targets: ActiveDocumentTarget[] = []
+  const seen = new Set<string>()
+
+  const activeTarget = getActiveDocumentTarget(input)
+  if (activeTarget) {
+    seen.add(activeTarget.id)
+    targets.push(activeTarget)
+  }
+
+  for (const tab of collectLayoutTabs(input)) {
+    const target = resolveTargetFromTab(tab)
+    if (!target || seen.has(target.id)) {
+      continue
+    }
+    seen.add(target.id)
+    targets.push(target)
+  }
+
+  return targets
 }
 
 export function getActiveDocumentTarget(input: { siyuan?: { getActiveEditor?: () => any } } | Window): ActiveDocumentTarget | null {

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   formatEmbedTargetHint,
   getActiveDocumentTarget,
+  getOpenDocumentTargets,
   isLikelyBlockId,
   normalizeRecentEmbedTargetIds,
   summarizeBlockLabel,
@@ -118,5 +119,65 @@ describe("embed target helpers", () => {
       id: "20260322130128-lvb7gg8",
       title: "今日笔记",
     })
+  })
+
+  it("lists active and other opened documents with dedupe", () => {
+    const result = getOpenDocumentTargets({
+      siyuan: {
+        getActiveEditor: () => ({
+          rootId: "20260322195501-def5678",
+          title: "项目周报",
+        }),
+        config: {
+          uiLayout: {
+            layout: {
+              children: [
+                {
+                  children: [
+                    {
+                      instance: "Tab",
+                      active: true,
+                      title: "今日笔记",
+                      children: {
+                        rootId: "20260322130128-lvb7gg8",
+                      },
+                    },
+                    {
+                      instance: "Tab",
+                      title: "项目周报",
+                      children: {
+                        rootId: "20260322195501-def5678",
+                      },
+                    },
+                    {
+                      instance: "Tab",
+                      title: "阅读清单",
+                      children: {
+                        rootId: "20260322201501-hij9012",
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    })
+
+    expect(result).toEqual([
+      {
+        id: "20260322195501-def5678",
+        title: "项目周报",
+      },
+      {
+        id: "20260322130128-lvb7gg8",
+        title: "今日笔记",
+      },
+      {
+        id: "20260322201501-hij9012",
+        title: "阅读清单",
+      },
+    ])
   })
 })

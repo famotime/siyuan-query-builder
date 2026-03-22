@@ -7,6 +7,7 @@ import {
   createEmbedTargetPreview,
   formatEmbedTargetHint,
   getActiveDocumentTarget,
+  getOpenDocumentTargets,
   isLikelyBlockId,
   normalizeRecentEmbedTargetIds,
   summarizeBlockLabel,
@@ -82,6 +83,7 @@ export function createQueryBuilderStore() {
   const embedTargetHint = ref("可输入父块或文档 ID，或下拉选择当前打开文档")
   const embedTargetPreview = ref<EmbedTargetPreview | null>(null)
   const currentDocumentTarget = ref<ActiveDocumentTarget | null>(null)
+  const openDocumentTargets = ref<ActiveDocumentTarget[]>([])
   const recentEmbedTargetIds = ref<string[]>([])
   const recentEmbedTargets = ref<EmbedTargetPreview[]>([])
   const draggingRowId = ref("")
@@ -365,29 +367,24 @@ export function createQueryBuilderStore() {
   }
 
   async function refreshCurrentDocumentTarget() {
-    const target = getActiveDocumentTarget(window)
-    if (!target) {
-      currentDocumentTarget.value = null
-      return
-    }
+    const targets = getOpenDocumentTargets(window)
+    openDocumentTargets.value = await Promise.all(targets.map(resolveDocumentTarget))
+    currentDocumentTarget.value = openDocumentTargets.value[0] || null
+  }
 
-    currentDocumentTarget.value = target
+  async function resolveDocumentTarget(target: ActiveDocumentTarget) {
     if (target.title !== target.id) {
-      return
+      return target
     }
 
     try {
       const block = await getBlockByID(target.id)
-      if (!currentDocumentTarget.value || currentDocumentTarget.value.id !== target.id) {
-        return
-      }
-      const resolvedTitle = summarizeBlockLabel(String(block?.content || block?.name || target.id), 40) || target.id
-      currentDocumentTarget.value = {
+      return {
         id: target.id,
-        title: resolvedTitle,
-      }
+        title: summarizeBlockLabel(String(block?.content || block?.name || target.id), 40) || target.id,
+      } satisfies ActiveDocumentTarget
     } catch {
-      // Keep the id-only fallback if the title lookup fails.
+      return target
     }
   }
 
@@ -546,6 +543,7 @@ export function createQueryBuilderStore() {
     notebooks,
     currentDocumentTarget,
     openBlock,
+    openDocumentTargets,
     presets,
     quickEdit,
     recentEmbedTargets,

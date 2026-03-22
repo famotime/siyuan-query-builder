@@ -39,9 +39,24 @@
     <div class="grid">
       <article class="card">
         <div class="section-head">
-          <h3>查询范围</h3>
+          <button
+            class="section-toggle"
+            type="button"
+            data-section-toggle="scope"
+            :aria-expanded="String(!collapsedSections.scope)"
+            @click="toggleSection('scope')"
+          >
+            <h3>查询范围</h3>
+            <span
+              class="section-toggle__chevron"
+              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.scope }"
+            >⌄</span>
+          </button>
         </div>
-        <div class="form-grid">
+        <div
+          v-if="!collapsedSections.scope"
+          class="form-grid"
+        >
           <label class="field">
             <span>范围类型</span>
             <select
@@ -122,10 +137,25 @@
 
       <article class="card">
         <div class="section-head">
-          <h3>字段映射</h3>
+          <button
+            class="section-toggle"
+            type="button"
+            data-section-toggle="mappings"
+            :aria-expanded="String(!collapsedSections.mappings)"
+            @click="toggleSection('mappings')"
+          >
+            <h3>字段映射</h3>
+            <span
+              class="section-toggle__chevron"
+              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.mappings }"
+            >⌄</span>
+          </button>
           <span class="muted">快速编辑会用这里的属性名</span>
         </div>
-        <div class="form-grid">
+        <div
+          v-if="!collapsedSections.mappings"
+          class="form-grid"
+        >
           <label
             v-for="key in store.mappingKeys"
             :key="key"
@@ -142,7 +172,19 @@
 
       <article class="card">
         <div class="section-head">
-          <h3>条件编辑器</h3>
+          <button
+            class="section-toggle"
+            type="button"
+            data-section-toggle="filters"
+            :aria-expanded="String(!collapsedSections.filters)"
+            @click="toggleSection('filters')"
+          >
+            <h3>条件编辑器</h3>
+            <span
+              class="section-toggle__chevron"
+              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.filters }"
+            >⌄</span>
+          </button>
           <button
             class="btn btn--ghost btn--small"
             @click="store.addFilter"
@@ -150,239 +192,267 @@
             添加条件
           </button>
         </div>
-        <div
-          v-if="store.draft.template.filters.length"
-          class="stack gap-sm"
-        >
+        <template v-if="!collapsedSections.filters">
           <div
-            v-for="filter in store.draft.template.filters"
-            :key="filter.id"
-            class="filter-row"
+            v-if="store.draft.template.filters.length"
+            class="stack gap-sm"
           >
-            <select
-              v-model="filter.field"
-              class="control"
+            <div
+              v-for="filter in store.draft.template.filters"
+              :key="filter.id"
+              class="filter-row"
             >
-              <option
-                v-for="option in store.fieldOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </option>
-            </select>
-            <select
-              v-model="filter.operator"
-              class="control"
-            >
-              <option value="eq">
-                等于
-              </option>
-              <option value="neq">
-                不等于
-              </option>
-              <option value="contains">
-                包含
-              </option>
-              <option value="not_contains">
-                不包含
-              </option>
-              <option value="empty">
-                为空
-              </option>
-              <option value="not_empty">
-                非空
-              </option>
-              <option value="date_between">
-                日期区间
-              </option>
-              <option value="next_days">
-                未来 N 天
-              </option>
-              <option value="last_days">
-                最近 N 天
-              </option>
-            </select>
-            <template v-if="filter.operator === 'date_between'">
-              <input
+              <select
+                v-model="filter.field"
                 class="control"
-                type="date"
-                :value="store.dateRangeValue(filter, 0)"
-                @input="store.updateDateRange(filter, 0, ($event.target as HTMLInputElement).value)"
               >
-              <input
+                <option
+                  v-for="option in store.fieldOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+              <select
+                v-model="filter.operator"
                 class="control"
-                type="date"
-                :value="store.dateRangeValue(filter, 1)"
-                @input="store.updateDateRange(filter, 1, ($event.target as HTMLInputElement).value)"
               >
-            </template>
-            <input
-              v-else-if="store.requiresValue(filter.operator)"
-              class="control"
-              :type="filter.operator.includes('days') ? 'number' : 'text'"
-              :value="String(filter.value || '')"
-              @input="filter.value = ($event.target as HTMLInputElement).value"
-            >
-            <button
-              class="btn btn--ghost btn--small"
-              @click="store.removeFilter(filter.id)"
-            >
-              删除
-            </button>
+                <option value="eq">
+                  等于
+                </option>
+                <option value="neq">
+                  不等于
+                </option>
+                <option value="contains">
+                  包含
+                </option>
+                <option value="not_contains">
+                  不包含
+                </option>
+                <option value="empty">
+                  为空
+                </option>
+                <option value="not_empty">
+                  非空
+                </option>
+                <option value="date_between">
+                  日期区间
+                </option>
+                <option value="next_days">
+                  未来 N 天
+                </option>
+                <option value="last_days">
+                  最近 N 天
+                </option>
+              </select>
+              <template v-if="filter.operator === 'date_between'">
+                <input
+                  class="control"
+                  type="date"
+                  :value="store.dateRangeValue(filter, 0)"
+                  @input="store.updateDateRange(filter, 0, ($event.target as HTMLInputElement).value)"
+                >
+                <input
+                  class="control"
+                  type="date"
+                  :value="store.dateRangeValue(filter, 1)"
+                  @input="store.updateDateRange(filter, 1, ($event.target as HTMLInputElement).value)"
+                >
+              </template>
+              <input
+                v-else-if="store.requiresValue(filter.operator)"
+                class="control"
+                :type="filter.operator.includes('days') ? 'number' : 'text'"
+                :value="String(filter.value || '')"
+                @input="filter.value = ($event.target as HTMLInputElement).value"
+              >
+              <button
+                class="btn btn--ghost btn--small"
+                @click="store.removeFilter(filter.id)"
+              >
+                删除
+              </button>
+            </div>
           </div>
-        </div>
-        <p
-          v-else
-          class="muted"
-        >
-          还没有筛选条件，可以先从状态、日期、项目开始。
-        </p>
+          <p
+            v-else
+            class="muted"
+          >
+            还没有筛选条件，可以先从状态、日期、项目开始。
+          </p>
+        </template>
       </article>
 
       <article class="card">
         <div class="section-head">
-          <h3>排序、分组与字段</h3>
-        </div>
-        <div class="form-grid">
-          <label class="field">
-            <span>分组字段</span>
-            <select
-              v-model="store.groupByProxy"
-              class="control"
-            >
-              <option value="">
-                不分组
-              </option>
-              <option
-                v-for="option in store.fieldOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </option>
-            </select>
-          </label>
-          <label class="field">
-            <span>视图类型</span>
-            <div class="tabs">
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
-                @click="store.draft.view.type = 'table'"
-              >
-                表格
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
-                @click="store.draft.view.type = 'board'"
-              >
-                看板
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
-                @click="store.draft.view.type = 'list'"
-              >
-                列表
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
-                @click="store.draft.view.type = 'cards'"
-              >
-                卡片
-              </button>
-            </div>
-          </label>
-        </div>
-
-        <div class="section-head section-head--top">
-          <span class="muted">排序规则</span>
           <button
-            class="btn btn--ghost btn--small"
-            @click="store.addSort"
+            class="section-toggle"
+            type="button"
+            data-section-toggle="view"
+            :aria-expanded="String(!collapsedSections.view)"
+            @click="toggleSection('view')"
           >
-            添加排序
+            <h3>排序、分组与字段</h3>
+            <span
+              class="section-toggle__chevron"
+              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.view }"
+            >⌄</span>
           </button>
         </div>
-        <div class="stack gap-sm">
-          <div
-            v-for="(sort, index) in store.draft.template.sorts"
-            :key="`${sort.field}-${index}`"
-            class="filter-row filter-row--sort"
-          >
-            <select
-              v-model="sort.field"
-              class="control"
-            >
-              <option
-                v-for="option in store.fieldOptions"
-                :key="option.value"
-                :value="option.value"
+        <template v-if="!collapsedSections.view">
+          <div class="form-grid">
+            <label class="field">
+              <span>分组字段</span>
+              <select
+                v-model="store.groupByProxy"
+                class="control"
               >
-                {{ option.label }}
-              </option>
-            </select>
-            <select
-              v-model="sort.direction"
-              class="control"
-            >
-              <option value="asc">
-                升序
-              </option>
-              <option value="desc">
-                降序
-              </option>
-            </select>
+                <option value="">
+                  不分组
+                </option>
+                <option
+                  v-for="option in store.fieldOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+            <label class="field">
+              <span>视图类型</span>
+              <div class="tabs">
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
+                  @click="store.draft.view.type = 'table'"
+                >
+                  表格
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
+                  @click="store.draft.view.type = 'board'"
+                >
+                  看板
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
+                  @click="store.draft.view.type = 'list'"
+                >
+                  列表
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
+                  @click="store.draft.view.type = 'cards'"
+                >
+                  卡片
+                </button>
+              </div>
+            </label>
+          </div>
+
+          <div class="section-head section-head--top">
+            <span class="muted">排序规则</span>
             <button
               class="btn btn--ghost btn--small"
-              @click="store.removeSort(index)"
+              @click="store.addSort"
             >
-              删除
+              添加排序
             </button>
           </div>
-        </div>
+          <div class="stack gap-sm">
+            <div
+              v-for="(sort, index) in store.draft.template.sorts"
+              :key="`${sort.field}-${index}`"
+              class="filter-row filter-row--sort"
+            >
+              <select
+                v-model="sort.field"
+                class="control"
+              >
+                <option
+                  v-for="option in store.fieldOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+              <select
+                v-model="sort.direction"
+                class="control"
+              >
+                <option value="asc">
+                  升序
+                </option>
+                <option value="desc">
+                  降序
+                </option>
+              </select>
+              <button
+                class="btn btn--ghost btn--small"
+                @click="store.removeSort(index)"
+              >
+                删除
+              </button>
+            </div>
+          </div>
 
-        <div class="section-head section-head--top">
-          <span class="muted">输出字段</span>
-        </div>
-        <label
-          v-for="option in store.fieldOptions"
-          :key="option.value"
-          class="check"
-        >
-          <input
-            type="checkbox"
-            :checked="store.draft.template.fields.includes(option.value)"
-            @change="store.toggleField(option.value)"
+          <div class="section-head section-head--top">
+            <span class="muted">输出字段</span>
+          </div>
+          <label
+            v-for="option in store.fieldOptions"
+            :key="option.value"
+            class="check"
           >
-          <span>{{ option.label }}</span>
-          <small v-if="option.hint">{{ option.hint }}</small>
-        </label>
-        <div class="actions actions--inline">
-          <input
-            v-model="store.customFieldName"
-            class="control"
-            placeholder="自定义属性名，如 sprint"
-          >
-          <button
-            class="btn btn--ghost btn--small"
-            @click="store.addCustomField"
-          >
-            添加属性字段
-          </button>
-        </div>
+            <input
+              type="checkbox"
+              :checked="store.draft.template.fields.includes(option.value)"
+              @change="store.toggleField(option.value)"
+            >
+            <span>{{ option.label }}</span>
+            <small v-if="option.hint">{{ option.hint }}</small>
+          </label>
+          <div class="actions actions--inline">
+            <input
+              v-model="store.customFieldName"
+              class="control"
+              placeholder="自定义属性名，如 sprint"
+            >
+            <button
+              class="btn btn--ghost btn--small"
+              @click="store.addCustomField"
+            >
+              添加属性字段
+            </button>
+          </div>
+        </template>
       </article>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { reactive } from "vue"
+
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
+const collapsedSections = reactive({
+  filters: false,
+  mappings: false,
+  scope: false,
+  view: false,
+})
+
+function toggleSection(section: keyof typeof collapsedSections) {
+  collapsedSections[section] = !collapsedSections[section]
+}
 </script>
 
 <style lang="scss" scoped>
@@ -437,6 +507,28 @@ const store = useQueryBuilderStore()
 h3 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
+}
+
+.section-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.section-toggle__chevron {
+  display: inline-block;
+  color: rgba(32, 26, 21, 0.54);
+  font: 600 18px/1 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  transition: transform 0.2s ease;
+}
+
+.section-toggle__chevron--collapsed {
+  transform: rotate(180deg);
 }
 
 .title-input,

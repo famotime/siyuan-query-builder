@@ -46,6 +46,21 @@
                   <strong>{{ store.currentDocumentTarget.title }}</strong>
                   <small>{{ store.currentDocumentTarget.id }}</small>
                 </button>
+                <template v-if="otherOpenDocumentOptions.length">
+                  <div class="embed-target-menu__section">
+                    已打开文档
+                  </div>
+                  <button
+                    v-for="target in otherOpenDocumentOptions"
+                    :key="target.id"
+                    class="embed-target-menu__item"
+                    type="button"
+                    @click="selectRecentTarget(target.id)"
+                  >
+                    <strong>{{ target.title || target.id }}</strong>
+                    <small>文档 · {{ target.id }}</small>
+                  </button>
+                </template>
                 <template v-if="recentTargetOptions.length">
                   <div class="embed-target-menu__section">
                     历史 ID
@@ -63,10 +78,10 @@
                   </button>
                 </template>
                 <p
-                  v-if="!store.currentDocumentTarget && !recentTargetOptions.length"
+                  v-if="!store.currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
                   class="embed-target-menu__empty"
                 >
-                  暂无当前文档或历史 ID，可直接输入。
+                  暂无当前文档、已打开文档或历史 ID，可直接输入。
                 </p>
               </div>
             </div>
@@ -274,7 +289,11 @@ import { useQueryBuilderStore } from "@/composables/query-builder-store"
 const store = useQueryBuilderStore()
 const embedTargetMenuOpen = ref(false)
 const embedTargetPickerRef = ref<HTMLElement | null>(null)
-const recentTargetOptions = computed(() => store.recentEmbedTargets.filter(target => target.id !== store.currentDocumentTarget?.id))
+const otherOpenDocumentOptions = computed(() => store.openDocumentTargets.filter(target => target.id !== store.currentDocumentTarget?.id))
+const recentTargetOptions = computed(() => {
+  const excludedIds = new Set(store.openDocumentTargets.map(target => target.id))
+  return store.recentEmbedTargets.filter(target => !excludedIds.has(target.id))
+})
 
 async function toggleEmbedTargetMenu() {
   if (!embedTargetMenuOpen.value) {
