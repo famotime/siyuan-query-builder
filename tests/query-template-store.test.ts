@@ -17,6 +17,10 @@ class FakePluginStorage {
   async removeData(key: string) {
     this.data.delete(key)
   }
+
+  read(key: string) {
+    return this.data.get(key)
+  }
 }
 
 describe('createQueryTemplateStore', () => {
@@ -42,5 +46,33 @@ describe('createQueryTemplateStore', () => {
 
     await store.remove(template.id)
     expect(await store.list()).toEqual([])
+  })
+
+  it('keeps the most recently saved template at the front of storage', async () => {
+    const storage = new FakePluginStorage()
+    const store = createQueryTemplateStore(storage)
+    const first: QueryTemplate = {
+      id: 'template-1',
+      version: 1,
+      name: 'Reading Queue',
+      scope: {
+        type: 'tag',
+        value: '#unread#',
+      },
+      filters: [],
+      sorts: [],
+      fields: ['content'],
+      viewType: 'table',
+    }
+    const second: QueryTemplate = {
+      ...first,
+      id: 'template-2',
+      name: 'Done Tasks',
+    }
+
+    await store.save(first)
+    await store.save(second)
+
+    expect(storage.read('query-builder.templates.v2')).toEqual([second, first])
   })
 })

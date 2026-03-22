@@ -1,19 +1,10 @@
 import type { ViewConfig } from "@/core/query/types"
+import { readArrayStorage, writeArrayStorage, type StorageAdapter } from "@/core/storage/collection-storage"
 
 export const VIEW_CONFIG_STORAGE_KEY = "query-builder.views.v2"
 
-interface StorageAdapter {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
-  removeData(key: string): Promise<void>
-}
-
 async function readAll(storage: StorageAdapter) {
-  const data = await storage.loadData(VIEW_CONFIG_STORAGE_KEY)
-  if (!Array.isArray(data)) {
-    return [] as ViewConfig[]
-  }
-  return data as ViewConfig[]
+  return readArrayStorage<ViewConfig>(storage, VIEW_CONFIG_STORAGE_KEY)
 }
 
 export function createViewConfigStore(storage: StorageAdapter) {
@@ -42,20 +33,12 @@ export function createViewConfigStore(storage: StorageAdapter) {
     async remove(viewId: string) {
       const views = await readAll(storage)
       const next = views.filter(item => item.id !== viewId)
-      if (next.length) {
-        await storage.saveData(VIEW_CONFIG_STORAGE_KEY, next)
-        return
-      }
-      await storage.removeData(VIEW_CONFIG_STORAGE_KEY)
+      await writeArrayStorage(storage, VIEW_CONFIG_STORAGE_KEY, next)
     },
     async removeByTemplate(templateId: string) {
       const views = await readAll(storage)
       const next = views.filter(item => item.queryTemplateId !== templateId)
-      if (next.length) {
-        await storage.saveData(VIEW_CONFIG_STORAGE_KEY, next)
-        return
-      }
-      await storage.removeData(VIEW_CONFIG_STORAGE_KEY)
+      await writeArrayStorage(storage, VIEW_CONFIG_STORAGE_KEY, next)
     },
   }
 }

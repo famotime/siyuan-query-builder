@@ -72,67 +72,14 @@
         {{ store.error }}
       </div>
 
-      <section
-        v-if="store.savedViews?.length"
-        class="saved-views"
-      >
-        <div class="saved-views__head">
-          <div>
-            <h4>已保存视图</h4>
-            <p class="muted">同一模板下可切换多个视图配置，并可指定默认视图。</p>
-          </div>
-          <button
-            class="btn btn--ghost btn--small"
-            data-view-save-as
-            type="button"
-            @click="store.saveViewAs"
-          >
-            添加为新视图
-          </button>
-        </div>
-        <div
-          class="saved-views__list"
-          data-saved-views-grid
-        >
-          <article
-            v-for="view in store.savedViews"
-            :key="view.id"
-            class="saved-views__item"
-            data-saved-view-card
-            :class="{ 'saved-views__item--active': view.id === store.draft.view.id }"
-          >
-            <button
-              class="saved-views__main"
-              type="button"
-              :data-view-load="view.id"
-              @click="store.loadSavedView(view.id)"
-            >
-              <strong>{{ viewTypeLabel(view.type) }}</strong>
-              <span
-                v-if="view.defaultView"
-                class="saved-views__badge"
-              >默认</span>
-            </button>
-            <div class="saved-views__actions">
-              <button
-                class="btn btn--ghost btn--small"
-                type="button"
-                :data-view-default="view.id"
-                @click="store.setDefaultSavedView(view.id)"
-              >
-                设为默认
-              </button>
-              <DeleteIconButton
-                :data-view-delete="view.id"
-                class="saved-views__delete"
-                title="删除视图"
-                aria-label="删除视图"
-                @click="store.deleteSavedView(view.id)"
-              />
-            </div>
-          </article>
-        </div>
-      </section>
+      <ResultsSavedViewsPanel
+        :active-view-id="store.draft.view.id"
+        :views="store.savedViews || []"
+        @delete="store.deleteSavedView"
+        @load="store.loadSavedView"
+        @save-as="store.saveViewAs"
+        @set-default="store.setDefaultSavedView"
+      />
 
       <div
         v-if="store.draft.view.type === 'board' && store.boardDragCapability && !store.boardDragCapability.enabled && store.boardDragCapability.reason"
@@ -170,6 +117,7 @@
       <div
         v-if="!store.resultSet?.rows.length"
         class="empty"
+        data-results-empty
       >
         <div class="empty__icon" />
         <h4>结果会在这里出现</h4>
@@ -335,172 +283,27 @@
         </article>
       </div>
 
-      <section class="embed-panel">
-        <div class="embed-targets">
-          <span class="embed-targets__label">嵌入到文档</span>
-          <div
-            ref="embedTargetPickerRef"
-            class="embed-target-picker"
-          >
-            <input
-              v-model="store.embedParentId"
-              class="control control--embed-merged"
-              placeholder="选择或输入目标文档 ID / 父块 ID"
-              @focus="store.refreshCurrentDocumentTarget"
-            >
-            <button
-              class="embed-target-picker__toggle"
-              type="button"
-              aria-label="选择当前文档或历史 ID"
-              :aria-expanded="embedTargetMenuOpen"
-              @click="toggleEmbedTargetMenu"
-            >
-              <span
-                class="embed-target-picker__chevron"
-                :class="{ 'is-open': embedTargetMenuOpen }"
-              >⌄</span>
-            </button>
-            <div
-              v-if="embedTargetMenuOpen"
-              class="embed-target-menu"
-            >
-              <button
-                v-if="store.currentDocumentTarget"
-                class="embed-target-menu__item"
-                type="button"
-                @click="selectCurrentDocumentTarget"
-              >
-                <span class="embed-target-menu__eyebrow">当前文档</span>
-                <strong>{{ store.currentDocumentTarget.title }}</strong>
-                <small>{{ store.currentDocumentTarget.id }}</small>
-              </button>
-              <template v-if="otherOpenDocumentOptions.length">
-                <div class="embed-target-menu__section">
-                  已打开文档
-                </div>
-                <button
-                  v-for="target in otherOpenDocumentOptions"
-                  :key="target.id"
-                  class="embed-target-menu__item"
-                  type="button"
-                  @click="selectRecentTarget(target.id)"
-                >
-                  <strong>{{ target.title || target.id }}</strong>
-                  <small>文档 · {{ target.id }}</small>
-                </button>
-              </template>
-              <template v-if="recentTargetOptions.length">
-                <div class="embed-target-menu__section">
-                  历史 ID
-                </div>
-                <button
-                  v-for="target in recentTargetOptions"
-                  :key="target.id"
-                  class="embed-target-menu__item"
-                  type="button"
-                  @click="selectRecentTarget(target.id)"
-                >
-                  <strong>{{ target.title || target.id }}</strong>
-                  <small>{{ target.type === "document" ? "文档" : "块" }} · {{ target.id }}</small>
-                  <small v-if="target.content && target.content !== target.title">{{ target.content }}</small>
-                </button>
-              </template>
-              <p
-                v-if="!store.currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
-                class="embed-target-menu__empty"
-              >
-                暂无当前文档、已打开文档或历史 ID，可直接输入。
-              </p>
-            </div>
-          </div>
-          <p class="muted muted--embed-target">
-            {{ store.embedTargetHint }}
-          </p>
-        </div>
-        <button
-          class="btn btn--embed"
-          @click="store.insertEmbed"
-        >
-          <svg
-            class="btn__icon"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3zm7 10l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8L19 13zM6 14l1.1 2.9L10 18l-2.9 1.1L6 22l-1.1-2.9L2 18l2.9-1.1L6 14z"
-              fill="currentColor"
-            />
-          </svg>
-          生成嵌入块
-        </button>
-      </section>
+      <ResultsEmbedPanel
+        v-model="store.embedParentId"
+        :current-document-target="store.currentDocumentTarget"
+        :hint="store.embedTargetHint"
+        :open-document-targets="store.openDocumentTargets"
+        :recent-targets="store.recentEmbedTargets"
+        @insert="store.insertEmbed"
+        @refresh="store.refreshCurrentDocumentTarget"
+        @select-current="store.selectCurrentDocumentTarget"
+        @select-target="store.selectEmbedTarget"
+      />
     </article>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue"
-
-import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
+import ResultsEmbedPanel from "@/components/query-builder/ResultsEmbedPanel.vue"
+import ResultsSavedViewsPanel from "@/components/query-builder/ResultsSavedViewsPanel.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
-const embedTargetMenuOpen = ref(false)
-const embedTargetPickerRef = ref<HTMLElement | null>(null)
-const otherOpenDocumentOptions = computed(() => store.openDocumentTargets.filter(target => target.id !== store.currentDocumentTarget?.id))
-const recentTargetOptions = computed(() => {
-  const excludedIds = new Set(store.openDocumentTargets.map(target => target.id))
-  return store.recentEmbedTargets.filter(target => !excludedIds.has(target.id))
-})
-
-async function toggleEmbedTargetMenu() {
-  if (!embedTargetMenuOpen.value) {
-    await store.refreshCurrentDocumentTarget()
-  }
-  embedTargetMenuOpen.value = !embedTargetMenuOpen.value
-}
-
-async function selectCurrentDocumentTarget() {
-  const selected = await store.selectCurrentDocumentTarget()
-  if (selected) {
-    embedTargetMenuOpen.value = false
-  }
-}
-
-async function selectRecentTarget(targetId: string) {
-  await store.selectEmbedTarget(targetId)
-  embedTargetMenuOpen.value = false
-}
-
-function viewTypeLabel(type: string) {
-  switch (type) {
-    case "board":
-      return "看板"
-    case "list":
-      return "列表"
-    case "cards":
-      return "统计卡片"
-    default:
-      return "表格"
-  }
-}
-
-function handleDocumentPointerDown(event: Event) {
-  const picker = embedTargetPickerRef.value
-  const target = event.target
-  if (!picker || !(target instanceof Node) || picker.contains(target)) {
-    return
-  }
-  embedTargetMenuOpen.value = false
-}
-
-onMounted(() => {
-  document.addEventListener("pointerdown", handleDocumentPointerDown)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener("pointerdown", handleDocumentPointerDown)
-})
 </script>
 
 <style lang="scss" scoped>

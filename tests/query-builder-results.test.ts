@@ -146,4 +146,58 @@ describe("QueryBuilderResults", () => {
     expect(currentStore.deleteSavedView).toHaveBeenCalledWith("view-2")
     expect(currentStore.saveViewAs).toHaveBeenCalled()
   })
+
+  it("shows the empty result placeholder when no rows have been loaded", () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "board"
+
+    const wrapper = mount(QueryBuilderResults)
+
+    expect(wrapper.get("[data-results-empty]").text()).toContain("结果会在这里出现")
+  })
+
+  it("opens the embed target menu, refreshes document targets, and wires target selection", async () => {
+    currentStore = createStore()
+    currentStore.refreshCurrentDocumentTarget = vi.fn(async () => {})
+    currentStore.selectCurrentDocumentTarget = vi.fn(async () => true)
+    currentStore.selectEmbedTarget = vi.fn(async () => true)
+    currentStore.currentDocumentTarget = {
+      id: "20260322194501-abc1234",
+      title: "当前文档",
+    }
+    currentStore.openDocumentTargets = [
+      {
+        id: "20260322194501-abc1234",
+        title: "当前文档",
+      },
+      {
+        id: "20260322195501-def5678",
+        title: "项目周报",
+      },
+    ]
+    currentStore.recentEmbedTargets = [
+      {
+        id: "20260322201501-hij9012",
+        type: "document",
+        title: "历史文档",
+        content: "",
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderResults)
+
+    await wrapper.get("[data-embed-target-toggle]").trigger("click")
+
+    expect(currentStore.refreshCurrentDocumentTarget).toHaveBeenCalled()
+    expect(wrapper.get("[data-embed-target-menu]").exists()).toBe(true)
+
+    await wrapper.get("[data-embed-target-current]").trigger("click")
+    expect(currentStore.selectCurrentDocumentTarget).toHaveBeenCalled()
+
+    await wrapper.get("[data-embed-target-toggle]").trigger("click")
+    await wrapper.get('[data-embed-target-item="20260322201501-hij9012"]').trigger("click")
+
+    expect(currentStore.selectEmbedTarget).toHaveBeenCalledWith("20260322201501-hij9012")
+    expect(wrapper.find("[data-embed-target-menu]").exists()).toBe(false)
+  })
 })

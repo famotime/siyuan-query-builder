@@ -1,104 +1,38 @@
-import { computed, inject, proxyRefs, reactive, ref, toRaw, watch } from "vue"
+import { computed, inject, proxyRefs, reactive, ref } from "vue"
 import type { InjectionKey } from "vue"
 
-import { getBlockByID, lsNotebooks } from "@/api"
-import {
-  createEmbedTargetPreview,
-  formatEmbedTargetHint,
-  getActiveDocumentTarget,
-  getOpenDocumentTargets,
-  isLikelyBlockId,
-  normalizeRecentEmbedTargetIds,
-  summarizeBlockLabel,
-  type ActiveDocumentTarget,
-  type EmbedTargetPreview,
-} from "@/core/embed-target"
-import {
-  AGGREGATE_VALUE_FIELD,
-  TAG_COUNT_FIELD,
-  applyViewConfigToTemplate,
-  cloneSnapshot,
-  createDefaultViewConfig,
-  createEmptyTemplate,
-  createFieldOptions,
-  createId,
-  createPresets,
-  hydrateViewConfig,
-  type FieldOption,
-} from "@/core/query/catalog"
-import { buildQuery } from "@/core/query/compiler"
+import { lsNotebooks } from "@/api"
+import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
+import { AGGREGATE_VALUE_FIELD, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
-import type {
-  FieldMappings,
-  FilterOperator,
-  QueryBuilderSnapshot,
-  QueryFilter,
-  QueryTemplate,
-  ResultRow,
-  SavedTemplateSummary,
-  ViewConfig,
-} from "@/core/query/types"
-import { showMessage } from "@/external/siyuan"
+import type { QueryBuilderSnapshot, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createMetricsStore } from "@/core/storage/metrics-store"
-import { migrateLegacyTemplateSnapshots } from "@/core/storage/migrations"
-import { createQueryTemplateStore } from "@/core/storage/query-template-store"
-import { buildSavedTemplateSummary, pickTemplateView } from "@/core/storage/template-view"
-import { createViewConfigStore } from "@/core/storage/view-config-store"
 import { buildBoardColumns } from "@/core/view/board"
 import { buildCardsSummary, buildListItems } from "@/inline/view-models"
 import { usePlugin } from "@/main"
 
-type EditableField = keyof FieldMappings
-const EMBED_TARGET_PREFS_KEY = "query-builder.embed-target.v1"
-
-interface EmbedTargetPrefs {
-  lastParentId?: string
-  recentParentIds?: string[]
-}
-
-function createDraft(): QueryBuilderSnapshot {
-  const template = createEmptyTemplate()
-  return {
-    template,
-    view: createDefaultViewConfig(template.id, "table", template),
-  }
-}
-
-function createDynamicFieldOption(field: string): FieldOption {
-  if (field.startsWith("attr:")) {
-    const attrName = field.slice("attr:".length)
-    return {
-      value: field,
-      label: attrName,
-      hint: attrName,
-    }
-  }
-
-  return {
-    value: field,
-    label: field,
-  }
-}
-
-function mergeFieldOptions(baseOptions: FieldOption[], template: QueryTemplate): FieldOption[] {
-  const seen = new Set(baseOptions.map(option => option.value))
-  const extraFields = new Set<string>([
-    ...template.fields,
-    ...template.filters.map(filter => filter.field),
-    ...template.sorts.map(sort => sort.field),
-    template.groupBy || "",
-    template.aggregation?.field || "",
-  ].filter(Boolean))
-
-  return [
-    ...baseOptions,
-    ...Array.from(extraFields)
-      .filter(field => !seen.has(field))
-      .map(createDynamicFieldOption),
-  ]
-}
+import { createEmbedTargetController } from "./query-builder-store/embed-target-controller"
+import { createQueryExecutionController } from "./query-builder-store/query-execution-controller"
+import { createTemplateViewController } from "./query-builder-store/template-view-controller"
+import {
+  createDraft,
+  createSnapshot,
+  dateRangeValue,
+  defaultAggregationFieldResult,
+  displayValue,
+  makeFilter,
+  mappingKeys,
+  mappingLabels,
+  mergeFieldOptions,
+  nextAggregationField,
+  normalizeCustomField,
+  requiresValue,
+  resolveEditableField,
+  syncAggregateTemplate,
+  updateDateRange,
+} from "./query-builder-store/shared"
 
 export type QueryBuilderStore = ReturnType<typeof createQueryBuilderStore>
 export const queryBuilderStoreKey: InjectionKey<QueryBuilderStore> = Symbol("query-builder-store")
@@ -113,8 +47,6 @@ export function useQueryBuilderStore() {
 
 export function createQueryBuilderStore() {
   const plugin = usePlugin()
-  const queryTemplateStore = createQueryTemplateStore(plugin)
-  const viewConfigStore = createViewConfigStore(plugin)
   const metricsStore = createMetricsStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
 
@@ -122,7 +54,7 @@ export function createQueryBuilderStore() {
   const notebooks = ref<Notebook[]>([])
   const savedTemplateSummaries = ref<SavedTemplateSummary[]>([])
   const savedViews = ref<ViewConfig[]>([])
-  const resultSet = ref<{ rows: ResultRow[], total: number, executedAt: string } | null>(null)
+  const resultSet = ref<ResultSet | null>(null)
   const loading = ref(false)
   const saving = ref(false)
   const advancedMode = ref(false)
@@ -134,20 +66,42 @@ export function createQueryBuilderStore() {
   const embedTargetPreview = ref<EmbedTargetPreview | null>(null)
   const currentDocumentTarget = ref<ActiveDocumentTarget | null>(null)
   const openDocumentTargets = ref<ActiveDocumentTarget[]>([])
-  const recentEmbedTargetIds = ref<string[]>([])
   const recentEmbedTargets = ref<EmbedTargetPreview[]>([])
   const draggingRowId = ref("")
-  let storageReadyPromise: Promise<void> | null = null
-  let embedTargetResolveToken = 0
 
-  const mappingKeys: EditableField[] = ["status", "dueDate", "priority", "project", "owner"]
-  const mappingLabels: Record<EditableField, string> = {
-    status: "状态属性名",
-    dueDate: "日期属性名",
-    priority: "优先级属性名",
-    project: "项目属性名",
-    owner: "负责人属性名",
+  function recordMetric(metric: "queryRuns" | "templateSaves" | "viewSaves" | "embedInsertions" | "quickEdits" | "boardDrags", amount = 1) {
+    void metricsStore.increment(metric, amount).catch(() => { })
   }
+
+  function recordViewSwitch(type: ViewConfig["type"]) {
+    void metricsStore.incrementViewSwitch(type).catch(() => { })
+  }
+
+  function resetResultState() {
+    resultSet.value = null
+    advancedSql.value = ""
+    error.value = ""
+  }
+
+  const templateViews = createTemplateViewController({
+    plugin,
+    draft,
+    savedTemplateSummaries,
+    savedViews,
+    saving,
+    resetResultState,
+    recordMetric,
+  })
+
+  const embedTargets = createEmbedTargetController({
+    plugin,
+    embedParentId,
+    embedTargetHint,
+    embedTargetPreview,
+    currentDocumentTarget,
+    openDocumentTargets,
+    recentEmbedTargets,
+  })
 
   const presets = computed(() => createPresets(draft.view.fieldMappings))
   const fieldOptions = computed(() => mergeFieldOptions(
@@ -157,16 +111,7 @@ export function createQueryBuilderStore() {
   const selectableFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD))
   const sortFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
   const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => option.value === TAG_COUNT_FIELD))
-  const resultFields = computed(() => {
-    if (!draft.template.aggregation) {
-      return draft.template.fields
-    }
-
-    return [
-      ...(draft.template.groupBy ? [draft.template.groupBy] : []),
-      AGGREGATE_VALUE_FIELD,
-    ]
-  })
+  const resultFields = computed(() => defaultAggregationFieldResult(draft.template))
   const boardColumns = computed(() => {
     if (!resultSet.value?.rows.length || !draft.template.groupBy) {
       return []
@@ -220,7 +165,7 @@ export function createQueryBuilderStore() {
     get: () => draft.template.groupBy || "",
     set: (value: string) => {
       draft.template.groupBy = value || undefined
-      syncAggregateFields()
+      syncAggregateTemplate(draft.template, resultFields.value)
     },
   })
   const aggregationEnabled = computed({
@@ -234,7 +179,7 @@ export function createQueryBuilderStore() {
       draft.template.aggregation = {
         function: "count",
       }
-      syncAggregateFields()
+      syncAggregateTemplate(draft.template, resultFields.value)
     },
   })
   const aggregationFunctionProxy = computed({
@@ -242,9 +187,9 @@ export function createQueryBuilderStore() {
     set: (value: "count" | "sum" | "avg" | "min" | "max") => {
       draft.template.aggregation = {
         function: value,
-        field: value === "count" ? undefined : (draft.template.aggregation?.field || TAG_COUNT_FIELD),
+        field: nextAggregationField(value, draft.template.aggregation?.field),
       }
-      syncAggregateFields()
+      syncAggregateTemplate(draft.template, resultFields.value)
     },
   })
   const aggregationFieldProxy = computed({
@@ -271,18 +216,12 @@ export function createQueryBuilderStore() {
     if (!resultSet.value) {
       return "还没有执行查询。"
     }
-    const viewNameMap = {
-      table: "表格",
-      board: "看板",
-      list: "列表",
-      cards: "统计卡片",
-    }
     if (draft.template.aggregation) {
       return `返回 ${resultSet.value.total} 组统计结果`
     }
     return `返回 ${resultSet.value.total} 条结果`
   })
-  const validationIssues = computed(() => validateSnapshot(createSnapshot()))
+  const validationIssues = computed(() => validateSnapshot(createSnapshot(draft)))
   const blockingValidationIssues = computed(() => validationIssues.value.filter(issue => issue.level === "error"))
   const currentTemplateId = computed(() => draft.template.id)
   const currentViewId = computed(() => draft.view.id)
@@ -315,66 +254,21 @@ export function createQueryBuilderStore() {
     }
   })
 
-  async function ensureStorageReady() {
-    if (!storageReadyPromise) {
-      storageReadyPromise = migrateLegacyTemplateSnapshots(plugin)
-    }
-    await storageReadyPromise
-  }
-
-  function recordMetric(metric: "queryRuns" | "templateSaves" | "viewSaves" | "embedInsertions" | "quickEdits" | "boardDrags", amount = 1) {
-    void metricsStore.increment(metric, amount).catch(() => { })
-  }
-
-  function recordViewSwitch(type: ViewConfig["type"]) {
-    void metricsStore.incrementViewSwitch(type).catch(() => { })
-  }
-
-  function resetResultState() {
-    resultSet.value = null
-    advancedSql.value = ""
-    error.value = ""
-  }
-
-  function applyTemplateAndView(template: QueryTemplate, view: ViewConfig) {
-    const nextView = hydrateViewConfig(view, template)
-    const next = cloneSnapshot({
-      template: applyViewConfigToTemplate(template, nextView),
-      view: nextView,
-    })
-    draft.template = next.template
-    draft.view = next.view
-    resetResultState()
-  }
-
-  async function savePersistedTemplate(template: QueryTemplate) {
-    await ensureStorageReady()
-    await queryTemplateStore.save(template)
-  }
-
-  async function savePersistedView(view: ViewConfig) {
-    await ensureStorageReady()
-    await viewConfigStore.save(view)
-  }
-
-  async function persistCurrentTemplateAndView() {
-    const snapshot = createSnapshot()
-    snapshot.template.viewType = snapshot.view.type
-    snapshot.view.queryTemplateId = snapshot.template.id
-    await ensureStorageReady()
-    await queryTemplateStore.save(snapshot.template)
-    await viewConfigStore.save(snapshot.view)
-    return snapshot
-  }
-
-  function makeFilter(field = "content", operator: FilterOperator = "contains"): QueryFilter {
-    return {
-      id: createId("filter"),
-      field,
-      operator,
-      value: "",
-    }
-  }
+  const queryExecution = createQueryExecutionController({
+    draft,
+    resultSet,
+    loading,
+    advancedSql,
+    error,
+    embedParentId,
+    draggingRowId,
+    blockingValidationIssues,
+    runtime,
+    recordMetric,
+    persistCurrentTemplateAndView: templateViews.persistCurrentTemplateAndView,
+    refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
+    rememberEmbedTarget: embedTargets.rememberEmbedTarget,
+  })
 
   function fieldLabel(field: string) {
     return fieldOptions.value.find(option => option.value === field)?.label || field
@@ -387,42 +281,6 @@ export function createQueryBuilderStore() {
     draft.view.type = type
     draft.template.viewType = type
     recordViewSwitch(type)
-  }
-
-  function syncAggregateFields() {
-    if (!draft.template.aggregation) {
-      return
-    }
-
-    draft.template.fields = resultFields.value
-    const allowedSortFields = new Set([
-      AGGREGATE_VALUE_FIELD,
-      ...(draft.template.groupBy ? [draft.template.groupBy] : []),
-    ])
-    const nextSorts = draft.template.sorts.filter(sort => allowedSortFields.has(sort.field))
-
-    draft.template.sorts = nextSorts.length
-      ? nextSorts
-      : [
-        {
-          field: AGGREGATE_VALUE_FIELD,
-          direction: "desc",
-        },
-      ]
-  }
-
-  function requiresValue(operator: FilterOperator) {
-    return !["empty", "not_empty"].includes(operator)
-  }
-
-  function dateRangeValue(filter: QueryFilter, index: 0 | 1) {
-    return Array.isArray(filter.value) ? filter.value[index] || "" : ""
-  }
-
-  function updateDateRange(filter: QueryFilter, index: 0 | 1, value: string) {
-    const range = Array.isArray(filter.value) ? [...filter.value] : ["", ""]
-    range[index] = value
-    filter.value = range
   }
 
   function addFilter() {
@@ -459,480 +317,29 @@ export function createQueryBuilderStore() {
     if (draft.template.aggregation) {
       return
     }
-    const value = customFieldName.value.trim()
-    if (!value) {
-      return
-    }
-    const field = value.startsWith("attr:") ? value : `attr:${value}`
-    if (!draft.template.fields.includes(field)) {
+    const field = normalizeCustomField(customFieldName.value)
+    if (field && !draft.template.fields.includes(field)) {
       draft.template.fields.push(field)
     }
     customFieldName.value = ""
   }
 
-  function createSnapshot() {
-    const template = toRaw(draft.template)
-    const nextView = {
-      ...toRaw(draft.view),
-      type: template.viewType,
-      fields: [...template.fields],
-      sorts: template.sorts.map(sort => ({ ...sort })),
-      groupBy: template.groupBy || null,
-      aggregation: template.aggregation ? { ...template.aggregation } : null,
-    } satisfies ViewConfig
-
-    return cloneSnapshot({
-      template,
-      view: nextView,
-    })
-  }
-
   function applySnapshot(snapshot: QueryBuilderSnapshot) {
-    applyTemplateAndView(snapshot.template, snapshot.view)
-    void refreshSavedViews(snapshot.template.id)
+    templateViews.applyTemplateAndView(snapshot.template, snapshot.view)
+    void templateViews.refreshSavedViews(snapshot.template.id)
   }
 
-  function resetDraft() {
-    const next = createDraft()
-    applyTemplateAndView(next.template, next.view)
-    savedViews.value = []
-  }
-
-  function displayValue(row: ResultRow, field: string) {
-    if (field === AGGREGATE_VALUE_FIELD) {
-      return String(row.agg_value ?? "")
-    }
-    if (field.startsWith("attr:")) {
-      return row.attrs[field.slice("attr:".length)] || ""
-    }
-    return String(row[field] ?? "")
-  }
-
-  function editableField(field: string): EditableField | null {
-    if (draft.template.aggregation) {
-      return null
-    }
-    if (field === `attr:${draft.view.fieldMappings.status}`) {
-      return "status"
-    }
-    if (field === `attr:${draft.view.fieldMappings.dueDate}`) {
-      return "dueDate"
-    }
-    if (field === `attr:${draft.view.fieldMappings.priority}`) {
-      return "priority"
-    }
-    return null
-  }
-
-  async function refreshSavedTemplateSummaries() {
-    await ensureStorageReady()
-    const [templates, views] = await Promise.all([
-      queryTemplateStore.list(),
-      viewConfigStore.list(),
-    ])
-    savedTemplateSummaries.value = templates.map(template => buildSavedTemplateSummary(
-      template,
-      views.filter(view => view.queryTemplateId === template.id),
-    ))
-  }
-
-  async function refreshSavedViews(templateId = draft.template.id) {
-    await ensureStorageReady()
-    if (!templateId) {
-      savedViews.value = []
-      return
-    }
-    savedViews.value = await viewConfigStore.listByTemplate(templateId)
-  }
-
-  async function loadTemplate(templateId: string) {
-    await ensureStorageReady()
-    const [template, views] = await Promise.all([
-      queryTemplateStore.get(templateId),
-      viewConfigStore.listByTemplate(templateId),
-    ])
-    if (!template) {
-      return false
-    }
-
-    applyTemplateAndView(template, pickTemplateView(template, views))
-    await refreshSavedViews(templateId)
-    return true
-  }
-
-  async function runQuery() {
-    error.value = ""
-    if (blockingValidationIssues.value.length) {
-      error.value = blockingValidationIssues.value.map(issue => issue.message).join("；")
-      showMessage(error.value, 5000, "error")
-      return
-    }
-    loading.value = true
-    try {
-      const compiled = buildQuery(draft.template)
-      advancedSql.value = compiled.sql
-      resultSet.value = await runtime.execute(compiled)
-      recordMetric("queryRuns")
-      showMessage(`查询完成：${resultSet.value.total} 条结果`, 3500, "info")
-    } catch (runtimeError) {
-      error.value = runtimeError instanceof Error ? runtimeError.message : "查询失败"
-      showMessage(error.value, 5000, "error")
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function saveTemplate() {
-    saving.value = true
-    try {
-      await persistCurrentTemplateAndView()
-      await refreshSavedTemplateSummaries()
-      await refreshSavedViews(draft.template.id)
-      recordMetric("templateSaves")
-      showMessage(`已保存模板：${draft.template.name}`, 3500, "info")
-    } catch (saveError) {
-      showMessage(saveError instanceof Error ? saveError.message : "保存失败", 5000, "error")
-    } finally {
-      saving.value = false
-    }
-  }
-
-  async function deleteTemplate(templateId: string) {
-    try {
-      await ensureStorageReady()
-      await queryTemplateStore.remove(templateId)
-      await viewConfigStore.removeByTemplate(templateId)
-      await refreshSavedTemplateSummaries()
-      if (draft.template.id === templateId) {
-        resetDraft()
-      } else {
-        await refreshSavedViews(draft.template.id)
-      }
-      showMessage("已删除模板", 3000, "info")
-    } catch (deleteError) {
-      showMessage(deleteError instanceof Error ? deleteError.message : "删除模板失败", 5000, "error")
-    }
-  }
-
-  async function quickEdit(rowId: string, field: EditableField, value: string) {
-    try {
-      await runtime.updateField(rowId, field, value, draft.view.fieldMappings)
-      const row = resultSet.value?.rows.find(item => item.id === rowId)
-      if (row) {
-        row.attrs[draft.view.fieldMappings[field]] = value
-      }
-      recordMetric("quickEdits")
-      showMessage("已回写原始块属性", 2500, "info")
-    } catch (editError) {
-      showMessage(editError instanceof Error ? editError.message : "写回失败", 5000, "error")
-    }
-  }
-
-  async function insertEmbed() {
-    if (!embedParentId.value.trim()) {
-      showMessage("请输入父块或文档 ID", 4000, "error")
-      return
-    }
-    try {
-      await persistCurrentTemplateAndView()
-      await refreshSavedTemplateSummaries()
-      await runtime.insertEmbedBlock({
-        parentID: embedParentId.value.trim(),
-        templateId: draft.template.id,
-        viewId: draft.view.id,
-        title: draft.template.name,
-        viewType: draft.view.type,
-      })
-      await rememberEmbedTarget(embedParentId.value)
-      recordMetric("embedInsertions")
-      showMessage("已插入嵌入描述块", 3500, "info")
-    } catch (insertError) {
-      showMessage(insertError instanceof Error ? insertError.message : "插入嵌入块失败", 5000, "error")
-    }
-  }
-
-  function openBlock(blockId: string) {
-    window.open(`siyuan://blocks/${blockId}`)
-  }
-
-  function canOpenRow(row: ResultRow) {
-    return !draft.template.aggregation && isLikelyBlockId(row.id)
-  }
-
-  async function dropToColumn(columnId: string) {
-    if (!draggingRowId.value) {
-      return
-    }
-    if (draft.template.groupBy !== `attr:${draft.view.fieldMappings.status}`) {
-      showMessage("只有按状态分组时才支持拖拽回写", 3500, "error")
-      draggingRowId.value = ""
-      return
-    }
-    await quickEdit(draggingRowId.value, "status", columnId === "__ungrouped__" ? "" : columnId)
-    recordMetric("boardDrags")
-    draggingRowId.value = ""
-  }
-
-  async function refreshCurrentDocumentTarget() {
-    const targets = getOpenDocumentTargets(window)
-    openDocumentTargets.value = await Promise.all(targets.map(resolveDocumentTarget))
-    currentDocumentTarget.value = openDocumentTargets.value[0] || null
-  }
-
-  async function resolveDocumentTarget(target: ActiveDocumentTarget) {
-    if (target.title !== target.id) {
-      return target
-    }
-
-    try {
-      const block = await getBlockByID(target.id)
-      return {
-        id: target.id,
-        title: summarizeBlockLabel(String(block?.content || block?.name || target.id), 40) || target.id,
-      } satisfies ActiveDocumentTarget
-    } catch {
-      return target
-    }
-  }
-
-  async function lookupEmbedTargetPreview(id: string) {
-    if (!isLikelyBlockId(id)) {
-      return null
-    }
-
-    try {
-      const block = await getBlockByID(id)
-      return createEmbedTargetPreview(block, id)
-    } catch {
-      return null
-    }
-  }
-
-  async function refreshRecentEmbedTargets(ids = recentEmbedTargetIds.value) {
-    const normalized = normalizeRecentEmbedTargetIds(ids)
-    recentEmbedTargetIds.value = normalized
-    recentEmbedTargets.value = await Promise.all(normalized.map(async (id) => {
-      const preview = await lookupEmbedTargetPreview(id)
-      if (preview) {
-        return preview
-      }
-      return {
-        id,
-        type: "block",
-        title: id,
-        content: "未找到对应块或文档",
-      } satisfies EmbedTargetPreview
-    }))
+  function editableField(field: string) {
+    return resolveEditableField(draft.template, draft.view, field)
   }
 
   async function initialize() {
     const notebookResult = await lsNotebooks()
     notebooks.value = notebookResult?.notebooks || []
-    await refreshCurrentDocumentTarget()
-    const prefs = await plugin.loadData(EMBED_TARGET_PREFS_KEY) as EmbedTargetPrefs | null
-    embedParentId.value = typeof prefs?.lastParentId === "string" ? prefs.lastParentId : ""
-    recentEmbedTargetIds.value = normalizeRecentEmbedTargetIds(prefs?.recentParentIds || [])
-    await refreshSavedTemplateSummaries()
-    await refreshSavedViews(draft.template.id)
-    await refreshRecentEmbedTargets(recentEmbedTargetIds.value)
-    await resolveEmbedTargetPreview(embedParentId.value)
+    await embedTargets.initializeEmbedTargets()
+    await templateViews.refreshSavedTemplateSummaries()
+    await templateViews.refreshSavedViews(draft.template.id)
   }
-
-  async function persistEmbedTargetPrefs() {
-    await plugin.saveData(EMBED_TARGET_PREFS_KEY, {
-      lastParentId: embedParentId.value.trim(),
-      recentParentIds: recentEmbedTargetIds.value,
-    })
-  }
-
-  async function rememberEmbedTarget(value: string) {
-    const id = value.trim()
-    const next = normalizeRecentEmbedTargetIds([id, ...recentEmbedTargetIds.value])
-    const changed = next.join("|") !== recentEmbedTargetIds.value.join("|")
-    recentEmbedTargetIds.value = next
-    await persistEmbedTargetPrefs()
-    if (changed) {
-      await refreshRecentEmbedTargets(next)
-    }
-  }
-
-  async function resolveEmbedTargetPreview(value: string) {
-    const id = value.trim()
-    const token = ++embedTargetResolveToken
-    embedTargetPreview.value = null
-
-    if (!id) {
-      embedTargetHint.value = currentDocumentTarget.value
-        ? `当前文档：${currentDocumentTarget.value.title}`
-        : "可输入父块或文档 ID，或下拉选择当前打开文档"
-      return
-    }
-
-    if (!isLikelyBlockId(id)) {
-      embedTargetHint.value = "输入完整 ID 后显示文档标题或块内容"
-      return
-    }
-
-    try {
-      const preview = await lookupEmbedTargetPreview(id)
-      if (token !== embedTargetResolveToken || embedParentId.value.trim() !== id) {
-        return
-      }
-
-      if (!preview) {
-        embedTargetHint.value = "未找到该 ID 对应的块或文档"
-        return
-      }
-
-      embedTargetPreview.value = preview
-      embedTargetHint.value = formatEmbedTargetHint(preview)
-    } catch {
-      if (token !== embedTargetResolveToken || embedParentId.value.trim() !== id) {
-        return
-      }
-      embedTargetHint.value = "未找到该 ID 对应的块或文档"
-    }
-  }
-
-  async function selectEmbedTarget(targetId: string) {
-    const id = targetId.trim()
-    if (!id) {
-      return false
-    }
-    embedParentId.value = id
-    await rememberEmbedTarget(id)
-    return true
-  }
-
-  async function selectCurrentDocumentTarget() {
-    await refreshCurrentDocumentTarget()
-    if (!currentDocumentTarget.value) {
-      showMessage("未找到当前打开的文档", 3500, "error")
-      return false
-    }
-    await selectEmbedTarget(currentDocumentTarget.value.id)
-    return true
-  }
-
-  async function saveViewAs() {
-    try {
-      const snapshot = createSnapshot()
-      snapshot.template.viewType = snapshot.view.type
-      await savePersistedTemplate(snapshot.template)
-      const nextView = {
-        ...snapshot.view,
-        id: createId("view"),
-        queryTemplateId: snapshot.template.id,
-        defaultView: false,
-        type: snapshot.view.type,
-      } satisfies ViewConfig
-      await savePersistedView(nextView)
-      draft.view = nextView
-      draft.template.viewType = nextView.type
-      await refreshSavedViews(draft.template.id)
-      await refreshSavedTemplateSummaries()
-      recordMetric("viewSaves")
-      showMessage("已添加为新视图", 3000, "info")
-      return true
-    } catch (saveError) {
-      showMessage(saveError instanceof Error ? saveError.message : "另存视图失败", 5000, "error")
-      return false
-    }
-  }
-
-  async function loadSavedView(viewId: string) {
-    const view = savedViews.value.find(item => item.id === viewId)
-    if (!view) {
-      return false
-    }
-    applyTemplateAndView(toRaw(draft.template), view)
-    draft.template.viewType = view.type
-    return true
-  }
-
-  async function setDefaultSavedView(viewId: string) {
-    const view = savedViews.value.find(item => item.id === viewId)
-    if (!view) {
-      return false
-    }
-    try {
-      await savePersistedView({
-        ...view,
-        defaultView: true,
-      })
-      if (draft.view.id === viewId) {
-        draft.view.defaultView = true
-      }
-      const template = await queryTemplateStore.get(view.queryTemplateId)
-      if (template) {
-        await savePersistedTemplate({
-          ...applyViewConfigToTemplate(template, view),
-        })
-      }
-      await refreshSavedViews(draft.template.id)
-      await refreshSavedTemplateSummaries()
-      showMessage("已更新默认视图", 3000, "info")
-      return true
-    } catch (saveError) {
-      showMessage(saveError instanceof Error ? saveError.message : "设置默认视图失败", 5000, "error")
-      return false
-    }
-  }
-
-  async function deleteSavedView(viewId: string) {
-    if (savedViews.value.length <= 1) {
-      showMessage("至少保留一个视图配置", 3500, "error")
-      return false
-    }
-    try {
-      const deletedView = savedViews.value.find(item => item.id === viewId)
-      await ensureStorageReady()
-      await viewConfigStore.remove(viewId)
-      await refreshSavedViews(draft.template.id)
-      let replacement = savedViews.value.find(item => item.defaultView) || savedViews.value[0]
-
-      if (!savedViews.value.some(item => item.defaultView) && replacement) {
-        replacement = {
-          ...replacement,
-          defaultView: true,
-        }
-        await savePersistedView(replacement)
-        const template = await queryTemplateStore.get(replacement.queryTemplateId)
-        if (template) {
-          await savePersistedTemplate({
-            ...applyViewConfigToTemplate(template, replacement),
-          })
-        }
-        await refreshSavedViews(draft.template.id)
-      }
-
-      if (draft.view.id === viewId) {
-        if (replacement) {
-          applyTemplateAndView(toRaw(draft.template), replacement)
-          draft.template.viewType = replacement.type
-        }
-      } else if (deletedView?.defaultView && replacement) {
-        const template = await queryTemplateStore.get(replacement.queryTemplateId)
-        if (template) {
-          await savePersistedTemplate({
-            ...applyViewConfigToTemplate(template, replacement),
-          })
-        }
-      }
-
-      await refreshSavedTemplateSummaries()
-      showMessage("已删除视图配置", 3000, "info")
-      return true
-    } catch (deleteError) {
-      showMessage(deleteError instanceof Error ? deleteError.message : "删除视图配置失败", 5000, "error")
-      return false
-    }
-  }
-
-  watch(embedParentId, async value => {
-    await persistEmbedTargetPrefs()
-    await resolveEmbedTargetPreview(value)
-  })
 
   return proxyRefs({
     advancedMode,
@@ -940,17 +347,25 @@ export function createQueryBuilderStore() {
     addCustomField,
     addFilter,
     addSort,
+    aggregationEnabled,
+    aggregationFieldProxy,
+    aggregationFunctionProxy,
     applySnapshot,
-    boardDragCapability,
     boardColumns,
+    boardDragCapability,
+    canOpenRow: queryExecution.canOpenRow,
     cardsSummary,
+    currentDocumentTarget,
+    currentTemplateId,
+    currentViewId,
     customFieldName,
     dateRangeValue,
-    deleteSavedView,
+    deleteSavedView: templateViews.deleteSavedView,
+    deleteTemplate: templateViews.deleteTemplate,
     displayValue,
     draft,
     draggingRowId,
-    dropToColumn,
+    dropToColumn: queryExecution.dropToColumn,
     editableField,
     embedParentId,
     embedTargetHint,
@@ -958,57 +373,49 @@ export function createQueryBuilderStore() {
     error,
     fieldLabel,
     fieldOptions,
-    selectableFieldOptions,
-    sortFieldOptions,
-    statisticalFieldOptions,
-    validationIssues,
     groupByProxy,
-    aggregationEnabled,
-    aggregationFunctionProxy,
-    aggregationFieldProxy,
     initialize,
-    insertEmbed,
+    insertEmbed: queryExecution.insertEmbed,
     limitProxy,
-    loading,
     listItems,
+    loading,
+    loadSavedView: templateViews.loadSavedView,
+    loadTemplate: templateViews.loadTemplate,
     mappingKeys,
     mappingLabels,
     notebooks,
-    currentDocumentTarget,
-    currentTemplateId,
-    currentViewId,
-    deleteTemplate,
-    loadSavedView,
-    loadTemplate,
-    openBlock,
+    openBlock: queryExecution.openBlock,
     openDocumentTargets,
     presets,
-    quickEdit,
+    quickEdit: queryExecution.quickEdit,
     recentEmbedTargets,
-    refreshCurrentDocumentTarget,
-    refreshSavedTemplateSummaries,
-    refreshSavedViews,
+    refreshCurrentDocumentTarget: embedTargets.refreshCurrentDocumentTarget,
+    refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
+    refreshSavedViews: templateViews.refreshSavedViews,
     removeFilter,
     removeSort,
     requiresValue,
     resultFields,
-    resetDraft,
     resultSet,
     resultSummary,
-    runQuery,
-    saveTemplate,
-    saveViewAs,
-    setViewType,
-    setDefaultSavedView,
-    selectCurrentDocumentTarget,
+    resetDraft: templateViews.resetDraft,
+    runQuery: queryExecution.runQuery,
+    saveTemplate: templateViews.saveTemplate,
     savedTemplateSummaries,
     savedViews,
     saving,
-    selectEmbedTarget,
+    saveViewAs: templateViews.saveViewAs,
     scopeLabel,
     scopePlaceholder,
+    selectableFieldOptions,
+    selectCurrentDocumentTarget: embedTargets.selectCurrentDocumentTarget,
+    selectEmbedTarget: embedTargets.selectEmbedTarget,
+    setDefaultSavedView: templateViews.setDefaultSavedView,
+    setViewType,
+    sortFieldOptions,
+    statisticalFieldOptions,
     toggleField,
     updateDateRange,
-    canOpenRow,
+    validationIssues,
   })
 }

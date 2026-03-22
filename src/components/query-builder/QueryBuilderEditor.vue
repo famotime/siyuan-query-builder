@@ -283,259 +283,28 @@
         </template>
       </article>
 
-      <article class="card card--full">
-        <div class="section-head">
-          <button
-            class="section-toggle"
-            type="button"
-            data-section-toggle="view"
-            :aria-expanded="String(!collapsedSections.view)"
-            @click="toggleSection('view')"
-          >
-            <div class="section-heading">
-              <span class="section-kicker">View Settings</span>
-              <h3>排序、分组与字段</h3>
-            </div>
-            <span
-              class="section-toggle__chevron"
-              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.view }"
-            >⌄</span>
-          </button>
-        </div>
-        <p class="section-copy">
-          控制结果如何分组展示、如何排序，以及最终输出哪些字段。
-        </p>
-        <template v-if="!collapsedSections.view">
-          <div class="form-grid">
-            <label class="field">
-              <span>分组字段</span>
-              <select
-                v-model="store.groupByProxy"
-                class="control"
-              >
-                <option value="">
-                  不分组
-                </option>
-                <option
-                  v-for="option in store.selectableFieldOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-            </label>
-            <label class="field">
-              <span>结果上限</span>
-              <input
-                v-model="store.limitProxy"
-                class="control"
-                type="number"
-                min="1"
-                max="1000"
-              >
-            </label>
-          </div>
-
-          <div class="form-grid">
-            <label class="chip chip--toggle">
-              <input
-                v-model="store.aggregationEnabled"
-                type="checkbox"
-              >
-              <span>启用统计函数</span>
-            </label>
-          </div>
-
-          <div
-            v-if="store.aggregationEnabled"
-            class="form-grid form-grid--aggregation"
-          >
-            <label class="field">
-              <span>统计函数</span>
-              <select
-                v-model="store.aggregationFunctionProxy"
-                class="control"
-              >
-                <option value="count">
-                  计数 Count
-                </option>
-                <option value="sum">
-                  求和 Sum
-                </option>
-                <option value="avg">
-                  平均值 Avg
-                </option>
-                <option value="min">
-                  最小值 Min
-                </option>
-                <option value="max">
-                  最大值 Max
-                </option>
-              </select>
-            </label>
-            <label
-              v-if="store.aggregationFunctionProxy !== 'count'"
-              class="field"
-            >
-              <span>统计字段</span>
-              <select
-                v-model="store.aggregationFieldProxy"
-                class="control"
-              >
-                <option
-                  v-for="option in store.statisticalFieldOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-            </label>
-          </div>
-
-          <div
-            class="view-config-row"
-            data-view-config-row
-          >
-            <section
-              class="view-config-panel"
-              data-sort-panel
-            >
-              <div class="section-head section-head--top section-head--compact">
-                <span class="muted">排序规则</span>
-                <button
-                  class="btn btn--ghost btn--small"
-                  @click="store.addSort"
-                >
-                  添加排序
-                </button>
-              </div>
-              <div class="stack gap-sm">
-                <div
-                  v-for="(sort, index) in store.draft.template.sorts"
-                  :key="`${sort.field}-${index}`"
-                  class="filter-row filter-row--sort"
-                >
-                  <select
-                    v-model="sort.field"
-                    class="control"
-                  >
-                    <option
-                      v-for="option in store.sortFieldOptions"
-                      :key="option.value"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </option>
-                  </select>
-                  <select
-                    v-model="sort.direction"
-                    class="control"
-                  >
-                    <option value="asc">
-                      升序
-                    </option>
-                    <option value="desc">
-                      降序
-                    </option>
-                  </select>
-                  <DeleteIconButton
-                    :data-sort-delete="String(index)"
-                    class="filter-row__delete"
-                    title="删除排序"
-                    aria-label="删除排序"
-                    @click="store.removeSort(index)"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section
-              class="view-config-panel"
-              data-field-panel
-            >
-              <div class="section-head section-head--top section-head--compact">
-                <span class="muted">输出字段</span>
-              </div>
-              <template v-if="store.aggregationEnabled">
-                <p class="muted">
-                  统计查询会自动输出分组字段和统计值。
-                </p>
-              </template>
-              <template v-else>
-                <div class="field-picker">
-                  <button
-                    class="field-picker__toggle"
-                    data-field-picker-toggle
-                    type="button"
-                    :aria-expanded="String(fieldPickerOpen)"
-                    @click="fieldPickerOpen = !fieldPickerOpen"
-                  >
-                    <span class="field-picker__summary">{{ selectedFieldSummary }}</span>
-                    <span
-                      class="field-picker__chevron"
-                      :class="{ 'field-picker__chevron--open': fieldPickerOpen }"
-                    >⌄</span>
-                  </button>
-                  <div
-                    v-if="fieldPickerOpen"
-                    class="field-picker__menu"
-                  >
-                    <label
-                      v-for="option in store.selectableFieldOptions"
-                      :key="option.value"
-                      class="field-picker__option"
-                    >
-                      <input
-                        :data-field-option="option.value"
-                        type="checkbox"
-                        :checked="store.draft.template.fields.includes(option.value)"
-                        @change="store.toggleField(option.value)"
-                      >
-                      <span>{{ option.label }}</span>
-                      <small v-if="option.hint">{{ option.hint }}</small>
-                    </label>
-                  </div>
-                </div>
-                <div class="actions actions--inline">
-                  <input
-                    v-model="store.customFieldName"
-                    class="control"
-                    placeholder="自定义属性名，如 sprint"
-                  >
-                  <button
-                    class="btn btn--ghost btn--small"
-                    @click="store.addCustomField"
-                  >
-                    添加属性字段
-                  </button>
-                </div>
-              </template>
-            </section>
-          </div>
-        </template>
-      </article>
+      <EditorViewSettingsSection
+        :collapsed="collapsedSections.view"
+        @toggle="toggleSection('view')"
+      />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue"
+import { reactive } from "vue"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
+import EditorViewSettingsSection from "@/components/query-builder/EditorViewSettingsSection.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
-const fieldPickerOpen = ref(false)
 const collapsedSections = reactive({
   filters: false,
   mappings: false,
   scope: false,
   view: false,
 })
-
-const selectedFieldSummary = computed(() => `已选 ${store.draft.template.fields.length} 项`)
 
 function toggleSection(section: keyof typeof collapsedSections) {
   collapsedSections[section] = !collapsedSections[section]
