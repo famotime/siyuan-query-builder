@@ -148,9 +148,14 @@ background:
 |-------|----|------|
 | sm | 4px | Badge、角标、小 tag |
 | md | 8px | 按钮、输入框、下拉框 |
-| lg | 12px | 卡片、面板 |
-| xl | 16px | 主面板容器、inline fallback |
+| lg | 12px | 内嵌小卡片 |
+| xl | 16px | 标准卡片、区块 |
+| 2xl | 20px | 控件区域、inline fallback |
+| 3xl | 24px | 大卡片、结果容器 |
+| hero | 28px | 侧边栏 hero 卡片、主面板容器 |
 | full | 9999px | Pill 标签、头像 |
+
+> **说明：** 2xl/3xl/hero 三个 token 基于现有实现验证，有机学术风偏向更柔和的大圆角，16px 以内的 xl 仅适用于小型组件。
 
 ## 动效
 
@@ -181,6 +186,234 @@ background:
 | Error / 危险 | 砖红 | `--sqb-danger` |
 | Info / 提示 | 石板蓝 | `--sqb-info` |
 
+## 缺失 Token 补全
+
+### `--sqb-info-soft`（浅色模式）
+
+| Token | 变量名 | 值 | 含义 |
+|-------|--------|----|------|
+| 信息柔 | `--sqb-info-soft` | `rgba(91,127,166,0.12)` | 信息色背景、提示区底色 |
+
+### `--sqb-info-soft`（深色模式）
+
+| Token | 变量名 | 值 |
+|-------|--------|---------|
+| 信息柔 | `--sqb-info-soft` | `rgba(122,160,200,0.15)` |
+
+---
+
+## 组件行为规范
+
+### 按钮（Button）
+
+三种变体，用途严格区分：
+
+| 变体 | 用途 | 背景 | 文字 |
+|------|------|------|------|
+| Primary（填充） | 唯一主操作，每屏最多一个 | `--sqb-primary` | `#ffffff` |
+| Secondary（轮廓） | 次级操作、取消 | transparent | `--sqb-text` |
+| Ghost（文字） | 内联操作、工具栏图标按钮 | transparent | `--sqb-text-muted` |
+| Danger（危险） | 删除、不可逆操作 | `--sqb-danger` | `#ffffff` |
+
+状态规则：
+
+| 状态 | Primary | Secondary | Ghost |
+|------|---------|-----------|-------|
+| Default | `--sqb-primary` bg | 1px border `--sqb-border-strong` | 无边框 |
+| Hover | `--sqb-primary-strong` bg | bg `--sqb-bg-strong` | bg `--sqb-bg-strong` |
+| Active/Pressed | 比 hover 再深 8% | bg `--sqb-bg-strong`, border `--sqb-primary` | bg `--sqb-primary-soft` |
+| Disabled | opacity 0.4，pointer-events none | opacity 0.4 | opacity 0.4 |
+| Focus | 焦点环（见可访问性规范） | 同上 | 同上 |
+
+按钮尺寸：
+- sm：height 26px，padding 0 8px，font-size xs(12px)，border-radius md(8px)
+- md（默认）：height 32px，padding 0 12px，font-size sm(13px)，border-radius md(8px)
+- lg：height 38px，padding 0 16px，font-size md(15px)，border-radius md(8px)
+
+### 输入框（Input / Select / Textarea）
+
+| 状态 | 边框 | 背景 |
+|------|------|------|
+| Default | `--sqb-border` | `--sqb-surface-strong` |
+| Hover | `--sqb-border-strong` | `--sqb-surface-strong` |
+| Focus | `--sqb-primary` 1px solid + 焦点环 | `--sqb-surface-strong` |
+| Error | `--sqb-danger` 1px solid | `--sqb-danger-soft` |
+| Disabled | `--sqb-border` opacity 0.5 | `--sqb-surface-muted` |
+
+- 高度：28px（紧凑）或 32px（表单）
+- border-radius：md(8px)
+- 内边距：6px 10px
+- placeholder 颜色：`--sqb-text-muted` opacity 0.6
+
+### Badge / Tag
+
+| 类型 | 背景 | 文字 | 用途 |
+|------|------|------|------|
+| 默认 | `--sqb-bg-strong` | `--sqb-text-muted` | 通用标签 |
+| Primary | `--sqb-primary-soft` | `--sqb-primary-strong` | 状态激活、选中 |
+| Accent | `--sqb-accent-soft` | `--sqb-accent` | 高亮、警告 |
+| Danger | `--sqb-danger-soft` | `--sqb-danger` | 错误、删除 |
+| Info | `--sqb-info-soft` | `--sqb-info` | 提示、链接类 |
+
+- border-radius：sm(4px) 用于方形 tag，full(9999px) 用于 pill
+- font-size：2xs(11px) 或 xs(12px)，font-weight 500
+- padding：1px 6px（sm）或 2px 8px（md）
+
+### 表格行（Table Row）
+
+| 状态 | 背景 |
+|------|------|
+| Default | transparent |
+| Hover | `--sqb-bg-strong` |
+| Selected | `--sqb-primary-soft` |
+| Selected + Hover | `--sqb-primary-soft`（加深 4%） |
+
+- 行高：34px（紧凑）或 40px（宽松）
+- 表头：font-weight 600，font-size xs(12px)，颜色 `--sqb-text-muted`，背景 `--sqb-bg-strong`
+- 表头 sticky：`position: sticky; top: 0; z-index: 10`
+- 分隔线：`border-bottom: 1px solid var(--sqb-border)`
+- 数字列：`font-variant-numeric: tabular-nums`，右对齐
+
+---
+
+## 图标规范
+
+**风格：** Outlined（描边），不使用 filled 填充图标，保持与学术/工具气质一致。
+
+**推荐图标库：** Lucide（轻量、描边风格、MIT 协议）
+
+| 尺寸 Token | px | 用途 |
+|------------|-----|------|
+| xs | 12px | 行内辅助图标、角标 |
+| sm（默认）| 16px | 工具栏图标、按钮内图标 |
+| md | 20px | 空状态插图、section 图标 |
+| lg | 24px | 主导航、大型操作按钮 |
+
+- **描边宽度：** 1.5px（保持细腻，与有机/学术气质匹配）
+- **颜色继承：** `currentColor`，不硬编码颜色
+- **图标与文字间距：** xs(4px)
+- **禁止：** 对图标做拉伸变形，保持等比例
+
+---
+
+## 可访问性规范
+
+### 焦点环（Focus Ring）
+
+所有可交互元素必须有可见焦点状态：
+
+```css
+:focus-visible {
+  outline: 2px solid var(--sqb-primary);
+  outline-offset: 2px;
+}
+```
+
+- 不使用 `outline: none`，除非同时提供自定义焦点样式
+- 深色模式下焦点环颜色切换为深色模式的 `--sqb-primary`（`#6aab7e`）
+
+### 对比度（WCAG AA 标准）
+
+| 组合 | 比例 | 达标 |
+|------|------|------|
+| `--sqb-text` (#2e3230) on `--sqb-bg` (#faf6f0) | ≈ 13:1 | AA + AAA |
+| `--sqb-text-muted` (#62685f) on `--sqb-bg` (#faf6f0) | ≈ 5.8:1 | AA |
+| `#ffffff` on `--sqb-primary` (#4a7c59) | ≈ 4.6:1 | AA |
+| `#ffffff` on `--sqb-danger` (#b83230) | ≈ 5.1:1 | AA |
+| `--sqb-text-muted` on `--sqb-surface` | ≥ 4.5:1 | AA |
+
+- 所有正文和 UI 标签必须达到 WCAG AA（4.5:1）
+- 大号文字（18px+ 或 14px+ bold）可放宽至 3:1
+- 深色模式同等要求，已通过降温降饱和保证对比度
+
+### 减少动效
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+---
+
+## Z-index 层级系统
+
+| 层级名 | 值 | 元素 |
+|--------|-----|------|
+| base | 0 | 普通文档流元素 |
+| raised | 1 | 卡片 box-shadow 提升 |
+| sticky | 10 | 表格 sticky header、sticky sidebar header |
+| sidebar | 20 | 侧边栏（折叠状态浮于内容上方） |
+| dropdown | 100 | Select 下拉框、Popover、右键菜单 |
+| tooltip | 200 | Tooltip |
+| dialog | 300 | Modal、Dialog 弹层 |
+| notification | 400 | Toast、全局通知 |
+
+规则：
+- 同层级元素不竞争 z-index，通过 DOM 顺序控制
+- Dropdown 必须脱离普通文档流（`position: absolute` 或 `fixed`）
+- Dialog 遮罩层使用 `z-index: 299`，内容层 `z-index: 300`
+
+---
+
+## 多视图设计规范
+
+本插件提供四种结果视图，各有专属设计指导。
+
+### 表格视图（Table View）
+
+定位：数据密集型，最大化信息密度，适合结构化浏览和批量操作。
+
+- **行高：** 默认 34px，可选宽松 40px（用户偏好）
+- **列宽：** 块 ID 列固定 120px，内容列 flex-1，数值列固定 80px 右对齐
+- **表头：** sticky，背景 `--sqb-bg-strong`，字号 xs(12px)，font-weight 600，颜色 `--sqb-text-muted`
+- **空状态：** 居中图标（md 20px）+ 提示文字，颜色 `--sqb-text-muted`
+- **属性回写列：** 状态/优先级/日期列提供行内编辑，hover 时显示编辑图标（xs 12px）
+- **排序指示：** 表头右侧 chevron 图标，仅当前排序列可见（非 hover 时）
+
+### 看板视图（Kanban View）
+
+定位：以属性值（如状态、优先级）分组，卡片横向排列，适合进度跟踪和状态管理。
+
+- **列宽：** 固定 220px，横向滚动
+- **列标题：** 属性值名称 + badge（卡片数量），font-size sm(13px)，font-weight 600
+- **列头背景：** `--sqb-bg-strong`，底部 2px border 颜色对应语义色（如完成=primary、待办=muted）
+- **卡片：** `--sqb-surface` 背景，border-radius lg(12px)，1px `--sqb-border` 边框，padding md(16px)
+- **卡片 hover：** `--sqb-surface-strong` 背景，border `--sqb-border-strong`，轻微上浮 `translateY(-1px)` + shadow
+- **卡片内容：** 标题 sm(13px)，摘要文字 xs(12px) `--sqb-text-muted`，底部 meta 行（日期/优先级 badge）
+- **空列：** 虚线边框 `--sqb-border`，文字「暂无内容」颜色 `--sqb-text-muted` opacity 0.5
+- **列间距：** md(16px) gap
+
+### 列表视图（List View）
+
+定位：轻量线性浏览，聚焦内容本身，适合快速阅读和跳转。
+
+- **行结构：** 左侧 block-type 图标（xs 12px `--sqb-text-muted`）+ 标题（sm 13px）+ 右侧 meta（日期/路径，xs 12px `--sqb-text-muted`）
+- **行高：** 32px
+- **行分隔：** `border-bottom: 1px solid var(--sqb-border)` opacity 0.5（最后一行无分隔）
+- **hover：** 背景 `--sqb-bg-strong`，标题颜色变为 `--sqb-primary`
+- **缩进层级：** 子块相对父块缩进 md(16px)，用 2px 左边框 `--sqb-primary-soft` 标记层级
+- **标题截断：** 单行 `text-overflow: ellipsis`，鼠标悬停时 tooltip 显示全文
+
+### 统计卡片视图（Stats View）
+
+定位：聚合数据可视化，以 KPI 卡片形式展示查询结果的统计数据。
+
+- **卡片布局：** 横向 flex 排列，每卡 min-width 120px，flex-wrap 换行
+- **卡片结构：**
+  - 上部：指标名称（2xs 11px，`--sqb-text-muted`，大写/tracking-wide）
+  - 中部：数值（xl 22px，`--sqb-serif`，`--sqb-text`，tabular-nums）
+  - 下部（可选）：变化趋势（↑↓箭头 + 百分比，xs 12px）
+- **卡片背景：** `--sqb-surface`，border-radius lg(12px)，1px `--sqb-border`
+- **主要指标卡片：** 左侧 3px solid `--sqb-primary` 左边框作为强调
+- **数值颜色语义：** 正增长 `--sqb-primary`，负增长 `--sqb-danger`，中性 `--sqb-text`
+- **空状态：** 卡片内显示「—」占位符，颜色 `--sqb-text-muted`
+
+---
+
 ## 决策日志
 
 | 日期 | 决策 | 理由 |
@@ -192,3 +425,14 @@ background:
 | 2026-03-22 | 新增 `--sqb-info` 信息色 `#5b7fa6` | 语义色中缺少「信息/提示」类别，补全语义完整性 |
 | 2026-03-22 | 衬线字体用于 h1/h2 标题 | 与 PKM 同类插件形成差异，带来「学术笔记本」气质 |
 | 2026-03-22 | 圆角 xl 从 20px 收至 16px | 与圆角体系对齐，20px 是孤值 |
+| 2026-03-22 | 新增 `--sqb-info-soft` token | 与其他语义色 -soft 变体对齐，补全 token 体系 |
+| 2026-03-22 | 新增组件行为规范 | 定义按钮/输入框/badge/表格行的状态规则，消除实现歧义 |
+| 2026-03-22 | 新增图标规范（Lucide，描边 1.5px）| 统一图标风格与学术气质匹配 |
+| 2026-03-22 | 新增可访问性规范（焦点环、WCAG AA）| 确保键盘导航和对比度可用性 |
+| 2026-03-22 | 新增 Z-index 层级系统 | 明确弹层堆叠顺序，防止 dropdown 与 dialog 竞争 |
+| 2026-03-22 | 新增四种视图专属设计规范 | 表格/看板/列表/统计卡片各有差异化设计指导 |
+| 2026-03-22 | 圆角体系扩展至 2xl(20)/3xl(24)/hero(28) | 现有代码已验证这些值视觉效果好，有机学术风适合柔和大圆角 |
+| 2026-03-22 | 实现暗色模式 CSS（@media + .b3-theme-dark）| 设计 token 已定义，立即落地，避免设计与实现长期脱节 |
+| 2026-03-22 | 新增 --sqb-mono / --sqb-info / --sqb-info-soft 到 index.scss | 补全 DESIGN.md 定义的 token 在代码中的声明 |
+| 2026-03-22 | 新增 prefers-reduced-motion 规则到 index.scss | 可访问性基础要求，成本为零 |
+| 2026-03-22 | SyButton/SyInput 等 SiyuanTheme 组件计划改写为 sqb-token 驱动 | 当前使用 b3-* 类依赖思源主题，违反「独立视觉身份」原则，已列入 Phase D |

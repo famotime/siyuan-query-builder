@@ -1,34 +1,39 @@
 <template>
-  <div class="enIconContainer">
+  <span
+    class="sy-icon"
+    :style="{ width: sizeStr, height: sizeStr }"
+    aria-hidden="true"
+  >
     <svg
-      :style="{
-        fontSize: size,
-        width: size,
-        height: size,
-        color: disabled ? 'var(--b3-empty-color)' : undefined,
-      }"
-      class="enSyIcon"
+      :width="sizeStr"
+      :height="sizeStr"
+      :style="{ color: disabled ? 'var(--sqb-text-muted)' : undefined }"
     >
-      <use :xlink:href="`#${name}`"></use>
+      <use :xlink:href="`#${name}`" />
     </svg>
-  </div>
+  </span>
 </template>
 
 <script setup lang="ts">
-defineProps({
-  name: String,
-  size: {
-    type: [Number, String],
-    default: 12,
-  },
-  disabled: Boolean,
+import { computed } from 'vue'
+
+const props = defineProps<{
+  name: string
+  size?: number | string
+  disabled?: boolean
+}>()
+
+const sizeStr = computed(() => {
+  const s = props.size ?? 16
+  return typeof s === 'number' ? `${s}px` : s
 })
 </script>
 
-<style lang="scss" scoped>
-.enIconContainer {
-  display: flex;
-  justify-content: center;
+<style scoped>
+.sy-icon {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 </style>

@@ -33,37 +33,35 @@ defineProps<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: none;
   background: transparent;
-  color: color-mix(in srgb, var(--sqb-danger) 82%, white);
+  color: var(--sqb-text-muted);
   cursor: pointer;
   flex: 0 0 auto;
-  transition: color 140ms ease, opacity 140ms ease, transform 140ms ease;
+  transition: color 140ms ease, opacity 140ms ease;
 }
 
 .delete-icon-button:hover {
   color: var(--sqb-danger);
-  transform: translateY(-1px);
 }
 
 .delete-icon-button:focus-visible {
-  outline: 2px solid rgba(184, 50, 48, 0.22);
+  outline: 2px solid var(--sqb-danger);
   outline-offset: 2px;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .delete-icon-button:disabled {
   cursor: default;
   opacity: 0.45;
-  transform: none;
 }
 
 .delete-icon-button svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 </style>

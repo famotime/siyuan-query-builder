@@ -99,9 +99,9 @@ function viewTypeLabel(type: string) {
   gap: 12px;
   margin-bottom: 18px;
   padding: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(59, 46, 32, 0.12);
-  background: rgba(255, 255, 255, 0.56);
+  border-radius: 16px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface-soft);
 }
 
 .saved-views__head,
@@ -122,20 +122,15 @@ function viewTypeLabel(type: string) {
 .saved-views__item {
   display: grid;
   gap: 12px;
-  min-height: 126px;
-  padding: 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(59, 46, 32, 0.1);
-  background:
-    linear-gradient(180deg, rgba(255, 251, 245, 0.88), rgba(248, 244, 237, 0.74));
-  box-shadow: 0 10px 22px rgba(57, 61, 52, 0.05);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface);
 }
 
 .saved-views__item--active {
-  border-color: rgba(74, 124, 89, 0.26);
-  background:
-    linear-gradient(180deg, rgba(74, 124, 89, 0.12), rgba(255, 255, 255, 0.82));
-  box-shadow: 0 14px 26px rgba(74, 124, 89, 0.08);
+  border-color: var(--sqb-primary);
+  background: var(--sqb-primary-soft);
 }
 
 .saved-views__main {
@@ -170,41 +165,49 @@ function viewTypeLabel(type: string) {
 .saved-views__badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: rgba(74, 124, 89, 0.12);
-  color: #365943;
-  font: 700 12px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--sqb-primary-soft);
+  color: var(--sqb-primary-strong);
+  font: 700 12px/1.2 var(--sqb-sans);
 }
 
 .muted {
   margin: 0;
   color: var(--sqb-text-muted);
-  font: 14px/1.55 var(--sqb-sans);
+  font: 13px/1.55 var(--sqb-sans);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  gap: 6px;
+  height: 32px;
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
   border: 1px solid transparent;
-  border-radius: 16px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 0 12px;
   background: transparent;
   cursor: pointer;
   font: 600 13px/1.2 var(--sqb-sans);
+  white-space: nowrap;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
+.btn--small {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
 }
 
 .btn--ghost {
-  background: var(--sqb-primary);
-  border-color: rgba(74, 124, 89, 0.22);
-  color: #ffffff;
-  box-shadow: 0 12px 24px rgba(74, 124, 89, 0.18);
+  background: transparent;
+  color: var(--sqb-text-muted);
+  border-color: var(--sqb-border-strong);
+}
+
+.btn--ghost:hover {
+  background: var(--sqb-bg-strong);
+  color: var(--sqb-text);
 }
 </style>

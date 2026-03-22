@@ -73,10 +73,10 @@ onErrorCaptured((error, instance, info) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 20px;
+  gap: 16px;
   overflow: hidden;
   min-height: 0;
-  padding: 28px 32px 40px;
+  padding: 20px 24px 28px;
 }
 
 .workspace::before {
@@ -114,12 +114,11 @@ onErrorCaptured((error, instance, info) => {
 
 .boot-error {
   max-width: 720px;
-  padding: 32px;
-  border-radius: 28px;
+  padding: 28px;
+  border-radius: 20px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-strong);
-  backdrop-filter: blur(18px);
 }
 
 .boot-error__eyebrow {

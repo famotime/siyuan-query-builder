@@ -77,59 +77,72 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
 .muted {
   margin: 0;
   color: var(--sqb-text-muted);
-  font: 14px/1.5 var(--sqb-sans);
+  font: 13px/1.5 var(--sqb-sans);
 }
 
 .title-input,
 .control {
   width: 100%;
   box-sizing: border-box;
-  border-radius: 16px;
+  height: 32px;
+  border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--sqb-surface-strong);
   color: var(--sqb-text);
-  padding: 12px 14px;
-  font: 14px/1.4 var(--sqb-sans);
-  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  padding: 0 10px;
+  font: 13px/1.4 var(--sqb-sans);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.title-input::placeholder,
+.control::placeholder {
+  color: var(--sqb-text-muted);
+  opacity: 0.6;
+}
+
+.title-input:hover,
+.control:hover {
+  border-color: var(--sqb-border-strong);
 }
 
 .title-input:focus,
 .control:focus {
   outline: none;
-  border-color: rgba(74, 124, 89, 0.42);
-  box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.12);
+  border-color: var(--sqb-primary);
+  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
+  height: 32px;
   flex: 0 0 auto;
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease;
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
   cursor: pointer;
   font: 600 13px/1.2 var(--sqb-sans);
   white-space: nowrap;
-  border-radius: 16px;
-  padding: 12px 18px;
+  border-radius: 8px;
+  padding: 0 12px;
   border: 1px solid transparent;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
-}
-
 .btn--small {
-  padding: 9px 13px;
-  border-radius: 14px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
 }
 
 .btn--ghost {
   background: transparent;
-  color: var(--sqb-primary);
-  border-color: transparent;
-  box-shadow: none;
-  min-width: auto;
+  color: var(--sqb-text-muted);
+  border-color: var(--sqb-border-strong);
+}
+
+.btn--ghost:hover {
+  background: var(--sqb-bg-strong);
+  color: var(--sqb-text);
 }
 
 .field-picker {
@@ -142,14 +155,14 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: 18px;
+  padding: 8px 10px;
+  border-radius: 8px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-soft);
   color: var(--sqb-text);
   cursor: pointer;
   text-align: left;
-  font: 600 14px/1.35 var(--sqb-sans);
+  font: 600 13px/1.35 var(--sqb-sans);
 }
 
 .field-picker__summary {
@@ -159,7 +172,7 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
 .field-picker__chevron {
   flex: 0 0 auto;
   color: var(--sqb-text-muted);
-  font: 600 18px/1 var(--sqb-sans);
+  font: 600 16px/1 var(--sqb-sans);
   transition: transform 140ms ease;
 }
 
@@ -169,21 +182,21 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
 
 .field-picker__menu {
   display: grid;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 18px;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 12px;
   border: 1px solid var(--sqb-border);
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--sqb-surface-strong);
 }
 
 .field-picker__option {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
   background: var(--sqb-surface-soft);
 }
 

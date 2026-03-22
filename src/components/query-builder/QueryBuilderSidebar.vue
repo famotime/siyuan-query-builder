@@ -73,30 +73,49 @@
           </div>
           <span class="pill">{{ store.savedTemplateSummaries.length }}</span>
         </div>
-        <button
-          data-section-toggle="saved-templates"
-          class="section-toggle"
-          type="button"
-          :title="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
-          :aria-label="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
-          :aria-expanded="String(savedTemplatesExpanded)"
-          @click="savedTemplatesExpanded = !savedTemplatesExpanded"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            :class="{ 'is-expanded': savedTemplatesExpanded }"
+        <div class="section-head-actions">
+          <button
+            class="section-action"
+            type="button"
+            title="导入模板"
+            aria-label="导入模板"
+            @click="triggerTemplateImport"
           >
-            <path
-              d="M7 10l5 5 5-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2.2"
-            />
-          </svg>
-        </button>
+            导入
+          </button>
+          <input
+            ref="templateImportInput"
+            data-template-import-input
+            class="visually-hidden"
+            type="file"
+            accept="application/json,.json"
+            @change="handleTemplateImport"
+          >
+          <button
+            data-section-toggle="saved-templates"
+            class="section-toggle"
+            type="button"
+            :title="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
+            :aria-label="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
+            :aria-expanded="String(savedTemplatesExpanded)"
+            @click="savedTemplatesExpanded = !savedTemplatesExpanded"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              :class="{ 'is-expanded': savedTemplatesExpanded }"
+            >
+              <path
+                d="M7 10l5 5 5-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.2"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
       <p class="section-copy">
         保留你已经验证过的查询方案，随时恢复视图配置和字段映射。
@@ -119,6 +138,16 @@
               <span>默认：{{ viewTypeLabel(summary.defaultViewType) }}</span>
             </span>
             <span class="item-main__meta">{{ summary.viewCount }} 个视图</span>
+          </button>
+          <button
+            class="item-action"
+            type="button"
+            :data-template-export="summary.templateId"
+            title="导出模板"
+            aria-label="导出模板"
+            @click.stop="exportTemplate(summary.templateId)"
+          >
+            导出
           </button>
           <DeleteIconButton
             :data-template-delete="summary.templateId"
@@ -240,6 +269,46 @@ function formatExecutedAt(value: string) {
     minute: "2-digit",
   }).format(date)
 }
+
+function triggerTemplateImport() {
+  templateImportInput.value?.click()
+}
+
+async function handleTemplateImport(event: Event) {
+  const input = event.target as HTMLInputElement | null
+  const file = input?.files?.[0]
+  if (!file) {
+    return
+  }
+
+  try {
+    const payload = await file.text()
+    await store.importTemplateBundle(payload)
+  } finally {
+    if (input) {
+      input.value = ""
+    }
+  }
+}
+
+async function exportTemplate(templateId: string) {
+  const bundle = await store.exportTemplateBundle(templateId)
+  const fileName = `${bundle.template.name || "template"}.json`
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], {
+    type: "application/json;charset=utf-8",
+  })
+
+  if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
+    return
+  }
+
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = objectUrl
+  link.download = fileName
+  link.click()
+  URL.revokeObjectURL(objectUrl)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -248,21 +317,19 @@ function formatExecutedAt(value: string) {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px 18px 24px 24px;
-  background: rgba(250, 246, 240, 0.78);
+  gap: 12px;
+  padding: 18px 14px 18px 18px;
+  background: var(--sqb-surface-soft);
   border-right: 1px solid var(--sqb-border);
   color: var(--sqb-text);
-  backdrop-filter: blur(20px);
 }
 
 .card {
-  padding: 20px;
-  border-radius: 24px;
+  padding: 16px;
+  border-radius: 16px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-soft);
-  backdrop-filter: blur(14px);
 }
 
 .card--hero {
@@ -306,20 +373,23 @@ function formatExecutedAt(value: string) {
   min-width: 0;
 }
 
-h1,
-h2 {
-  margin: 0;
+h1 {
+  font-size: 22px;
+  line-height: 1.1;
+  font-family: var(--sqb-serif);
 }
 
-h1 {
-  font-size: 31px;
-  line-height: 1.04;
+h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  font-family: var(--sqb-serif);
 }
 
 .muted {
   margin: 0;
   color: var(--sqb-text-muted);
-  font: 14px/1.55 var(--sqb-sans);
+  font: 13px/1.55 var(--sqb-sans);
 }
 
 .actions,
@@ -328,6 +398,12 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.section-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .section-head-main {
@@ -343,28 +419,44 @@ h1 {
 }
 
 .item,
+.item-action,
+.section-action,
 .section-toggle {
-  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
   cursor: pointer;
   font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .item:hover,
+.item-action:hover,
+.section-action:hover,
 .section-toggle:hover {
-  transform: translateY(-1px);
+  background: var(--sqb-bg-strong);
 }
 
+.item-action,
+.section-action,
 .section-toggle {
-  width: 34px;
-  height: 34px;
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
   background: var(--sqb-surface-soft);
   color: var(--sqb-text-muted);
   border: 1px solid var(--sqb-border);
+}
+
+.section-action,
+.item-action {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.section-toggle {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
 }
 
 .section-toggle svg {
@@ -394,15 +486,14 @@ h1 {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   text-align: left;
   border: 1px solid var(--sqb-border);
-  border-radius: 18px;
-  padding: 14px 15px;
-  margin-top: 10px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 8px;
   background: var(--sqb-surface-soft);
   color: var(--sqb-text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .item--row {
@@ -418,7 +509,7 @@ h1 {
 }
 
 .item-main:hover {
-  transform: translateY(-1px);
+  color: var(--sqb-primary);
 }
 
 .item-main {
@@ -450,6 +541,18 @@ h1 {
 
 .item-delete {
   margin-right: -2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .item-time {
@@ -496,4 +599,3 @@ h1 {
   }
 }
 </style>
-
