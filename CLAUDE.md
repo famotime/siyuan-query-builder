@@ -55,3 +55,10 @@ Copy `.env.example` to `.env` and set `VITE_SIYUAN_WORKSPACE_PATH` to your SiYua
 - Import from `src/` using the `@/` alias.
 - PascalCase for Vue SFCs, camelCase for composables and utilities.
 - Tests live in `tests/`, mirror feature names (e.g. `tests/query-compiler.test.ts`), use Vitest + jsdom with shared setup from `tests/setup.ts`.
+
+## Design System
+
+Always read `DESIGN.md` before making any visual or UI decisions.
+All font choices, colors, spacing, border-radius, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+In QA mode, flag any code that doesn't match `DESIGN.md`.
