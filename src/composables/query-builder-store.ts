@@ -354,10 +354,37 @@ export function createQueryBuilderStore() {
     draggingRowId.value = ""
   }
 
+  async function refreshCurrentDocumentTarget() {
+    const target = getActiveDocumentTarget(window)
+    if (!target) {
+      currentDocumentTarget.value = null
+      return
+    }
+
+    currentDocumentTarget.value = target
+    if (target.title !== target.id) {
+      return
+    }
+
+    try {
+      const block = await getBlockByID(target.id)
+      if (!currentDocumentTarget.value || currentDocumentTarget.value.id !== target.id) {
+        return
+      }
+      const resolvedTitle = summarizeBlockLabel(String(block?.content || block?.name || target.id), 40) || target.id
+      currentDocumentTarget.value = {
+        id: target.id,
+        title: resolvedTitle,
+      }
+    } catch {
+      // Keep the id-only fallback if the title lookup fails.
+    }
+  }
+
   async function initialize() {
     const notebookResult = await lsNotebooks()
     notebooks.value = notebookResult?.notebooks || []
-    currentDocumentTarget.value = getActiveDocumentTarget(window)
+    await refreshCurrentDocumentTarget()
     const prefs = await plugin.loadData(EMBED_TARGET_PREFS_KEY) as { lastParentId?: string } | null
     embedParentId.value = typeof prefs?.lastParentId === "string" ? prefs.lastParentId : ""
     await loadTemplates()
@@ -416,12 +443,13 @@ export function createQueryBuilderStore() {
   }
 
   function selectCurrentDocumentTarget() {
-    currentDocumentTarget.value = getActiveDocumentTarget(window)
-    if (!currentDocumentTarget.value) {
-      showMessage("未找到当前打开的文档", 3500, "error")
-      return
-    }
-    embedParentId.value = currentDocumentTarget.value.id
+    refreshCurrentDocumentTarget().then(() => {
+      if (!currentDocumentTarget.value) {
+        showMessage("未找到当前打开的文档", 3500, "error")
+        return
+      }
+      embedParentId.value = currentDocumentTarget.value.id
+    })
   }
 
   watch(embedParentId, async value => {
@@ -463,6 +491,7 @@ export function createQueryBuilderStore() {
     openBlock,
     presets,
     quickEdit,
+    refreshCurrentDocumentTarget,
     removeFilter,
     removeSort,
     requiresValue,

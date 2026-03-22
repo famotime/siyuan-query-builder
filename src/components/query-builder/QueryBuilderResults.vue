@@ -13,6 +13,7 @@
             <select
               class="control control--embed-select"
               :value="store.embedParentId === store.currentDocumentTarget?.id ? store.currentDocumentTarget.id : ''"
+              @focus="store.refreshCurrentDocumentTarget"
               @change="($event) => ($event.target as HTMLSelectElement).value && store.selectCurrentDocumentTarget()"
             >
               <option value="">

@@ -55,4 +55,53 @@ describe("embed target helpers", () => {
       title: "日报",
     })
   })
+
+  it("resolves current document from active editor rootId fields", () => {
+    const result = getActiveDocumentTarget({
+      siyuan: {
+        getActiveEditor: () => ({
+          rootId: "20260322195501-def5678",
+          title: "项目周报",
+        }),
+      },
+    })
+
+    expect(result).toEqual({
+      id: "20260322195501-def5678",
+      title: "项目周报",
+    })
+  })
+
+  it("resolves current document from layout active tab fallback", () => {
+    const result = getActiveDocumentTarget({
+      siyuan: {
+        getActiveEditor: () => null,
+        config: {
+          uiLayout: {
+            layout: {
+              children: [
+                {
+                  children: [
+                    {
+                      instance: "Tab",
+                      active: true,
+                      title: "今日笔记",
+                      children: {
+                        rootId: "20260322130128-lvb7gg8",
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    })
+
+    expect(result).toEqual({
+      id: "20260322130128-lvb7gg8",
+      title: "今日笔记",
+    })
+  })
 })
