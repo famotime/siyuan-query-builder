@@ -59,4 +59,45 @@ describe("createTemplateStore", () => {
     expect(loaded[0]?.view.type).toBe("board")
     expect(loaded[0]?.template.name).toBe("Reading Queue")
   })
+
+  it("reads migrated v2 template and view storage through the compatibility layer", async () => {
+    const storage = new FakePluginStorage()
+    const store = createTemplateStore(storage)
+    await storage.saveData("query-builder.templates.v2", [
+      {
+        id: "template-1",
+        version: 1,
+        name: "Reading Queue",
+        scope: {
+          type: "tag",
+          value: "#unread#",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "board",
+      },
+    ])
+    await storage.saveData("query-builder.views.v2", [
+      {
+        id: "view-1",
+        queryTemplateId: "template-1",
+        type: "board",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    const loaded = await store.list()
+
+    expect(loaded).toHaveLength(1)
+    expect(loaded[0]?.template.viewType).toBe("board")
+    expect(loaded[0]?.view.type).toBe("board")
+  })
 })

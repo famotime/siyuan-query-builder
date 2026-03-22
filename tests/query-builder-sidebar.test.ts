@@ -77,4 +77,33 @@ describe("QueryBuilderSidebar", () => {
     expect(wrapper.text()).toContain("任务面板")
     expect(wrapper.text()).toContain("任务清单")
   })
+
+  it("shows the saved default view label from the actual view type", () => {
+    currentStore = createStore()
+    currentStore.savedTemplates = [
+      {
+        template: {
+          id: "template-1",
+          name: "任务清单",
+        },
+        view: {
+          type: "cards",
+        },
+      },
+      {
+        template: {
+          id: "template-2",
+          name: "阅读清单",
+        },
+        view: {
+          type: "list",
+        },
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderSidebar)
+
+    expect(wrapper.text()).toContain("统计卡片")
+    expect(wrapper.text()).toContain("列表")
+  })
 })

@@ -25,16 +25,20 @@ import {
   createPresets,
 } from "@/core/query/catalog"
 import { buildQuery } from "@/core/query/compiler"
+import { validateSnapshot } from "@/core/query/validation"
 import type {
   FieldMappings,
   FilterOperator,
   QueryBuilderSnapshot,
   QueryFilter,
   ResultRow,
+  ViewConfig,
 } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
+import { createQueryTemplateStore } from "@/core/storage/query-template-store"
 import { createTemplateStore } from "@/core/storage/template-store"
+import { createViewConfigStore } from "@/core/storage/view-config-store"
 import { buildBoardColumns } from "@/core/view/board"
 import { buildCardsSummary, buildListItems } from "@/inline/view-models"
 import { usePlugin } from "@/main"
@@ -69,11 +73,14 @@ export function useQueryBuilderStore() {
 export function createQueryBuilderStore() {
   const plugin = usePlugin()
   const templateStore = createTemplateStore(plugin)
+  const queryTemplateStore = createQueryTemplateStore(plugin)
+  const viewConfigStore = createViewConfigStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
 
   const draft = reactive<QueryBuilderSnapshot>(createDraft())
   const notebooks = ref<Notebook[]>([])
   const savedTemplates = ref<QueryBuilderSnapshot[]>([])
+  const savedViews = ref<ViewConfig[]>([])
   const resultSet = ref<{ rows: ResultRow[], total: number, executedAt: string } | null>(null)
   const loading = ref(false)
   const saving = ref(false)
@@ -120,6 +127,33 @@ export function createQueryBuilderStore() {
       return []
     }
     return buildBoardColumns(resultSet.value.rows, draft.template.groupBy)
+  })
+  const boardDragCapability = computed(() => {
+    if (draft.view.type !== "board") {
+      return {
+        enabled: false,
+        reason: "",
+      }
+    }
+
+    if (!draft.template.groupBy) {
+      return {
+        enabled: false,
+        reason: "看板视图需要先设置分组字段。",
+      }
+    }
+
+    if (draft.template.groupBy !== `attr:${draft.view.fieldMappings.status}`) {
+      return {
+        enabled: false,
+        reason: "当前分组不支持拖拽回写，只有按状态分组时才能拖拽改状态。",
+      }
+    }
+
+    return {
+      enabled: true,
+      reason: "",
+    }
   })
   const cardsSummary = computed(() => {
     if (!resultSet.value?.rows.length) {
@@ -203,6 +237,8 @@ export function createQueryBuilderStore() {
     }
     return `最近一次运行返回 ${resultSet.value.total} 条结果，当前为${viewNameMap[draft.view.type]}视图。`
   })
+  const validationIssues = computed(() => validateSnapshot(createSnapshot()))
+  const blockingValidationIssues = computed(() => validationIssues.value.filter(issue => issue.level === "error"))
   const scopeLabel = computed(() => {
     switch (draft.template.scope.type) {
       case "notebook":
@@ -243,6 +279,11 @@ export function createQueryBuilderStore() {
 
   function fieldLabel(field: string) {
     return fieldOptions.value.find(option => option.value === field)?.label || field
+  }
+
+  function setViewType(type: QueryBuilderSnapshot["view"]["type"]) {
+    draft.view.type = type
+    draft.template.viewType = type
   }
 
   function syncAggregateFields() {
@@ -340,6 +381,7 @@ export function createQueryBuilderStore() {
     resultSet.value = null
     advancedSql.value = ""
     error.value = ""
+    void refreshSavedViews(next.template.id)
   }
 
   function resetDraft() {
@@ -349,6 +391,7 @@ export function createQueryBuilderStore() {
     resultSet.value = null
     advancedSql.value = ""
     error.value = ""
+    savedViews.value = []
   }
 
   function displayValue(row: ResultRow, field: string) {
@@ -381,8 +424,21 @@ export function createQueryBuilderStore() {
     savedTemplates.value = await templateStore.list()
   }
 
+  async function refreshSavedViews(templateId = draft.template.id) {
+    if (!templateId) {
+      savedViews.value = []
+      return
+    }
+    savedViews.value = await viewConfigStore.listByTemplate(templateId)
+  }
+
   async function runQuery() {
     error.value = ""
+    if (blockingValidationIssues.value.length) {
+      error.value = blockingValidationIssues.value.map(issue => issue.message).join("；")
+      showMessage(error.value, 5000, "error")
+      return
+    }
     loading.value = true
     try {
       const compiled = buildQuery(draft.template)
@@ -400,9 +456,11 @@ export function createQueryBuilderStore() {
   async function saveTemplate() {
     saving.value = true
     try {
+      draft.template.viewType = draft.view.type
       draft.view.queryTemplateId = draft.template.id
       await templateStore.save(createSnapshot())
       await loadTemplates()
+      await refreshSavedViews(draft.template.id)
       showMessage(`已保存模板：${draft.template.name}`, 3500, "info")
     } catch (saveError) {
       showMessage(saveError instanceof Error ? saveError.message : "保存失败", 5000, "error")
@@ -415,6 +473,7 @@ export function createQueryBuilderStore() {
     try {
       await templateStore.remove(templateId)
       await loadTemplates()
+      await refreshSavedViews(draft.template.id)
       showMessage("已删除模板", 3000, "info")
     } catch (deleteError) {
       showMessage(deleteError instanceof Error ? deleteError.message : "删除模板失败", 5000, "error")
@@ -537,6 +596,7 @@ export function createQueryBuilderStore() {
     embedParentId.value = typeof prefs?.lastParentId === "string" ? prefs.lastParentId : ""
     recentEmbedTargetIds.value = normalizeRecentEmbedTargetIds(prefs?.recentParentIds || [])
     await loadTemplates()
+    await refreshSavedViews(draft.template.id)
     await refreshRecentEmbedTargets(recentEmbedTargetIds.value)
     await resolveEmbedTargetPreview(embedParentId.value)
   }
@@ -617,6 +677,98 @@ export function createQueryBuilderStore() {
     return true
   }
 
+  async function saveViewAs() {
+    try {
+      const snapshot = createSnapshot()
+      snapshot.template.viewType = snapshot.view.type
+      await queryTemplateStore.save(snapshot.template)
+      const nextView = {
+        ...snapshot.view,
+        id: createId("view"),
+        queryTemplateId: snapshot.template.id,
+        defaultView: false,
+        type: snapshot.view.type,
+      } satisfies ViewConfig
+      await viewConfigStore.save(nextView)
+      draft.view = nextView
+      draft.template.viewType = nextView.type
+      await refreshSavedViews(draft.template.id)
+      await loadTemplates()
+      showMessage("已另存当前视图", 3000, "info")
+      return true
+    } catch (saveError) {
+      showMessage(saveError instanceof Error ? saveError.message : "另存视图失败", 5000, "error")
+      return false
+    }
+  }
+
+  async function loadSavedView(viewId: string) {
+    const view = savedViews.value.find(item => item.id === viewId)
+    if (!view) {
+      return false
+    }
+    draft.view = cloneSnapshot({
+      template: toRaw(draft.template),
+      view,
+    }).view
+    draft.template.viewType = view.type
+    resultSet.value = null
+    return true
+  }
+
+  async function setDefaultSavedView(viewId: string) {
+    const view = savedViews.value.find(item => item.id === viewId)
+    if (!view) {
+      return false
+    }
+    try {
+      await viewConfigStore.save({
+        ...view,
+        defaultView: true,
+      })
+      if (draft.view.id === viewId) {
+        draft.view.defaultView = true
+      }
+      await refreshSavedViews(draft.template.id)
+      await loadTemplates()
+      showMessage("已更新默认视图", 3000, "info")
+      return true
+    } catch (saveError) {
+      showMessage(saveError instanceof Error ? saveError.message : "设置默认视图失败", 5000, "error")
+      return false
+    }
+  }
+
+  async function deleteSavedView(viewId: string) {
+    if (savedViews.value.length <= 1) {
+      showMessage("至少保留一个视图配置", 3500, "error")
+      return false
+    }
+    try {
+      await viewConfigStore.remove(viewId)
+      await refreshSavedViews(draft.template.id)
+      await loadTemplates()
+
+      if (draft.view.id === viewId) {
+        const replacement = savedViews.value.find(item => item.defaultView) || savedViews.value[0]
+        if (replacement) {
+          draft.view = cloneSnapshot({
+            template: toRaw(draft.template),
+            view: replacement,
+          }).view
+          draft.template.viewType = replacement.type
+          resultSet.value = null
+        }
+      }
+
+      showMessage("已删除视图配置", 3000, "info")
+      return true
+    } catch (deleteError) {
+      showMessage(deleteError instanceof Error ? deleteError.message : "删除视图配置失败", 5000, "error")
+      return false
+    }
+  }
+
   watch(embedParentId, async value => {
     await persistEmbedTargetPrefs()
     await resolveEmbedTargetPreview(value)
@@ -629,10 +781,12 @@ export function createQueryBuilderStore() {
     addFilter,
     addSort,
     applySnapshot,
+    boardDragCapability,
     boardColumns,
     cardsSummary,
     customFieldName,
     dateRangeValue,
+    deleteSavedView,
     displayValue,
     draft,
     draggingRowId,
@@ -647,6 +801,7 @@ export function createQueryBuilderStore() {
     selectableFieldOptions,
     sortFieldOptions,
     statisticalFieldOptions,
+    validationIssues,
     groupByProxy,
     aggregationEnabled,
     aggregationFunctionProxy,
@@ -661,12 +816,14 @@ export function createQueryBuilderStore() {
     notebooks,
     currentDocumentTarget,
     deleteTemplate,
+    loadSavedView,
     openBlock,
     openDocumentTargets,
     presets,
     quickEdit,
     recentEmbedTargets,
     refreshCurrentDocumentTarget,
+    refreshSavedViews,
     removeFilter,
     removeSort,
     requiresValue,
@@ -676,8 +833,12 @@ export function createQueryBuilderStore() {
     resultSummary,
     runQuery,
     saveTemplate,
+    saveViewAs,
+    setViewType,
+    setDefaultSavedView,
     selectCurrentDocumentTarget,
     savedTemplates,
+    savedViews,
     saving,
     selectEmbedTarget,
     scopeLabel,

@@ -15,6 +15,7 @@ function createStore() {
     advancedMode: false,
     saving: false,
     loading: false,
+    validationIssues: [],
     notebooks: [],
     mappingKeys: ["status", "dueDate", "priority", "project", "owner"],
     mappingLabels: {
@@ -121,5 +122,25 @@ describe("QueryBuilderEditor", () => {
     expect(wrapper.text()).toContain("统计函数")
     expect(wrapper.text()).toContain("统计字段")
     expect(wrapper.find('input[type="number"]').exists()).toBe(true)
+  })
+
+  it('renders validation issues before query execution', () => {
+    currentStore = createStore()
+    currentStore.validationIssues = [
+      {
+        level: 'error',
+        code: 'board-group-by-required',
+        message: '看板视图需要设置分组字段。',
+      },
+      {
+        level: 'warning',
+        code: 'board-drag-writeback-disabled',
+        message: '当前分组不支持拖拽回写。',
+      },
+    ]
+    const wrapper = mount(QueryBuilderEditor)
+
+    expect(wrapper.text()).toContain('看板视图需要设置分组字段。')
+    expect(wrapper.text()).toContain('当前分组不支持拖拽回写。')
   })
 })
