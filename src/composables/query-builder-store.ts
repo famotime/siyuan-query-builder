@@ -289,6 +289,9 @@ export function createQueryBuilderStore() {
 
   function removeFilter(filterId: string) {
     draft.template.filters = draft.template.filters.filter(filter => filter.id !== filterId)
+    if (draft.template.filters[0]) {
+      draft.template.filters[0].condition = "and"
+    }
   }
 
   function addSort() {

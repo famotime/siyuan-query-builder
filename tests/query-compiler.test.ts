@@ -147,4 +147,48 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("ORDER BY")
     expect(compiled.sql).toContain("tagCount DESC")
   })
+
+  it("builds nested filter clauses with mixed and/or relations in row order", () => {
+    const template = {
+      id: "template-5",
+      version: 1,
+      name: "Mixed Relations",
+      scope: {
+        type: "all_blocks",
+      },
+      filters: [
+        {
+          id: "filter-content",
+          field: "content",
+          operator: "contains",
+          value: "任务",
+        },
+        {
+          id: "filter-status",
+          field: "attr:status",
+          operator: "eq",
+          value: "Doing",
+          condition: "or",
+        },
+        {
+          id: "filter-updated",
+          field: "updated",
+          operator: "last_days",
+          value: "7",
+          condition: "and",
+        },
+      ],
+      sorts: [],
+      fields: ["content", "updated", "attr:status"],
+      viewType: "table",
+    } as QueryTemplate
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain(" OR ")
+    expect(compiled.sql).toContain(" AND ")
+    expect(compiled.sql).toContain("((instr(COALESCE(blocks.content, ''), '任务') > 0")
+    expect(compiled.sql).toContain("= 'Doing')")
+    expect(compiled.sql).toContain("date(blocks.updated) BETWEEN date('now', '-7 day') AND date('now'))")
+  })
 })

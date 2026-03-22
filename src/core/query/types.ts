@@ -21,6 +21,8 @@ export type FilterOperator =
   | "next_days"
   | "last_days"
 
+export type FilterCondition = "and" | "or"
+
 export type FieldId = string
 
 export interface QueryScope {
@@ -32,6 +34,7 @@ export interface QueryFilter {
   id: string
   field: FieldId
   operator: FilterOperator
+  condition?: FilterCondition
   value?: unknown
 }
 

@@ -75,6 +75,7 @@ export function makeFilter(field = "content", operator: FilterOperator = "contai
     id: createId("filter"),
     field,
     operator,
+    condition: "and",
     value: "",
   }
 }

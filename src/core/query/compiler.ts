@@ -158,6 +158,22 @@ function buildFilterClause(filter: QueryFilter) {
   }
 }
 
+function buildFiltersClause(filters: QueryFilter[]) {
+  if (!filters.length) {
+    return ""
+  }
+
+  let clause = buildFilterClause(filters[0]!)
+
+  for (let index = 1; index < filters.length; index += 1) {
+    const filter = filters[index]!
+    const operator = filter.condition === "or" ? "OR" : "AND"
+    clause = `(${clause} ${operator} ${buildFilterClause(filter)})`
+  }
+
+  return clause
+}
+
 function buildAggregationExpression(aggregation: QueryAggregation) {
   switch (aggregation.function) {
     case "count":
@@ -241,7 +257,7 @@ export function buildQuery(template: QueryTemplate): CompiledQuery {
   const whereClauses = [
     template.scope.type === "block_type" && template.scope.value === "d" ? "" : "blocks.type != 'd'",
     buildScopeClause(template.scope),
-    ...template.filters.map(buildFilterClause),
+    buildFiltersClause(template.filters),
   ].filter(Boolean)
   const limit = normalizeLimit(template.limit)
 

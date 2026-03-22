@@ -164,4 +164,33 @@ describe("QueryBuilderEditor", () => {
 
     expect(currentStore.toggleField).toHaveBeenCalledWith('attr:status')
   })
+
+  it('renders and updates the relation selector for filters after the first one', async () => {
+    currentStore = createStore()
+    currentStore.draft.template.filters = [
+      {
+        id: 'filter-1',
+        field: 'content',
+        operator: 'contains',
+        value: '任务',
+      },
+      {
+        id: 'filter-2',
+        field: 'attr:status',
+        operator: 'eq',
+        value: 'Doing',
+        condition: 'or',
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderEditor)
+    const relation = wrapper.get('[data-filter-condition="filter-2"]')
+
+    expect(relation.element).toBeInstanceOf(HTMLSelectElement)
+    expect((relation.element as HTMLSelectElement).value).toBe('or')
+
+    await relation.setValue('and')
+
+    expect(currentStore.draft.template.filters[1].condition).toBe('and')
+  })
 })

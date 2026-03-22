@@ -196,10 +196,30 @@
             class="stack gap-sm"
           >
             <div
-              v-for="filter in store.draft.template.filters"
+              v-for="(filter, index) in store.draft.template.filters"
               :key="filter.id"
               class="filter-row"
             >
+              <div
+                v-if="index === 0"
+                class="filter-row__condition filter-row__condition--root"
+              >
+                首条
+              </div>
+              <select
+                v-else
+                :data-filter-condition="filter.id"
+                class="control filter-row__condition"
+                :value="filter.condition || 'and'"
+                @change="filter.condition = ($event.target as HTMLSelectElement).value as 'and' | 'or'"
+              >
+                <option value="and">
+                  AND
+                </option>
+                <option value="or">
+                  OR
+                </option>
+              </select>
               <select
                 v-model="filter.field"
                 class="control"
@@ -572,13 +592,29 @@ h3 {
 
 .filter-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  grid-template-columns: 88px repeat(3, minmax(0, 1fr)) auto;
   gap: 10px;
   align-items: center;
 }
 
 .filter-row--sort {
   grid-template-columns: minmax(0, 1fr) 120px auto;
+}
+
+.filter-row__condition {
+  min-height: 44px;
+}
+
+.filter-row__condition--root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px dashed var(--sqb-border);
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text-muted);
+  font: 700 12px/1.2 var(--sqb-sans);
+  letter-spacing: 0.08em;
 }
 
 .filter-row__delete {
