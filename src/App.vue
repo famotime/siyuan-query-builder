@@ -14,8 +14,13 @@
     <template v-else>
       <QueryBuilderSidebar />
       <main class="workspace">
-        <QueryBuilderEditor />
-        <QueryBuilderResults />
+        <div class="workspace__topbar">
+          <QueryBuilderTopbar />
+        </div>
+        <div class="workspace__scroll">
+          <QueryBuilderEditor />
+          <QueryBuilderResults />
+        </div>
       </main>
     </template>
   </section>
@@ -27,6 +32,7 @@ import { onErrorCaptured, onMounted, provide, ref } from "vue"
 import QueryBuilderEditor from "@/components/query-builder/QueryBuilderEditor.vue"
 import QueryBuilderResults from "@/components/query-builder/QueryBuilderResults.vue"
 import QueryBuilderSidebar from "@/components/query-builder/QueryBuilderSidebar.vue"
+import QueryBuilderTopbar from "@/components/query-builder/QueryBuilderTopbar.vue"
 import { createQueryBuilderStore, queryBuilderStoreKey } from "@/composables/query-builder-store"
 
 const store = createQueryBuilderStore()
@@ -54,20 +60,50 @@ onErrorCaptured((error, instance, info) => {
 
 <style lang="scss" scoped>
 .panel {
+  height: 100%;
   min-height: 100%;
   display: grid;
-  grid-template-columns: 320px 1fr;
-  background: linear-gradient(135deg, #f8f1e6, #fffefb 56%, #ece0c8);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  color: var(--sqb-text);
+  overflow: hidden;
 }
 
 .workspace {
-  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 20px;
+  overflow: hidden;
   min-height: 0;
-  padding: 24px;
-  background-image:
-    linear-gradient(rgba(59, 46, 32, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 46, 32, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+  padding: 28px 32px 40px;
+}
+
+.workspace::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(74, 124, 89, 0.08), transparent 26%),
+    radial-gradient(circle at 88% 4%, rgba(196, 166, 106, 0.18), transparent 20%);
+  opacity: 0.95;
+}
+
+.workspace > * {
+  position: relative;
+  z-index: 1;
+}
+
+.workspace__topbar {
+  flex: 0 0 auto;
+}
+
+.workspace__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 6px;
 }
 
 .workspace--boot-error {
@@ -78,25 +114,26 @@ onErrorCaptured((error, instance, info) => {
 
 .boot-error {
   max-width: 720px;
-  padding: 28px;
-  border-radius: 20px;
-  background: rgba(255, 252, 245, 0.92);
-  border: 1px solid rgba(59, 46, 32, 0.12);
-  box-shadow: 0 18px 42px rgba(30, 22, 14, 0.12);
+  padding: 32px;
+  border-radius: 28px;
+  background: var(--sqb-surface);
+  border: 1px solid var(--sqb-border);
+  box-shadow: var(--sqb-shadow-strong);
+  backdrop-filter: blur(18px);
 }
 
 .boot-error__eyebrow {
   margin: 0 0 8px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font: 700 11px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
-  color: rgba(59, 46, 32, 0.66);
+  font: 700 11px/1.2 var(--sqb-sans);
+  color: var(--sqb-text-muted);
 }
 
 .boot-error h2 {
   margin: 0 0 12px;
-  font: 700 28px/1.1 Georgia, "Times New Roman", serif;
-  color: #241d17;
+  font: 700 30px/1.08 var(--sqb-serif);
+  color: var(--sqb-text);
 }
 
 .boot-error pre {
@@ -104,7 +141,7 @@ onErrorCaptured((error, instance, info) => {
   white-space: pre-wrap;
   word-break: break-word;
   font: 13px/1.55 Consolas, "Courier New", monospace;
-  color: #5c2a04;
+  color: #5f4430;
 }
 
 @media (max-width: 1100px) {
@@ -116,6 +153,11 @@ onErrorCaptured((error, instance, info) => {
 @media (max-width: 720px) {
   .workspace {
     padding: 16px;
+    gap: 16px;
+  }
+
+  .workspace__scroll {
+    padding-right: 0;
   }
 }
 </style>

@@ -4,6 +4,62 @@
 
 #siyuan-query-builder-root {
   height: 100%;
+  overflow: hidden;
+  --sqb-bg: #faf6f0;
+  --sqb-bg-strong: #f0ece4;
+  --sqb-surface: rgba(255, 255, 255, 0.84);
+  --sqb-surface-strong: #ffffff;
+  --sqb-surface-soft: rgba(245, 241, 234, 0.92);
+  --sqb-surface-muted: rgba(234, 230, 222, 0.9);
+  --sqb-border: rgba(116, 121, 110, 0.2);
+  --sqb-border-strong: rgba(116, 121, 110, 0.32);
+  --sqb-text: #2e3230;
+  --sqb-text-muted: #62685f;
+  --sqb-primary: #4a7c59;
+  --sqb-primary-strong: #355f42;
+  --sqb-primary-soft: rgba(74, 124, 89, 0.12);
+  --sqb-secondary: #6b6358;
+  --sqb-secondary-soft: rgba(107, 99, 88, 0.12);
+  --sqb-accent: #c4a66a;
+  --sqb-accent-soft: rgba(196, 166, 106, 0.18);
+  --sqb-danger: #b83230;
+  --sqb-danger-soft: rgba(184, 50, 48, 0.12);
+  --sqb-shadow-soft: 0 18px 42px rgba(57, 61, 52, 0.08);
+  --sqb-shadow-strong: 0 28px 60px rgba(57, 61, 52, 0.12);
+  --sqb-serif: 'Palatino Linotype', 'Book Antiqua', Georgia, 'Source Han Serif SC', 'Songti SC', serif;
+  --sqb-sans: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(142, 207, 158, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(196, 166, 106, 0.18), transparent 26%),
+    linear-gradient(180deg, #faf6f0 0%, #f7f2ea 52%, #f1ece3 100%);
+  color: var(--sqb-text);
+  font-family: var(--sqb-sans);
+}
+
+#siyuan-query-builder-root > * {
+  height: 100%;
+}
+
+#siyuan-query-builder-root,
+#siyuan-query-builder-root *,
+#siyuan-query-builder-root *::before,
+#siyuan-query-builder-root *::after {
+  box-sizing: border-box;
+}
+
+#siyuan-query-builder-root button,
+#siyuan-query-builder-root input,
+#siyuan-query-builder-root select,
+#siyuan-query-builder-root textarea {
+  font: inherit;
+}
+
+#siyuan-query-builder-root h1,
+#siyuan-query-builder-root h2,
+#siyuan-query-builder-root h3,
+#siyuan-query-builder-root h4 {
+  font-family: var(--sqb-serif);
+  letter-spacing: -0.02em;
 }
 
 .sqb-inline-host {
@@ -15,14 +71,14 @@
 .sqb-inline-error {
   padding: 12px 14px;
   border-radius: 16px;
-  border: 1px dashed rgba(59, 46, 32, 0.18);
-  background: rgba(248, 241, 230, 0.74);
-  color: rgba(36, 29, 23, 0.76);
-  font: 13px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  border: 1px dashed var(--sqb-border-strong);
+  background: rgba(245, 241, 234, 0.88);
+  color: rgba(46, 50, 48, 0.82);
+  font: 13px/1.45 var(--sqb-sans);
 }
 
 .sqb-inline-host__fallback strong {
   display: block;
   margin-bottom: 4px;
-  color: #241d17;
+  color: var(--sqb-text);
 }

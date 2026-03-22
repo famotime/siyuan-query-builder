@@ -3,139 +3,65 @@
     <article class="card">
       <div class="section-head">
         <div class="summary">
-          <h3>结果面板</h3>
-          <p class="muted">
-            {{ store.resultSummary }}
-          </p>
-          <div class="view-switcher">
-            <span class="view-switcher__label">视图类型</span>
-            <div class="tabs">
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
-                data-view-type="table"
-                type="button"
-                @click="store.draft.view.type = 'table'"
+          <div class="summary__header">
+            <div class="summary__icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                表格
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
-                data-view-type="board"
-                type="button"
-                @click="store.draft.view.type = 'board'"
-              >
-                看板
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
-                data-view-type="list"
-                type="button"
-                @click="store.draft.view.type = 'list'"
-              >
-                列表
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
-                data-view-type="cards"
-                type="button"
-                @click="store.draft.view.type = 'cards'"
-              >
-                卡片
-              </button>
+                <path
+                  d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm2 2v8h12V8H6zm3 2h6v4H9v-4z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3>查询结果预览</h3>
+              <p class="muted">
+                {{ store.resultSet?.rows.length ? store.resultSummary : "实时查看匹配结果并快速编辑" }}
+              </p>
             </div>
           </div>
         </div>
-        <div class="actions">
-          <div class="embed-targets">
-            <div
-              ref="embedTargetPickerRef"
-              class="embed-target-picker"
+        <div class="view-switcher">
+          <div class="tabs">
+            <button
+              class="tabs__item"
+              :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
+              data-view-type="table"
+              type="button"
+              @click="store.draft.view.type = 'table'"
             >
-              <input
-                v-model="store.embedParentId"
-                class="control control--embed-merged"
-                placeholder="父块或文档 ID"
-                @focus="store.refreshCurrentDocumentTarget"
-              >
-              <button
-                class="embed-target-picker__toggle"
-                type="button"
-                aria-label="选择当前文档或历史 ID"
-                :aria-expanded="embedTargetMenuOpen"
-                @click="toggleEmbedTargetMenu"
-              >
-                <span
-                  class="embed-target-picker__chevron"
-                  :class="{ 'is-open': embedTargetMenuOpen }"
-                >⌄</span>
-              </button>
-              <div
-                v-if="embedTargetMenuOpen"
-                class="embed-target-menu"
-              >
-                <button
-                  v-if="store.currentDocumentTarget"
-                  class="embed-target-menu__item"
-                  type="button"
-                  @click="selectCurrentDocumentTarget"
-                >
-                  <span class="embed-target-menu__eyebrow">当前文档</span>
-                  <strong>{{ store.currentDocumentTarget.title }}</strong>
-                  <small>{{ store.currentDocumentTarget.id }}</small>
-                </button>
-                <template v-if="otherOpenDocumentOptions.length">
-                  <div class="embed-target-menu__section">
-                    已打开文档
-                  </div>
-                  <button
-                    v-for="target in otherOpenDocumentOptions"
-                    :key="target.id"
-                    class="embed-target-menu__item"
-                    type="button"
-                    @click="selectRecentTarget(target.id)"
-                  >
-                    <strong>{{ target.title || target.id }}</strong>
-                    <small>文档 · {{ target.id }}</small>
-                  </button>
-                </template>
-                <template v-if="recentTargetOptions.length">
-                  <div class="embed-target-menu__section">
-                    历史 ID
-                  </div>
-                  <button
-                    v-for="target in recentTargetOptions"
-                    :key="target.id"
-                    class="embed-target-menu__item"
-                    type="button"
-                    @click="selectRecentTarget(target.id)"
-                  >
-                    <strong>{{ target.title || target.id }}</strong>
-                    <small>{{ target.type === "document" ? "文档" : "块" }} · {{ target.id }}</small>
-                    <small v-if="target.content && target.content !== target.title">{{ target.content }}</small>
-                  </button>
-                </template>
-                <p
-                  v-if="!store.currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
-                  class="embed-target-menu__empty"
-                >
-                  暂无当前文档、已打开文档或历史 ID，可直接输入。
-                </p>
-              </div>
-            </div>
-            <p class="muted muted--embed-target">
-              {{ store.embedTargetHint }}
-            </p>
+              表格
+            </button>
+            <button
+              class="tabs__item"
+              :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
+              data-view-type="board"
+              type="button"
+              @click="store.draft.view.type = 'board'"
+            >
+              看板
+            </button>
+            <button
+              class="tabs__item"
+              :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
+              data-view-type="list"
+              type="button"
+              @click="store.draft.view.type = 'list'"
+            >
+              列表
+            </button>
+            <button
+              class="tabs__item"
+              :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
+              data-view-type="cards"
+              type="button"
+              @click="store.draft.view.type = 'cards'"
+            >
+              卡片
+            </button>
           </div>
-          <button
-            class="btn btn--ghost btn--small"
-            @click="store.insertEmbed"
-          >
-            生成嵌入块
-          </button>
         </div>
       </div>
 
@@ -157,8 +83,9 @@
         v-if="!store.resultSet?.rows.length"
         class="empty"
       >
+        <div class="empty__icon" />
         <h4>结果会在这里出现</h4>
-        <p>运行查询后，可切换表格、看板、列表或统计卡片，并直接编辑状态、日期、优先级。</p>
+        <p>运行查询后，可切换表格、看板、列表或统计视图，并继续编辑状态、日期和优先级。</p>
       </div>
 
       <div
@@ -319,6 +246,106 @@
           <span>{{ card.label }}</span>
         </article>
       </div>
+
+      <section class="embed-panel">
+        <div class="embed-targets">
+          <span class="embed-targets__label">嵌入到文档</span>
+          <div
+            ref="embedTargetPickerRef"
+            class="embed-target-picker"
+          >
+            <input
+              v-model="store.embedParentId"
+              class="control control--embed-merged"
+              placeholder="选择或输入目标文档 ID / 父块 ID"
+              @focus="store.refreshCurrentDocumentTarget"
+            >
+            <button
+              class="embed-target-picker__toggle"
+              type="button"
+              aria-label="选择当前文档或历史 ID"
+              :aria-expanded="embedTargetMenuOpen"
+              @click="toggleEmbedTargetMenu"
+            >
+              <span
+                class="embed-target-picker__chevron"
+                :class="{ 'is-open': embedTargetMenuOpen }"
+              >⌄</span>
+            </button>
+            <div
+              v-if="embedTargetMenuOpen"
+              class="embed-target-menu"
+            >
+              <button
+                v-if="store.currentDocumentTarget"
+                class="embed-target-menu__item"
+                type="button"
+                @click="selectCurrentDocumentTarget"
+              >
+                <span class="embed-target-menu__eyebrow">当前文档</span>
+                <strong>{{ store.currentDocumentTarget.title }}</strong>
+                <small>{{ store.currentDocumentTarget.id }}</small>
+              </button>
+              <template v-if="otherOpenDocumentOptions.length">
+                <div class="embed-target-menu__section">
+                  已打开文档
+                </div>
+                <button
+                  v-for="target in otherOpenDocumentOptions"
+                  :key="target.id"
+                  class="embed-target-menu__item"
+                  type="button"
+                  @click="selectRecentTarget(target.id)"
+                >
+                  <strong>{{ target.title || target.id }}</strong>
+                  <small>文档 · {{ target.id }}</small>
+                </button>
+              </template>
+              <template v-if="recentTargetOptions.length">
+                <div class="embed-target-menu__section">
+                  历史 ID
+                </div>
+                <button
+                  v-for="target in recentTargetOptions"
+                  :key="target.id"
+                  class="embed-target-menu__item"
+                  type="button"
+                  @click="selectRecentTarget(target.id)"
+                >
+                  <strong>{{ target.title || target.id }}</strong>
+                  <small>{{ target.type === "document" ? "文档" : "块" }} · {{ target.id }}</small>
+                  <small v-if="target.content && target.content !== target.title">{{ target.content }}</small>
+                </button>
+              </template>
+              <p
+                v-if="!store.currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
+                class="embed-target-menu__empty"
+              >
+                暂无当前文档、已打开文档或历史 ID，可直接输入。
+              </p>
+            </div>
+          </div>
+          <p class="muted muted--embed-target">
+            {{ store.embedTargetHint }}
+          </p>
+        </div>
+        <button
+          class="btn btn--embed"
+          @click="store.insertEmbed"
+        >
+          <svg
+            class="btn__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3zm7 10l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8L19 13zM6 14l1.1 2.9L10 18l-2.9 1.1L6 22l-1.1-2.9L2 18l2.9-1.1L6 14z"
+              fill="currentColor"
+            />
+          </svg>
+          生成嵌入块
+        </button>
+      </section>
     </article>
   </section>
 </template>
@@ -376,16 +403,17 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .results {
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .card {
-  min-height: calc(100vh - 114px);
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 251, 245, 0.9);
-  border: 1px solid rgba(59, 46, 32, 0.12);
-  box-shadow: 0 18px 48px rgba(87, 63, 33, 0.08);
+  min-height: 560px;
+  padding: 24px;
+  border-radius: 28px;
+  background: var(--sqb-surface);
+  border: 1px solid var(--sqb-border);
+  box-shadow: var(--sqb-shadow-soft);
+  backdrop-filter: blur(16px);
 }
 
 .section-head,
@@ -393,61 +421,95 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 18px;
+}
+
+.section-head {
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(228, 224, 216, 0.9);
 }
 
 .summary {
+  min-width: 0;
+}
+
+.summary__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.summary__icon {
   display: grid;
-  gap: 10px;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(74, 124, 89, 0.14);
+  color: var(--sqb-primary);
+}
+
+.summary__icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 h3,
 h4 {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+}
+
+h3 {
+  font-size: 26px;
+  line-height: 1.08;
 }
 
 .muted {
   margin: 0;
-  color: rgba(32, 26, 21, 0.68);
-  font: 14px/1.5 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 14px/1.55 var(--sqb-sans);
 }
 
 .control {
   width: 100%;
   box-sizing: border-box;
-  border-radius: 14px;
-  border: 1px solid rgba(59, 46, 32, 0.16);
-  background: rgba(255, 255, 255, 0.78);
-  color: #201a15;
-  padding: 11px 13px;
-  font: 14px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  border-radius: 16px;
+  border: 1px solid var(--sqb-border);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--sqb-text);
+  padding: 12px 14px;
+  font: 14px/1.4 var(--sqb-sans);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
 }
 
 .control--compact {
   min-width: 120px;
-  padding: 8px 10px;
+  padding: 9px 11px;
 }
 
 .control--embed-merged {
-  min-width: 360px;
+  min-width: 320px;
   padding-right: 50px;
 }
 
 .control:focus {
   outline: none;
-  border-color: rgba(208, 93, 13, 0.46);
-  box-shadow: 0 0 0 3px rgba(242, 126, 34, 0.12);
+  border-color: rgba(74, 124, 89, 0.42);
+  box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.12);
 }
 
 .btn {
-  transition: transform 140ms ease;
-  border: none;
-  border-radius: 12px;
-  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 10px 14px;
   background: transparent;
   cursor: pointer;
-  font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .btn:hover,
@@ -456,49 +518,54 @@ h4 {
 }
 
 .btn--ghost {
-  border: 1px solid rgba(59, 46, 32, 0.16);
-}
-
-.view-switcher {
-  display: grid;
-  gap: 6px;
-}
-
-.view-switcher__label {
-  color: rgba(32, 26, 21, 0.68);
-  font: 13px/1.25 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  background: var(--sqb-primary);
+  border-color: rgba(74, 124, 89, 0.22);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(74, 124, 89, 0.18);
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px;
-  border-radius: 18px;
-  background: rgba(59, 46, 32, 0.08);
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(226, 219, 205, 0.9);
 }
 
 .tabs__item {
-  transition: transform 140ms ease;
+  transition: transform 140ms ease, background 140ms ease, color 140ms ease, box-shadow 140ms ease;
   border: none;
   cursor: pointer;
-  flex: 1 1 calc(50% - 8px);
-  padding: 10px 14px;
+  padding: 10px 22px;
   border-radius: 999px;
   background: transparent;
-  color: rgba(32, 26, 21, 0.62);
-  font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: rgba(58, 53, 47, 0.86);
+  font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .tabs__item--active {
-  background: #201a15;
-  color: #f8f1e6;
+  background: #ffffff;
+  color: var(--sqb-primary-strong);
+  box-shadow: 0 2px 8px rgba(57, 61, 52, 0.08);
+}
+
+.btn__icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
 .embed-targets {
   display: grid;
   gap: 8px;
-  min-width: min(520px, 100%);
+}
+
+.embed-targets__label {
+  color: var(--sqb-primary);
+  font: 700 11px/1.2 var(--sqb-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .embed-target-picker {
@@ -512,11 +579,11 @@ h4 {
   bottom: 4px;
   width: 38px;
   border: none;
-  border-radius: 10px;
-  background: rgba(242, 126, 34, 0.12);
-  color: #7b3404;
+  border-radius: 12px;
+  background: transparent;
+  color: #87a98b;
   cursor: pointer;
-  font: 600 18px/1 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 600 18px/1 var(--sqb-sans);
 }
 
 .embed-target-picker__chevron {
@@ -537,16 +604,16 @@ h4 {
   display: grid;
   gap: 6px;
   padding: 8px;
-  border-radius: 16px;
-  border: 1px solid rgba(59, 46, 32, 0.12);
-  background: rgba(255, 251, 245, 0.98);
-  box-shadow: 0 18px 36px rgba(59, 46, 32, 0.16);
+  border-radius: 18px;
+  border: 1px solid var(--sqb-border);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 36px rgba(57, 61, 52, 0.16);
 }
 
 .embed-target-menu__section {
   padding: 4px 6px 0;
-  color: rgba(32, 26, 21, 0.58);
-  font: 600 12px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 600 12px/1.4 var(--sqb-sans);
 }
 
 .embed-target-menu__item {
@@ -555,30 +622,30 @@ h4 {
   width: 100%;
   padding: 10px 12px;
   border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.82);
-  color: #201a15;
+  border-radius: 14px;
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text);
   cursor: pointer;
   text-align: left;
 }
 
 .embed-target-menu__item:hover {
-  background: rgba(242, 126, 34, 0.14);
+  background: rgba(74, 124, 89, 0.12);
 }
 
 .embed-target-menu__item strong {
-  font: 600 14px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 600 14px/1.4 var(--sqb-sans);
 }
 
 .embed-target-menu__item small,
 .embed-target-menu__eyebrow,
 .embed-target-menu__empty {
-  color: rgba(32, 26, 21, 0.68);
-  font: 12px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 12px/1.4 var(--sqb-sans);
 }
 
 .embed-target-menu__eyebrow {
-  color: #a24004;
+  color: var(--sqb-primary);
 }
 
 .embed-target-menu__empty {
@@ -587,16 +654,18 @@ h4 {
 }
 
 .muted--embed-target {
+  color: #b6c5b6;
   font-size: 13px;
+  font-style: italic;
 }
 
 .alert {
   margin-top: 14px;
   padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(177, 39, 22, 0.12);
-  color: #8f2417;
-  font: 14px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  border-radius: 16px;
+  background: var(--sqb-danger-soft);
+  color: var(--sqb-danger);
+  font: 14px/1.45 var(--sqb-sans);
 }
 
 .sql-box {
@@ -606,28 +675,75 @@ h4 {
 .sql-box pre {
   margin: 0;
   padding: 14px;
-  border-radius: 16px;
-  background: #201a15;
-  color: #f8f1e6;
+  border-radius: 18px;
+  background: #2f342f;
+  color: #f5f0e8;
   white-space: pre-wrap;
   word-break: break-word;
   font: 12px/1.55 "Consolas", "Courier New", monospace;
 }
 
 .empty {
-  min-height: 320px;
-  margin-top: 14px;
-  display: grid;
-  place-items: center;
+  min-height: 330px;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   text-align: center;
-  border-radius: 18px;
-  border: 1px dashed rgba(59, 46, 32, 0.18);
-  background: rgba(255, 255, 255, 0.44);
+  border-radius: 24px;
+  border: 1px dashed rgba(205, 201, 191, 0.9);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.empty__icon {
+  position: relative;
+  width: 54px;
+  height: 54px;
+}
+
+.empty__icon::before,
+.empty__icon::after {
+  content: '';
+  position: absolute;
+}
+
+.empty__icon::before {
+  inset: 4px 8px 8px 4px;
+  border: 4px solid #d2cec8;
+  border-radius: 50%;
+}
+
+.empty__icon::after {
+  right: 4px;
+  bottom: 2px;
+  width: 18px;
+  height: 4px;
+  border-radius: 999px;
+  background: #d2cec8;
+  transform: rotate(48deg);
+  transform-origin: center;
+}
+
+.empty h4 {
+  font-size: 18px;
+  color: #8e877e;
+}
+
+.empty p {
+  margin: 0;
+  color: #8e877e;
+  font: 14px/1.5 var(--sqb-sans);
+  max-width: 420px;
 }
 
 .table-wrap {
   margin-top: 14px;
   overflow: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(116, 121, 110, 0.12);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .table {
@@ -638,26 +754,30 @@ h4 {
 .table th,
 .table td {
   padding: 14px 12px;
-  border-bottom: 1px solid rgba(59, 46, 32, 0.08);
+  border-bottom: 1px solid rgba(116, 121, 110, 0.12);
   text-align: left;
   vertical-align: top;
-  font: 14px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 14px/1.45 var(--sqb-sans);
 }
 
 .table th {
   position: sticky;
   top: 0;
-  background: rgba(248, 241, 230, 0.98);
+  background: rgba(245, 241, 234, 0.96);
+  color: var(--sqb-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font: 700 11px/1.3 var(--sqb-sans);
 }
 
 .link {
   padding: 0;
   border: none;
   background: transparent;
-  color: #b54a08;
+  color: var(--sqb-primary-strong);
   cursor: pointer;
   text-align: left;
-  font: 600 14px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 600 14px/1.45 var(--sqb-sans);
 }
 
 .link--block {
@@ -670,16 +790,17 @@ h4 {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(260px, 1fr);
-  gap: 14px;
+  gap: 16px;
   overflow-x: auto;
 }
 
 .board__column {
   min-height: 320px;
-  padding: 14px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(59, 46, 32, 0.08);
+  padding: 16px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(240, 236, 228, 0.74), rgba(255, 255, 255, 0.74));
+  border: 1px solid rgba(116, 121, 110, 0.14);
 }
 
 .board__head {
@@ -692,10 +813,11 @@ h4 {
 .board__card {
   margin-bottom: 10px;
   padding: 14px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 243, 228, 0.88));
-  border: 1px solid rgba(208, 93, 13, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 241, 234, 0.88));
+  border: 1px solid rgba(74, 124, 89, 0.12);
   cursor: grab;
+  box-shadow: 0 12px 24px rgba(57, 61, 52, 0.08);
 }
 
 .tokens {
@@ -708,9 +830,9 @@ h4 {
 .pill {
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(242, 126, 34, 0.12);
-  color: #7b3404;
-  font: 600 12px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  background: var(--sqb-accent-soft);
+  color: #6e5723;
+  font: 600 12px/1.2 var(--sqb-sans);
 }
 
 .list {
@@ -724,16 +846,17 @@ h4 {
 
 .list__item,
 .cards__item {
-  padding: 14px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(59, 46, 32, 0.08);
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(116, 121, 110, 0.14);
+  box-shadow: 0 10px 20px rgba(57, 61, 52, 0.05);
 }
 
 .list__item small,
 .cards__item span {
-  color: rgba(32, 26, 21, 0.68);
-  font: 13px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 13px/1.4 var(--sqb-sans);
 }
 
 .cards {
@@ -746,19 +869,54 @@ h4 {
 .cards__item strong {
   display: block;
   margin-bottom: 6px;
-  font: 700 28px/1 Georgia, "Times New Roman", serif;
-  color: #a24004;
+  font: 700 30px/1 var(--sqb-serif);
+  color: var(--sqb-primary-strong);
+}
+
+.embed-panel {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 30px;
+  border-radius: 30px;
+  background: #f0f2ef;
+  border: 1px solid rgba(210, 214, 206, 0.9);
+}
+
+.embed-panel .control {
+  border-radius: 999px;
+  min-height: 58px;
+  padding-inline: 20px 52px;
+  background: #ffffff;
+  border-color: rgba(219, 224, 216, 0.9);
+}
+
+.btn--embed {
+  flex: 0 0 auto;
+  min-width: 216px;
+  min-height: 72px;
+  border-radius: 20px;
+  background: var(--sqb-primary);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(74, 124, 89, 0.18);
+  font-size: 16px;
+  font-weight: 700;
 }
 
 @media (max-width: 720px) {
   .section-head,
-  .actions {
+  .embed-panel {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .embed-targets {
+  .control--embed-merged {
     min-width: 100%;
+  }
+
+  .tabs__item {
+    flex: 1 1 calc(50% - 6px);
   }
 }
 </style>

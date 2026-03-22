@@ -1,43 +1,7 @@
 <template>
   <section class="editor">
-    <header class="editor__header">
-      <div>
-        <p class="eyebrow">
-          Query Draft
-        </p>
-        <input
-          v-model="store.draft.template.name"
-          class="title-input"
-          placeholder="给查询命名"
-        >
-      </div>
-      <div class="actions">
-        <label class="chip">
-          <input
-            v-model="store.advancedMode"
-            type="checkbox"
-          >
-          <span>高级模式</span>
-        </label>
-        <button
-          class="btn btn--ghost"
-          :disabled="store.saving"
-          @click="store.saveTemplate"
-        >
-          {{ store.saving ? "保存中..." : "保存模板" }}
-        </button>
-        <button
-          class="btn btn--solid"
-          :disabled="store.loading"
-          @click="store.runQuery"
-        >
-          刷新结果
-        </button>
-      </div>
-    </header>
-
     <div class="grid">
-      <article class="card">
+      <article class="card card--scope">
         <div class="section-head">
           <button
             class="section-toggle"
@@ -46,13 +10,19 @@
             :aria-expanded="String(!collapsedSections.scope)"
             @click="toggleSection('scope')"
           >
-            <h3>查询范围</h3>
+            <div class="section-heading">
+              <span class="section-kicker">Scope</span>
+              <h3>查询范围</h3>
+            </div>
             <span
               class="section-toggle__chevron"
               :class="{ 'section-toggle__chevron--collapsed': collapsedSections.scope }"
             >⌄</span>
           </button>
         </div>
+        <p class="section-copy">
+          定义这次查询要覆盖哪些笔记内容，再用更精确的值缩小范围。
+        </p>
         <div
           v-if="!collapsedSections.scope"
           class="form-grid"
@@ -135,7 +105,7 @@
         </div>
       </article>
 
-      <article class="card">
+      <article class="card card--mappings">
         <div class="section-head">
           <button
             class="section-toggle"
@@ -144,14 +114,19 @@
             :aria-expanded="String(!collapsedSections.mappings)"
             @click="toggleSection('mappings')"
           >
-            <h3>字段映射</h3>
+            <div class="section-heading">
+              <span class="section-kicker">Field Mapping</span>
+              <h3>字段映射</h3>
+            </div>
             <span
               class="section-toggle__chevron"
               :class="{ 'section-toggle__chevron--collapsed': collapsedSections.mappings }"
             >⌄</span>
           </button>
-          <span class="muted">快速编辑会用这里的属性名</span>
         </div>
+        <p class="section-copy">
+          快速编辑、看板列和统计字段都会依赖这里的属性名称。
+        </p>
         <div
           v-if="!collapsedSections.mappings"
           class="form-grid"
@@ -170,7 +145,7 @@
         </div>
       </article>
 
-      <article class="card">
+      <article class="card card--full">
         <div class="section-head">
           <button
             class="section-toggle"
@@ -179,7 +154,10 @@
             :aria-expanded="String(!collapsedSections.filters)"
             @click="toggleSection('filters')"
           >
-            <h3>条件编辑器</h3>
+            <div class="section-heading">
+              <span class="section-kicker">Filters</span>
+              <h3>条件编辑器</h3>
+            </div>
             <span
               class="section-toggle__chevron"
               :class="{ 'section-toggle__chevron--collapsed': collapsedSections.filters }"
@@ -192,6 +170,9 @@
             添加条件
           </button>
         </div>
+        <p class="section-copy">
+          组合字段、操作符和值来描述真正要筛出的内容。
+        </p>
         <template v-if="!collapsedSections.filters">
           <div
             v-if="store.draft.template.filters.length"
@@ -284,7 +265,7 @@
         </template>
       </article>
 
-      <article class="card">
+      <article class="card card--full">
         <div class="section-head">
           <button
             class="section-toggle"
@@ -293,13 +274,19 @@
             :aria-expanded="String(!collapsedSections.view)"
             @click="toggleSection('view')"
           >
-            <h3>排序、分组与字段</h3>
+            <div class="section-heading">
+              <span class="section-kicker">View Settings</span>
+              <h3>排序、分组与字段</h3>
+            </div>
             <span
               class="section-toggle__chevron"
               :class="{ 'section-toggle__chevron--collapsed': collapsedSections.view }"
             >⌄</span>
           </button>
         </div>
+        <p class="section-copy">
+          控制结果如何分组展示、如何排序，以及最终输出哪些字段。
+        </p>
         <template v-if="!collapsedSections.view">
           <div class="form-grid">
             <label class="field">
@@ -500,23 +487,22 @@ function toggleSection(section: keyof typeof collapsedSections) {
 .editor {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 0;
 }
 
-.editor__header,
 .section-head,
 .actions,
 .actions--inline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 14px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .stack {
@@ -530,30 +516,47 @@ function toggleSection(section: keyof typeof collapsedSections) {
 }
 
 .card {
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 251, 245, 0.9);
-  border: 1px solid rgba(59, 46, 32, 0.12);
-  box-shadow: 0 18px 48px rgba(87, 63, 33, 0.08);
+  grid-column: span 6;
+  padding: 22px;
+  border-radius: 28px;
+  background: var(--sqb-surface);
+  border: 1px solid var(--sqb-border);
+  box-shadow: var(--sqb-shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.card--scope {
+  grid-column: span 4;
+}
+
+.card--mappings {
+  grid-column: span 8;
+}
+
+.card--full {
+  grid-column: 1 / -1;
 }
 
 .eyebrow {
   margin: 0 0 8px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  font: 700 11px/1.3 "Trebuchet MS", "Microsoft YaHei", sans-serif;
-  opacity: 0.72;
+  color: var(--sqb-primary);
+  font: 700 11px/1.3 var(--sqb-sans);
 }
 
 h3 {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.1;
 }
 
 .section-toggle {
-  display: inline-flex;
+  width: 100%;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   padding: 0;
   border: none;
   background: transparent;
@@ -561,10 +564,29 @@ h3 {
   cursor: pointer;
 }
 
+.section-heading {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.section-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sqb-primary);
+  font: 700 11px/1.2 var(--sqb-sans);
+}
+
+.section-copy {
+  margin: 10px 0 0;
+  color: var(--sqb-text-muted);
+  font: 13px/1.55 var(--sqb-sans);
+}
+
 .section-toggle__chevron {
   display: inline-block;
-  color: rgba(32, 26, 21, 0.54);
-  font: 600 18px/1 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 600 18px/1 var(--sqb-sans);
   transition: transform 0.2s ease;
 }
 
@@ -576,33 +598,32 @@ h3 {
 .control {
   width: 100%;
   box-sizing: border-box;
-  border-radius: 14px;
-  border: 1px solid rgba(59, 46, 32, 0.16);
-  background: rgba(255, 255, 255, 0.78);
-  color: #201a15;
-  padding: 11px 13px;
-  font: 14px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif;
-}
-
-.title-input {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font: 600 30px/1.08 Georgia, "Times New Roman", serif;
+  border-radius: 16px;
+  border: 1px solid var(--sqb-border);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--sqb-text);
+  padding: 12px 14px;
+  font: 14px/1.4 var(--sqb-sans);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
 }
 
 .title-input:focus,
 .control:focus {
   outline: none;
-  border-color: rgba(208, 93, 13, 0.46);
-  box-shadow: 0 0 0 3px rgba(242, 126, 34, 0.12);
+  border-color: rgba(74, 124, 89, 0.42);
+  box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.12);
 }
 
 .btn {
-  transition: transform 140ms ease;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease;
   cursor: pointer;
-  font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 600 13px/1.2 var(--sqb-sans);
+  white-space: nowrap;
 }
 
 .btn:hover {
@@ -610,34 +631,42 @@ h3 {
 }
 
 .btn {
-  border-radius: 999px;
-  padding: 11px 16px;
+  border-radius: 16px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
 }
 
 .btn--small {
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 9px 13px;
+  border-radius: 14px;
 }
 
 .btn--solid {
-  background: linear-gradient(135deg, #ce5b0a, #f27e22);
-  color: #fff7ef;
+  background: var(--sqb-primary);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(74, 124, 89, 0.18);
+  min-width: 148px;
+  border-radius: 24px;
 }
 
 .btn--ghost {
   background: transparent;
-  color: inherit;
-  border: 1px solid rgba(59, 46, 32, 0.16);
+  color: var(--sqb-primary);
+  border-color: transparent;
+  box-shadow: none;
+  min-width: auto;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 11px 14px;
   border-radius: 999px;
-  background: rgba(59, 46, 32, 0.08);
-  font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  background: var(--sqb-surface-soft);
+  border: 1px solid var(--sqb-border);
+  color: var(--sqb-secondary);
+  font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .chip--toggle {
@@ -646,29 +675,35 @@ h3 {
 
 .muted {
   margin: 0;
-  color: rgba(32, 26, 21, 0.68);
-  font: 14px/1.5 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 14px/1.5 var(--sqb-sans);
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
+  margin-top: 16px;
 }
 
 .form-grid--aggregation {
-  margin-top: 14px;
+  margin-top: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .field span,
 .check small {
-  font: 13px/1.25 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 13px/1.25 var(--sqb-sans);
+}
+
+.field span {
+  color: var(--sqb-secondary);
+  font-weight: 700;
 }
 
 .filter-row {
@@ -683,7 +718,7 @@ h3 {
 }
 
 .section-head--top {
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .check {
@@ -692,21 +727,37 @@ h3 {
   align-items: center;
   gap: 10px;
   margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(59, 46, 32, 0.1);
-  background: rgba(255, 255, 255, 0.5);
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface-soft);
+}
+
+.check span {
+  color: var(--sqb-text);
+  font: 600 14px/1.35 var(--sqb-sans);
+}
+
+.check small {
+  color: var(--sqb-text-muted);
 }
 
 @media (max-width: 1100px) {
-  .grid,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card,
+  .card--scope,
+  .card--mappings,
+  .card--full,
   .form-grid {
     grid-template-columns: 1fr;
+    grid-column: auto;
   }
 }
 
 @media (max-width: 720px) {
-  .editor__header,
   .actions,
   .actions--inline,
   .filter-row,
@@ -715,5 +766,6 @@ h3 {
     grid-template-columns: 1fr;
     align-items: stretch;
   }
+
 }
 </style>

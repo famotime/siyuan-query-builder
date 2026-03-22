@@ -1,14 +1,21 @@
 <template>
   <aside class="sidebar">
-    <div class="card card--dark">
-      <p class="eyebrow">
-        Siyuan Query Builder
+    <div class="card card--hero">
+      <div class="brand">
+        <div class="brand__mark">
+          QB
+        </div>
+        <div class="brand__content">
+          <p class="eyebrow">
+            Terra Query
+          </p>
+          <h1>查询工作台</h1>
+        </div>
+      </div>
+      <p class="muted">
+        先定义范围和条件，再切到表格、看板或统计视图，并继续回写块属性。
       </p>
-      <h1>把查询变成工作界面</h1>
-      <p class="muted muted--light">
-        先定义要看什么，再切成表格或看板，并直接回写原始块属性。
-      </p>
-      <div class="actions">
+      <div class="actions actions--stacked">
         <button
           class="btn btn--ghost"
           @click="store.resetDraft"
@@ -25,9 +32,12 @@
       </div>
     </div>
 
-    <div class="card card--dark">
+    <div class="card">
       <div class="section-head">
-        <h2>预设场景</h2>
+        <div class="section-head-main section-head-main--block">
+          <span class="section-kicker">Scene Presets</span>
+          <h2>预设场景</h2>
+        </div>
         <button
           data-section-toggle="presets"
           class="section-toggle"
@@ -53,6 +63,9 @@
           </svg>
         </button>
       </div>
+      <p class="section-copy">
+        直接加载常用查询草稿，快速开始当前工作流。
+      </p>
       <template v-if="presetsExpanded">
         <button
           v-for="preset in store.presets"
@@ -66,10 +79,13 @@
       </template>
     </div>
 
-    <div class="card card--dark">
+    <div class="card">
       <div class="section-head">
         <div class="section-head-main">
-          <h2>已保存模板</h2>
+          <div class="section-head-copy">
+            <span class="section-kicker">Saved Templates</span>
+            <h2>已保存模板</h2>
+          </div>
           <span class="pill">{{ store.savedTemplates.length }}</span>
         </div>
         <button
@@ -97,6 +113,9 @@
           </svg>
         </button>
       </div>
+      <p class="section-copy">
+        保留你已经验证过的查询方案，随时恢复视图配置和字段映射。
+      </p>
       <template v-if="savedTemplatesExpanded">
         <div
           v-for="snapshot in store.savedTemplates"
@@ -131,11 +150,16 @@
         </div>
         <p
           v-if="!store.savedTemplates.length"
-          class="muted muted--light"
+          class="muted"
         >
           先保存一个查询模板。
         </p>
       </template>
+    </div>
+
+    <div class="sidebar-footnote">
+      <span class="sidebar-footnote__title">Workspace Note</span>
+      <p>当前界面只优化视觉层，查询、保存、嵌入和拖拽行为保持不变。</p>
     </div>
   </aside>
 </template>
@@ -152,46 +176,78 @@ const savedTemplatesExpanded = ref(true)
 
 <style lang="scss" scoped>
 .sidebar {
+  height: 100%;
   overflow: auto;
-  padding: 24px 18px;
-  background: linear-gradient(180deg, rgba(32, 27, 22, 0.96), rgba(48, 40, 34, 0.98));
-  color: #f8f1e6;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 18px 24px 24px;
+  background: rgba(250, 246, 240, 0.78);
+  border-right: 1px solid var(--sqb-border);
+  color: var(--sqb-text);
+  backdrop-filter: blur(20px);
 }
 
 .card {
-  padding: 18px;
-  border-radius: 20px;
-  margin-bottom: 16px;
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--sqb-surface);
+  border: 1px solid var(--sqb-border);
+  box-shadow: var(--sqb-shadow-soft);
+  backdrop-filter: blur(14px);
 }
 
-.card--dark {
-  background: rgba(255, 248, 236, 0.07);
-  border: 1px solid rgba(255, 248, 236, 0.12);
+.card--hero {
+  background:
+    linear-gradient(160deg, rgba(240, 232, 219, 0.98), rgba(255, 255, 255, 0.92)),
+    var(--sqb-surface);
 }
 
 .eyebrow {
   margin: 0 0 8px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  font: 700 11px/1.3 "Trebuchet MS", "Microsoft YaHei", sans-serif;
-  opacity: 0.72;
+  font: 700 11px/1.3 var(--sqb-sans);
+  color: var(--sqb-primary);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(120, 168, 134, 0.28), rgba(216, 240, 222, 0.88));
+  color: var(--sqb-primary-strong);
+  font: 700 14px/1 var(--sqb-sans);
+  letter-spacing: 0.08em;
+}
+
+.brand__content {
+  min-width: 0;
 }
 
 h1,
 h2 {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
 }
 
 h1 {
-  font-size: 30px;
-  line-height: 1.06;
+  font-size: 31px;
+  line-height: 1.04;
 }
 
 .muted {
   margin: 0;
-  color: rgba(248, 241, 230, 0.72);
-  font: 14px/1.5 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  color: var(--sqb-text-muted);
+  font: 14px/1.55 var(--sqb-sans);
 }
 
 .actions,
@@ -202,23 +258,30 @@ h1 {
   gap: 10px;
 }
 
+.actions--stacked {
+  margin-top: 18px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .section-head-main {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.actions {
-  margin-top: 14px;
+.section-head-copy,
+.section-head-main--block {
+  display: grid;
+  gap: 4px;
 }
 
 .btn,
 .item,
 .section-toggle {
-  transition: transform 140ms ease;
-  border: none;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
   cursor: pointer;
-  font: 600 13px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .btn:hover,
@@ -228,19 +291,29 @@ h1 {
 }
 
 .btn {
-  border-radius: 999px;
-  padding: 11px 16px;
+  width: 100%;
+  border-radius: 16px;
+  padding: 13px 16px;
+  border: 1px solid transparent;
 }
 
 .btn--solid {
-  background: linear-gradient(135deg, #ce5b0a, #f27e22);
-  color: #fff7ef;
+  background: var(--sqb-primary);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(74, 124, 89, 0.2);
 }
 
 .btn--ghost {
-  background: transparent;
-  color: inherit;
-  border: 1px solid rgba(255, 248, 236, 0.16);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--sqb-text);
+  border-color: var(--sqb-border);
+}
+
+.btn--solid:disabled,
+.btn--ghost:disabled {
+  cursor: default;
+  opacity: 0.7;
+  transform: none;
 }
 
 .section-toggle {
@@ -250,10 +323,10 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 248, 236, 0.08);
-  color: inherit;
-  border: 1px solid rgba(255, 248, 236, 0.16);
+  border-radius: 12px;
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text-muted);
+  border: 1px solid var(--sqb-border);
 }
 
 .section-toggle svg {
@@ -266,17 +339,32 @@ h1 {
   transform: rotate(180deg);
 }
 
+.section-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sqb-primary);
+  font: 700 11px/1.2 var(--sqb-sans);
+}
+
+.section-copy {
+  margin: 10px 0 0;
+  color: var(--sqb-text-muted);
+  font: 13px/1.5 var(--sqb-sans);
+}
+
 .item {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 6px;
   text-align: left;
-  border-radius: 16px;
-  padding: 14px;
+  border: 1px solid var(--sqb-border);
+  border-radius: 18px;
+  padding: 14px 15px;
   margin-top: 10px;
-  background: rgba(255, 248, 236, 0.06);
-  color: inherit;
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .item--row {
@@ -287,10 +375,9 @@ h1 {
 
 .item-main,
 .item-delete {
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
-  border: none;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease;
   cursor: pointer;
-  color: inherit;
+  color: var(--sqb-text);
 }
 
 .item-main:hover,
@@ -310,6 +397,7 @@ h1 {
   background: transparent;
   text-align: left;
   font: inherit;
+  border: none;
 }
 
 .item-delete {
@@ -320,10 +408,10 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(191, 39, 62, 0.14);
-  border: 1px solid rgba(191, 39, 62, 0.3);
-  color: #ff8f9f;
+  border-radius: 12px;
+  background: var(--sqb-danger-soft);
+  border: 1px solid rgba(184, 50, 48, 0.24);
+  color: var(--sqb-danger);
 }
 
 .item-delete svg {
@@ -332,19 +420,38 @@ h1 {
 }
 
 .item-delete:hover {
-  background: rgba(191, 39, 62, 0.24);
-  border-color: rgba(255, 143, 159, 0.55);
-  color: #ffd2d8;
+  background: rgba(184, 50, 48, 0.18);
+  border-color: rgba(184, 50, 48, 0.32);
 }
 
 .pill {
   min-width: 24px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(242, 126, 34, 0.18);
-  color: #f7d9bd;
+  background: var(--sqb-primary-soft);
+  color: var(--sqb-primary-strong);
   text-align: center;
-  font: 700 12px/1.2 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+  font: 700 12px/1.2 var(--sqb-sans);
+}
+
+.sidebar-footnote {
+  margin-top: auto;
+  padding: 0 6px 4px;
+  color: var(--sqb-text-muted);
+}
+
+.sidebar-footnote__title {
+  display: block;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sqb-secondary);
+  font: 700 11px/1.2 var(--sqb-sans);
+}
+
+.sidebar-footnote p {
+  margin: 0;
+  font: 13px/1.5 var(--sqb-sans);
 }
 
 @media (max-width: 720px) {
@@ -352,9 +459,8 @@ h1 {
     padding: 16px;
   }
 
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
+  .brand {
+    align-items: flex-start;
   }
 }
 </style>
