@@ -137,6 +137,65 @@
       </template>
     </div>
 
+    <div class="card card--history">
+      <div class="section-head">
+        <div class="section-head-main">
+          <div class="section-head-copy">
+            <span class="section-kicker">Recent Queries</span>
+            <h2>历史记录</h2>
+          </div>
+          <span class="pill">{{ store.recentQueryHistory.length }}</span>
+        </div>
+        <button
+          data-section-toggle="history"
+          class="section-toggle"
+          type="button"
+          :title="historyExpanded ? '收起历史记录' : '展开历史记录'"
+          :aria-label="historyExpanded ? '收起历史记录' : '展开历史记录'"
+          :aria-expanded="String(historyExpanded)"
+          @click="historyExpanded = !historyExpanded"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            :class="{ 'is-expanded': historyExpanded }"
+          >
+            <path
+              d="M7 10l5 5 5-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.2"
+            />
+          </svg>
+        </button>
+      </div>
+      <p class="section-copy">
+        保留最近 10 次运行过的查询条件，方便快速回到刚刚验证过的筛选组合。
+      </p>
+      <template v-if="historyExpanded">
+        <button
+          v-for="entry in store.recentQueryHistory"
+          :key="entry.id"
+          class="item"
+          type="button"
+          :data-history-load="entry.id"
+          @click="store.restoreQueryHistory(entry.id)"
+        >
+          <strong>{{ entry.templateName }}</strong>
+          <span>{{ entry.summary }}</span>
+          <span class="item-time">{{ formatExecutedAt(entry.executedAt) }}</span>
+        </button>
+        <p
+          v-if="!store.recentQueryHistory.length"
+          class="muted"
+        >
+          运行过查询后，这里会保留最近 10 次条件。
+        </p>
+      </template>
+    </div>
+
     <div class="sidebar-footnote">
       <span class="sidebar-footnote__title">Workspace Note</span>
       <p>QUINCYZOU 2026</p>
@@ -152,6 +211,7 @@ import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
 const presetsExpanded = ref(true)
+const historyExpanded = ref(true)
 const savedTemplatesExpanded = ref(true)
 
 function viewTypeLabel(type: string) {
@@ -165,6 +225,19 @@ function viewTypeLabel(type: string) {
     default:
       return "表格"
   }
+}
+
+function formatExecutedAt(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date)
 }
 </script>
 
@@ -195,6 +268,10 @@ function viewTypeLabel(type: string) {
   background:
     linear-gradient(160deg, rgba(240, 232, 219, 0.98), rgba(255, 255, 255, 0.92)),
     var(--sqb-surface);
+}
+
+.card--history {
+  margin-top: auto;
 }
 
 .eyebrow {
@@ -374,6 +451,11 @@ h1 {
   margin-right: -2px;
 }
 
+.item-time {
+  color: var(--sqb-text-muted);
+  font: 12px/1.4 var(--sqb-sans);
+}
+
 .pill {
   min-width: 24px;
   padding: 3px 8px;
@@ -385,7 +467,6 @@ h1 {
 }
 
 .sidebar-footnote {
-  margin-top: auto;
   padding: 0 6px 4px;
   color: var(--sqb-text-muted);
 }

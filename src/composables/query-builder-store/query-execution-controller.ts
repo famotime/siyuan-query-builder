@@ -37,6 +37,7 @@ interface QueryExecutionControllerOptions {
   persistCurrentTemplateAndView: () => Promise<QueryBuilderSnapshot>
   refreshSavedTemplateSummaries: () => Promise<void>
   rememberEmbedTarget: (value: string) => Promise<void>
+  rememberQueryHistory: (executedAt: string) => Promise<void>
 }
 
 export function createQueryExecutionController(options: QueryExecutionControllerOptions) {
@@ -54,6 +55,7 @@ export function createQueryExecutionController(options: QueryExecutionController
     persistCurrentTemplateAndView,
     refreshSavedTemplateSummaries,
     rememberEmbedTarget,
+    rememberQueryHistory,
   } = options
 
   function resetResultState() {
@@ -74,6 +76,7 @@ export function createQueryExecutionController(options: QueryExecutionController
       const compiled = buildQuery(draft.template)
       advancedSql.value = compiled.sql
       resultSet.value = await runtime.execute(compiled)
+      await rememberQueryHistory(resultSet.value.executedAt)
       recordMetric("queryRuns")
       showMessage(`查询完成：${resultSet.value.total} 条结果`, 3500, "info")
     } catch (runtimeError) {

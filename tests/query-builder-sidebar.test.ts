@@ -14,6 +14,7 @@ function createStore() {
   return reactive({
     loading: false,
     currentTemplateId: "template-1",
+    recentQueryHistory: [],
     savedTemplateSummaries: [
       {
         templateId: "template-1",
@@ -26,6 +27,7 @@ function createStore() {
     applySnapshot: vi.fn(),
     loadTemplate: vi.fn(),
     deleteTemplate: vi.fn(),
+    restoreQueryHistory: vi.fn(),
     resetDraft: vi.fn(),
     runQuery: vi.fn(),
   })
@@ -128,5 +130,27 @@ describe("QueryBuilderSidebar", () => {
 
     expect(currentStore.loadTemplate).toHaveBeenCalledWith("template-1")
     expect(currentStore.applySnapshot).not.toHaveBeenCalled()
+  })
+
+  it("renders recent query history and restores a selected record", async () => {
+    currentStore = createStore()
+    currentStore.recentQueryHistory = [
+      {
+        id: "history-1",
+        templateName: "逾期任务",
+        summary: "全部内容 · 1 个条件 · 表格",
+        executedAt: "2026-03-22T08:30:00.000Z",
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderSidebar)
+
+    expect(wrapper.text()).toContain("历史记录")
+    expect(wrapper.text()).toContain("逾期任务")
+    expect(wrapper.text()).toContain("1 个条件")
+
+    await wrapper.get('[data-history-load="history-1"]').trigger("click")
+
+    expect(currentStore.restoreQueryHistory).toHaveBeenCalledWith("history-1")
   })
 })

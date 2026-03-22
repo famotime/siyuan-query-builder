@@ -481,4 +481,43 @@ describe("createQueryBuilderStore view management", () => {
       embedInsertions: 1,
     }))
   })
+
+  it("records the 10 most recent query snapshots and restores one from history", async () => {
+    const store = createQueryBuilderStore()
+
+    for (let index = 1; index <= 12; index += 1) {
+      store.draft.template.name = `查询 ${index}`
+      store.draft.template.filters = [
+        {
+          id: `filter-${index}`,
+          field: "content",
+          operator: "contains",
+          condition: "and",
+          value: `任务 ${index}`,
+        },
+      ]
+      await store.runQuery()
+    }
+
+    const recentQueryHistory = (store as any).recentQueryHistory
+
+    expect(recentQueryHistory).toHaveLength(10)
+    expect(recentQueryHistory[0]).toEqual(expect.objectContaining({
+      templateName: "查询 12",
+      summary: expect.stringContaining("1 个条件"),
+    }))
+    expect(recentQueryHistory[9]).toEqual(expect.objectContaining({
+      templateName: "查询 3",
+    }))
+    expect(currentPlugin.read("query-builder.history.v1")).toHaveLength(10)
+
+    await (store as any).restoreQueryHistory(recentQueryHistory[9].id)
+
+    expect(store.draft.template.name).toBe("查询 3")
+    expect(store.draft.template.filters).toEqual([
+      expect.objectContaining({
+        value: "任务 3",
+      }),
+    ])
+  })
 })

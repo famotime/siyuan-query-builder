@@ -16,6 +16,7 @@ function createSidebarStore() {
   return reactive({
     loading: false,
     presets: [],
+    recentQueryHistory: [],
     currentTemplateId: 'template-1',
     savedTemplateSummaries: [
       {
@@ -28,6 +29,7 @@ function createSidebarStore() {
     applySnapshot: vi.fn(),
     loadTemplate: vi.fn(),
     deleteTemplate: vi.fn(),
+    restoreQueryHistory: vi.fn(),
     resetDraft: vi.fn(),
     runQuery: vi.fn(),
   })

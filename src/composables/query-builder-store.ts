@@ -5,10 +5,11 @@ import { lsNotebooks } from "@/api"
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
 import { AGGREGATE_VALUE_FIELD, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
-import type { QueryBuilderSnapshot, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
+import type { QueryBuilderSnapshot, QueryHistoryEntry, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createMetricsStore } from "@/core/storage/metrics-store"
+import { createQueryHistoryStore } from "@/core/storage/query-history-store"
 import { buildBoardColumns } from "@/core/view/board"
 import { buildCardsSummary, buildListItems } from "@/inline/view-models"
 import { usePlugin } from "@/main"
@@ -48,10 +49,12 @@ export function useQueryBuilderStore() {
 export function createQueryBuilderStore() {
   const plugin = usePlugin()
   const metricsStore = createMetricsStore(plugin)
+  const queryHistoryStore = createQueryHistoryStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
 
   const draft = reactive<QueryBuilderSnapshot>(createDraft())
   const notebooks = ref<Notebook[]>([])
+  const recentQueryHistory = ref<QueryHistoryEntry[]>([])
   const savedTemplateSummaries = ref<SavedTemplateSummary[]>([])
   const savedViews = ref<ViewConfig[]>([])
   const resultSet = ref<ResultSet | null>(null)
@@ -81,6 +84,59 @@ export function createQueryBuilderStore() {
     resultSet.value = null
     advancedSql.value = ""
     error.value = ""
+  }
+
+  function historyScopeLabel(snapshot: QueryBuilderSnapshot) {
+    switch (snapshot.template.scope.type) {
+      case "notebook":
+        return "笔记本"
+      case "document":
+        return "文档"
+      case "block_type":
+        return "块类型"
+      case "tag":
+        return "标签"
+      case "attribute":
+        return "属性"
+      default:
+        return "全部内容"
+    }
+  }
+
+  function historyViewLabel(type: ViewConfig["type"]) {
+    switch (type) {
+      case "board":
+        return "看板"
+      case "list":
+        return "列表"
+      case "cards":
+        return "统计卡片"
+      default:
+        return "表格"
+    }
+  }
+
+  function buildQueryHistorySummary(snapshot: QueryBuilderSnapshot) {
+    return `${historyScopeLabel(snapshot)} · ${snapshot.template.filters.length} 个条件 · ${historyViewLabel(snapshot.view.type)}`
+  }
+
+  async function refreshQueryHistory() {
+    recentQueryHistory.value = await queryHistoryStore.list()
+  }
+
+  async function rememberQueryHistory(executedAt: string) {
+    try {
+      const snapshot = createSnapshot(draft)
+      recentQueryHistory.value = await queryHistoryStore.prepend({
+        id: `history-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        templateName: snapshot.template.name || "未命名查询",
+        summary: buildQueryHistorySummary(snapshot),
+        executedAt: executedAt || new Date().toISOString(),
+        snapshot,
+      })
+    } catch {
+      // Query history is best-effort and should not block successful query execution.
+    }
   }
 
   const templateViews = createTemplateViewController({
@@ -268,6 +324,7 @@ export function createQueryBuilderStore() {
     persistCurrentTemplateAndView: templateViews.persistCurrentTemplateAndView,
     refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
     rememberEmbedTarget: embedTargets.rememberEmbedTarget,
+    rememberQueryHistory,
   })
 
   function fieldLabel(field: string) {
@@ -332,6 +389,15 @@ export function createQueryBuilderStore() {
     void templateViews.refreshSavedViews(snapshot.template.id)
   }
 
+  async function restoreQueryHistory(entryId: string) {
+    const entry = recentQueryHistory.value.find(item => item.id === entryId)
+    if (!entry) {
+      return false
+    }
+    applySnapshot(entry.snapshot)
+    return true
+  }
+
   function editableField(field: string) {
     return resolveEditableField(draft.template, draft.view, field)
   }
@@ -340,6 +406,7 @@ export function createQueryBuilderStore() {
     const notebookResult = await lsNotebooks()
     notebooks.value = notebookResult?.notebooks || []
     await embedTargets.initializeEmbedTargets()
+    await refreshQueryHistory()
     await templateViews.refreshSavedTemplateSummaries()
     await templateViews.refreshSavedViews(draft.template.id)
   }
@@ -392,7 +459,9 @@ export function createQueryBuilderStore() {
     presets,
     quickEdit: queryExecution.quickEdit,
     recentEmbedTargets,
+    recentQueryHistory,
     refreshCurrentDocumentTarget: embedTargets.refreshCurrentDocumentTarget,
+    restoreQueryHistory,
     refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
     refreshSavedViews: templateViews.refreshSavedViews,
     removeFilter,

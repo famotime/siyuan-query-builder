@@ -95,6 +95,14 @@ export interface QueryBuilderSnapshot {
   view: ViewConfig
 }
 
+export interface QueryHistoryEntry {
+  id: string
+  templateName: string
+  summary: string
+  executedAt: string
+  snapshot: QueryBuilderSnapshot
+}
+
 export interface ResultRow {
   id: string
   content: string
