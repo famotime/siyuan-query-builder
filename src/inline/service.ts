@@ -2,6 +2,7 @@ import { createApp } from "vue"
 import { showMessage } from "siyuan"
 import type { Plugin } from "siyuan"
 
+import { lsNotebooks } from "@/api"
 import {
   SQB_EMBED_BRIDGE_KEY,
   type InlineEmbedPayload,
@@ -42,10 +43,14 @@ function renderInlineError(element: HTMLElement, message: string) {
 export function createInlineBlockRenderer(plugin: Plugin) {
   const templateStore = createTemplateStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
+  const notebooksPromise = lsNotebooks()
+    .then(result => result?.notebooks || [])
+    .catch(() => [])
   const bridgeMounted = new Map<HTMLElement, DisposeFn | undefined>()
 
   const mountPayload = async (element: HTMLElement, payload: InlineEmbedPayload) => {
     const snapshot = await templateStore.get(payload.templateId, payload.viewId)
+    const notebooks = await notebooksPromise
     const host = document.createElement("div")
     host.className = "sqb-inline-root"
     shieldInlineElement(host)
@@ -66,6 +71,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
       fields: snapshot.template.fields,
       groupBy: snapshot.template.groupBy,
       fieldMappings: snapshot.view.fieldMappings,
+      notebooks,
     })
     app.mount(host)
 

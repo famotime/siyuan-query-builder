@@ -28,6 +28,10 @@ export interface EmbedTargetPrefs {
   recentParentIds?: string[]
 }
 
+interface DisplayValueOptions {
+  notebookNameById?: Record<string, string>
+}
+
 export function createDraft(): QueryBuilderSnapshot {
   const template = createEmptyTemplate()
   return {
@@ -133,12 +137,33 @@ export function createSnapshot(draft: QueryBuilderSnapshot) {
   })
 }
 
-export function displayValue(row: ResultRow, field: string) {
+function formatSiyuanTimestamp(value: unknown) {
+  const text = String(value ?? "").trim()
+  if (/^\d{14}$/.test(text)) {
+    return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)} ${text.slice(8, 10)}:${text.slice(10, 12)}:${text.slice(12, 14)}`
+  }
+  if (/^\d{8}$/.test(text)) {
+    return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`
+  }
+  return text
+}
+
+export function displayValue(row: ResultRow, field: string, options: DisplayValueOptions = {}) {
   if (field === AGGREGATE_VALUE_FIELD) {
     return String(row.agg_value ?? "")
   }
   if (field.startsWith("attr:")) {
     return row.attrs[field.slice("attr:".length)] || ""
+  }
+  if (field === "created" || field === "updated") {
+    return formatSiyuanTimestamp(row[field])
+  }
+  if (field === "box") {
+    const boxId = String(row[field] ?? "")
+    return options.notebookNameById?.[boxId] || boxId
+  }
+  if (field === "path") {
+    return String(row.hpath ?? row[field] ?? "")
   }
   return String(row[field] ?? "")
 }

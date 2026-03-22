@@ -186,6 +186,61 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("ORDER BY")
   })
 
+  it("builds relative date filters for SiYuan timestamp strings", () => {
+    const template: QueryTemplate = {
+      id: "template-7",
+      version: 1,
+      name: "Recent Documents",
+      scope: {
+        type: "block_type",
+        value: "d",
+      },
+      filters: [
+        {
+          id: "filter-created",
+          field: "created",
+          operator: "last_days",
+          value: "30",
+        },
+      ],
+      sorts: [
+        {
+          field: "created",
+          direction: "desc",
+        },
+      ],
+      fields: ["content", "created", "updated"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("substr(blocks.created, 1, 8)")
+    expect(compiled.sql).toContain("strftime('%Y%m%d', 'now', '-30 day')")
+    expect(compiled.sql).toContain("strftime('%Y%m%d', 'now')")
+    expect(compiled.sql).not.toContain("date(blocks.created)")
+  })
+
+  it("uses the human-readable path field when selecting paths", () => {
+    const template: QueryTemplate = {
+      id: "template-8",
+      version: 1,
+      name: "Readable Paths",
+      scope: {
+        type: "block_type",
+        value: "d",
+      },
+      filters: [],
+      sorts: [],
+      fields: ["content", "path"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("COALESCE(blocks.hpath, blocks.path) AS path")
+  })
+
   it("builds nested filter clauses with mixed and/or relations in row order", () => {
     const template = {
       id: "template-5",
@@ -227,6 +282,6 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain(" AND ")
     expect(compiled.sql).toContain("((instr(COALESCE(blocks.content, ''), '任务') > 0")
     expect(compiled.sql).toContain("= 'Doing')")
-    expect(compiled.sql).toContain("date(blocks.updated) BETWEEN date('now', '-7 day') AND date('now'))")
+    expect(compiled.sql).toContain("substr(blocks.updated, 1, 8) BETWEEN strftime('%Y%m%d', 'now', '-7 day') AND strftime('%Y%m%d', 'now'))")
   })
 })

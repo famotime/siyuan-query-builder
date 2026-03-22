@@ -57,7 +57,7 @@ export function createEmptyTemplate(name = "未命名查询"): QueryTemplate {
     },
     filters: [],
     sorts: [],
-    limit: 200,
+    limit: 100,
     fields: [...DEFAULT_VIEW_FIELDS],
     viewType: "table",
   }

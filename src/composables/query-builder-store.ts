@@ -3,7 +3,7 @@ import type { InjectionKey } from "vue"
 
 import { lsNotebooks } from "@/api"
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
-import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, createFieldOptions, createPresets } from "@/core/query/catalog"
+import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
 import type { QueryBuilderSnapshot, QueryHistoryEntry, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
@@ -22,7 +22,7 @@ import {
   createSnapshot,
   dateRangeValue,
   defaultAggregationFieldResult,
-  displayValue,
+  displayValue as formatDisplayValue,
   makeFilter,
   mappingKeys,
   mappingLabels,
@@ -164,6 +164,9 @@ export function createQueryBuilderStore() {
     createFieldOptions(draft.view.fieldMappings),
     draft.template,
   ))
+  const notebookNameById = computed(() => Object.fromEntries(
+    notebooks.value.map(notebook => [notebook.id, notebook.name]),
+  ))
   const selectableFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD))
   const sortFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
   const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => NUMERIC_FIELD_IDS.includes(option.value)))
@@ -262,10 +265,10 @@ export function createQueryBuilderStore() {
     },
   })
   const limitProxy = computed({
-    get: () => String(draft.template.limit ?? 200),
+    get: () => String(draft.template.limit ?? 100),
     set: (value: string) => {
       const normalized = Math.trunc(Number(value))
-      draft.template.limit = Number.isFinite(normalized) && normalized > 0 ? normalized : 200
+      draft.template.limit = Number.isFinite(normalized) && normalized > 0 ? normalized : 100
     },
   })
   const resultSummary = computed(() => {
@@ -329,6 +332,12 @@ export function createQueryBuilderStore() {
 
   function fieldLabel(field: string) {
     return fieldOptions.value.find(option => option.value === field)?.label || field
+  }
+
+  function displayValue(row: ResultSet["rows"][number], field: string) {
+    return formatDisplayValue(row, field, {
+      notebookNameById: notebookNameById.value,
+    })
   }
 
   function setViewType(type: QueryBuilderSnapshot["view"]["type"]) {

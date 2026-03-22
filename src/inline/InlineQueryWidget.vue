@@ -149,6 +149,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 
+import { displayValue as formatDisplayValue } from "@/composables/query-builder-store/shared"
 import { buildBoardColumns } from "@/core/view/board"
 import type { FieldMappings, ResultSet, ViewType } from "@/core/query/types"
 import { buildCardsSummary, buildListItems } from "@/inline/view-models"
@@ -160,6 +161,7 @@ const props = defineProps<{
   fields: string[]
   groupBy?: string
   fieldMappings: FieldMappings
+  notebooks?: Array<{ id: string, name: string }>
 }>()
 
 const cards = computed(() => buildCardsSummary(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
@@ -169,15 +171,9 @@ const listItems = computed(() => buildListItems(props.result.rows, [
   `attr:${props.fieldMappings.dueDate}`,
 ]))
 const boardColumns = computed(() => buildBoardColumns(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
-const viewTypeLabel = computed(() => {
-  if (props.viewType === "board")
-    return "看板"
-  if (props.viewType === "list")
-    return "列表"
-  if (props.viewType === "cards")
-    return "统计"
-  return "表格"
-})
+const notebookNameById = computed(() => Object.fromEntries(
+  (props.notebooks || []).map(notebook => [notebook.id, notebook.name]),
+))
 
 function fieldLabel(field: string) {
   if (field === "content")
@@ -188,10 +184,9 @@ function fieldLabel(field: string) {
 }
 
 function displayValue(row: ResultSet["rows"][number], field: string) {
-  if (field.startsWith("attr:")) {
-    return row.attrs[field.slice("attr:".length)] || ""
-  }
-  return String(row[field] || "")
+  return formatDisplayValue(row, field, {
+    notebookNameById: notebookNameById.value,
+  })
 }
 
 function openBlock(blockId: string) {

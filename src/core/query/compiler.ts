@@ -13,7 +13,7 @@ const BASE_FIELD_MAP: Record<string, string> = {
   id: "blocks.id",
   content: "blocks.content",
   box: "blocks.box",
-  path: "blocks.path",
+  path: "COALESCE(blocks.hpath, blocks.path)",
   root_id: "blocks.root_id",
   hpath: "blocks.hpath",
   type: "blocks.type",
@@ -37,6 +37,18 @@ function isAggregateValueField(field: FieldId) {
 
 function getAttrName(field: FieldId) {
   return field.slice("attr:".length)
+}
+
+function isSiyuanTimestampField(field: FieldId) {
+  return field === "created" || field === "updated"
+}
+
+function getDateComparableExpression(field: FieldId, fieldExpression: string) {
+  if (isSiyuanTimestampField(field)) {
+    return `substr(${fieldExpression}, 1, 8)`
+  }
+
+  return `date(${fieldExpression})`
 }
 
 function getFieldExpression(field: FieldId) {
@@ -96,7 +108,7 @@ function buildSelectFields(fields: FieldId[]) {
 
 function normalizeLimit(limit?: number) {
   if (limit == null) {
-    return 200
+    return 100
   }
 
   const normalized = Math.trunc(Number(limit))
@@ -126,17 +138,27 @@ function buildScopeClause(scope: QueryScope) {
   }
 }
 
-function buildDateRangeClause(fieldExpression: string, operator: "next_days" | "last_days", value: unknown) {
+function buildDateRangeClause(field: FieldId, fieldExpression: string, operator: "next_days" | "last_days", value: unknown) {
   const days = Number(value)
   if (!Number.isFinite(days) || days <= 0) {
     throw new Error(`${operator} requires a positive day count`)
   }
 
-  if (operator === "next_days") {
-    return `date(${fieldExpression}) BETWEEN date('now') AND date('now', '+${days} day')`
+  const comparableExpression = getDateComparableExpression(field, fieldExpression)
+
+  if (isSiyuanTimestampField(field)) {
+    if (operator === "next_days") {
+      return `${comparableExpression} BETWEEN strftime('%Y%m%d', 'now') AND strftime('%Y%m%d', 'now', '+${days} day')`
+    }
+
+    return `${comparableExpression} BETWEEN strftime('%Y%m%d', 'now', '-${days} day') AND strftime('%Y%m%d', 'now')`
   }
 
-  return `date(${fieldExpression}) BETWEEN date('now', '-${days} day') AND date('now')`
+  if (operator === "next_days") {
+    return `${comparableExpression} BETWEEN date('now') AND date('now', '+${days} day')`
+  }
+
+  return `${comparableExpression} BETWEEN date('now', '-${days} day') AND date('now')`
 }
 
 function buildFilterClause(filter: QueryFilter) {
@@ -167,11 +189,14 @@ function buildFilterClause(filter: QueryFilter) {
         throw new Error("date_between requires a date range")
       }
       const [start, end] = filter.value
-      return `date(${expression}) BETWEEN date('${escapeSqlLiteral(String(start))}') AND date('${escapeSqlLiteral(String(end))}')`
+      if (isSiyuanTimestampField(filter.field)) {
+        return `${getDateComparableExpression(filter.field, expression)} BETWEEN replace('${escapeSqlLiteral(String(start))}', '-', '') AND replace('${escapeSqlLiteral(String(end))}', '-', '')`
+      }
+      return `${getDateComparableExpression(filter.field, expression)} BETWEEN date('${escapeSqlLiteral(String(start))}') AND date('${escapeSqlLiteral(String(end))}')`
     }
     case "next_days":
     case "last_days":
-      return buildDateRangeClause(expression, filter.operator, filter.value)
+      return buildDateRangeClause(filter.field, expression, filter.operator, filter.value)
     default:
       throw new Error(`Unsupported operator: ${filter.operator satisfies never}`)
   }

@@ -4,6 +4,12 @@ import { describe, expect, it } from "vitest"
 import { cloneSnapshot, createDefaultViewConfig, createEmptyTemplate } from "@/core/query/catalog"
 
 describe("cloneSnapshot", () => {
+  it("creates new templates with a default result limit of 100", () => {
+    const template = createEmptyTemplate()
+
+    expect(template.limit).toBe(100)
+  })
+
   it("clones reactive snapshots into plain serializable data", () => {
     const template = reactive(createEmptyTemplate("任务查询"))
     template.filters.push({
