@@ -1,7 +1,7 @@
 import { ref, type Ref } from "vue"
 
-import { applyViewConfigToTemplate, cloneSnapshot, createId, hydrateViewConfig } from "@/core/query/catalog"
-import type { QueryBuilderSnapshot, QueryTemplate, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
+import { applyViewConfigToTemplate, cloneSnapshot, createDefaultViewConfig, createId, hydrateViewConfig } from "@/core/query/catalog"
+import type { QueryBuilderSnapshot, QueryTemplate, QueryTemplateBundle, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { showMessage } from "@/external/siyuan"
 import { migrateLegacyTemplateSnapshots } from "@/core/storage/migrations"
 import { createQueryTemplateStore } from "@/core/storage/query-template-store"
@@ -75,6 +75,37 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     await viewConfigStore.save(view)
   }
 
+  function cloneValue<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value)) as T
+  }
+
+  function isTemplateBundle(value: unknown): value is QueryTemplateBundle {
+    if (!value || typeof value !== "object") {
+      return false
+    }
+
+    const bundle = value as Partial<QueryTemplateBundle>
+    return bundle.schema === "siyuan-query-builder/template-bundle"
+      && bundle.version === 1
+      && Boolean(bundle.template)
+      && Array.isArray(bundle.views)
+  }
+
+  function normalizeImportedViews(template: QueryTemplate, views: ViewConfig[]) {
+    const sourceViews = views.length
+      ? views
+      : [createDefaultViewConfig(template.id, template.viewType, template)]
+    const defaultIndex = Math.max(sourceViews.findIndex(view => view.defaultView), 0)
+
+    return sourceViews.map((view, index) => ({
+      ...hydrateViewConfig(view, template),
+      id: createId("view"),
+      queryTemplateId: template.id,
+      defaultView: index === defaultIndex,
+      type: view.type || template.viewType,
+    }))
+  }
+
   async function persistCurrentTemplateAndView() {
     const snapshot = createSnapshot(draft)
     snapshot.template.viewType = snapshot.view.type
@@ -104,6 +135,63 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       return
     }
     savedViews.value = await viewConfigStore.listByTemplate(templateId)
+  }
+
+  async function exportTemplateBundle(templateId: string) {
+    await ensureStorageReady()
+    const [template, views] = await Promise.all([
+      queryTemplateStore.get(templateId),
+      viewConfigStore.listByTemplate(templateId),
+    ])
+
+    if (!template) {
+      throw new Error("模板不存在")
+    }
+
+    return {
+      schema: "siyuan-query-builder/template-bundle",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      template: cloneValue(template),
+      views: cloneValue(views.map(view => hydrateViewConfig(view, template))),
+    } satisfies QueryTemplateBundle
+  }
+
+  async function importTemplateBundle(payload: string | QueryTemplateBundle) {
+    try {
+      const parsed = typeof payload === "string"
+        ? JSON.parse(payload) as unknown
+        : payload
+
+      if (!isTemplateBundle(parsed)) {
+        throw new Error("导入文件格式不正确")
+      }
+
+      const importedTemplate: QueryTemplate = {
+        ...cloneValue(parsed.template),
+        id: createId("template"),
+      }
+      const importedViews = normalizeImportedViews(importedTemplate, parsed.views)
+
+      await ensureStorageReady()
+      await queryTemplateStore.save(importedTemplate)
+      for (const view of importedViews) {
+        await viewConfigStore.save(view)
+      }
+
+      const defaultView = importedViews.find(view => view.defaultView) || importedViews[0]
+      if (defaultView) {
+        applyTemplateAndView(importedTemplate, defaultView)
+      }
+      await refreshSavedTemplateSummaries()
+      await refreshSavedViews(importedTemplate.id)
+      showMessage(`已导入模板：${importedTemplate.name}`, 3500, "info")
+      return importedTemplate.id
+    } catch (importError) {
+      const message = importError instanceof Error ? importError.message : "导入模板失败"
+      showMessage(message, 5000, "error")
+      throw importError
+    }
   }
 
   async function loadTemplate(templateId: string) {
@@ -139,6 +227,16 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
   async function deleteTemplate(templateId: string) {
     try {
       await ensureStorageReady()
+      const template = await queryTemplateStore.get(templateId)
+      if (!template) {
+        return false
+      }
+      const confirmed = typeof window.confirm === "function"
+        ? window.confirm(`确定删除模板“${template.name}”吗？相关已保存视图也会一并删除。`)
+        : true
+      if (!confirmed) {
+        return false
+      }
       await queryTemplateStore.remove(templateId)
       await viewConfigStore.removeByTemplate(templateId)
       await refreshSavedTemplateSummaries()
@@ -148,8 +246,10 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
         await refreshSavedViews(draft.template.id)
       }
       showMessage("已删除模板", 3000, "info")
+      return true
     } catch (deleteError) {
       showMessage(deleteError instanceof Error ? deleteError.message : "删除模板失败", 5000, "error")
+      return false
     }
   }
 
@@ -273,6 +373,8 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     deleteSavedView,
     deleteTemplate,
     ensureStorageReady,
+    exportTemplateBundle,
+    importTemplateBundle,
     loadSavedView,
     loadTemplate,
     persistCurrentTemplateAndView,

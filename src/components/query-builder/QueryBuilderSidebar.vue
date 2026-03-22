@@ -213,6 +213,7 @@ const store = useQueryBuilderStore()
 const presetsExpanded = ref(true)
 const historyExpanded = ref(true)
 const savedTemplatesExpanded = ref(true)
+const templateImportInput = ref<HTMLInputElement | null>(null)
 
 function viewTypeLabel(type: string) {
   switch (type) {
@@ -495,3 +496,4 @@ h1 {
   }
 }
 </style>
+

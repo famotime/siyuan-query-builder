@@ -84,6 +84,7 @@ describe("createQueryBuilderStore view management", () => {
     })
     vi.mocked(getBlockByID).mockResolvedValue(null)
     window.siyuan = undefined
+    window.confirm = vi.fn(() => true)
   })
 
   it("builds template summaries from v2 storage and restores the default view when loading a template", async () => {
@@ -148,6 +149,71 @@ describe("createQueryBuilderStore view management", () => {
     expect(store.draft.template.id).toBe("template-1")
     expect(store.draft.view.id).toBe("view-board")
     expect(store.draft.view.type).toBe("board")
+  })
+
+  it("exports a saved template bundle with all of its saved views", async () => {
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: "template-1",
+        version: 1,
+        name: "项目看板",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "table",
+      },
+    ])
+    currentPlugin.seed(VIEW_CONFIG_STORAGE_KEY, [
+      {
+        id: "view-table",
+        queryTemplateId: "template-1",
+        type: "table",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+      {
+        id: "view-board",
+        queryTemplateId: "template-1",
+        type: "board",
+        defaultView: false,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    const store = createQueryBuilderStore()
+    const bundle = await (store as any).exportTemplateBundle("template-1")
+
+    expect(bundle).toEqual(expect.objectContaining({
+      schema: "siyuan-query-builder/template-bundle",
+      version: 1,
+      template: expect.objectContaining({
+        id: "template-1",
+        name: "项目看板",
+      }),
+      views: [
+        expect.objectContaining({
+          id: "view-table",
+        }),
+        expect.objectContaining({
+          id: "view-board",
+        }),
+      ],
+    }))
   })
 
   it("promotes a replacement default view after deleting the current default view", async () => {
@@ -216,6 +282,103 @@ describe("createQueryBuilderStore view management", () => {
     ])
     expect(store.draft.view.id).toBe("view-board")
     expect(store.draft.view.defaultView).toBe(true)
+  })
+
+  it("imports a template bundle as a new saved template with remapped ids", async () => {
+    const store = createQueryBuilderStore()
+
+    const importedTemplateId = await (store as any).importTemplateBundle(JSON.stringify({
+      schema: "siyuan-query-builder/template-bundle",
+      version: 1,
+      template: {
+        id: "template-old",
+        version: 1,
+        name: "周报模板",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content", "updated"],
+        viewType: "table",
+      },
+      views: [
+        {
+          id: "view-old-1",
+          queryTemplateId: "template-old",
+          type: "table",
+          defaultView: true,
+          fieldMappings: {
+            status: "status",
+            dueDate: "dueDate",
+            priority: "priority",
+            project: "project",
+            owner: "owner",
+          },
+        },
+        {
+          id: "view-old-2",
+          queryTemplateId: "template-old",
+          type: "list",
+          defaultView: false,
+          fieldMappings: {
+            status: "status",
+            dueDate: "dueDate",
+            priority: "priority",
+            project: "project",
+            owner: "owner",
+          },
+        },
+      ],
+    }))
+
+    expect(importedTemplateId).toBeTruthy()
+    expect(importedTemplateId).not.toBe("template-old")
+    expect(store.savedTemplateSummaries).toEqual([
+      expect.objectContaining({
+        templateId: importedTemplateId,
+        templateName: "周报模板",
+        viewCount: 2,
+      }),
+    ])
+
+    const storedTemplates = currentPlugin.read(QUERY_TEMPLATE_STORAGE_KEY) as any[]
+    const storedViews = currentPlugin.read(VIEW_CONFIG_STORAGE_KEY) as any[]
+
+    expect(storedTemplates[0]?.id).toBe(importedTemplateId)
+    expect(storedViews).toHaveLength(2)
+    expect(storedViews.every(view => view.queryTemplateId === importedTemplateId)).toBe(true)
+    expect(storedViews.some(view => view.id === "view-old-1" || view.id === "view-old-2")).toBe(false)
+  })
+
+  it("keeps a saved template when deletion is canceled", async () => {
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: "template-1",
+        version: 1,
+        name: "任务清单",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "table",
+      },
+    ])
+    vi.mocked(window.confirm).mockReturnValue(false)
+    const store = createQueryBuilderStore()
+
+    await store.refreshSavedTemplateSummaries()
+    await store.deleteTemplate("template-1")
+
+    expect(window.confirm).toHaveBeenCalled()
+    expect(currentPlugin.read(QUERY_TEMPLATE_STORAGE_KEY)).toEqual([
+      expect.objectContaining({
+        id: "template-1",
+      }),
+    ])
+    expect(showMessage).not.toHaveBeenCalledWith("已删除模板", 3000, "info")
   })
 
   it("records metrics for view switches, query runs, template saves and saved views", async () => {

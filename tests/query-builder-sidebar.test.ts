@@ -25,6 +25,8 @@ function createStore() {
     ],
     presets: [],
     applySnapshot: vi.fn(),
+    exportTemplateBundle: vi.fn(async () => ({ template: { name: "任务清单" }, views: [] })),
+    importTemplateBundle: vi.fn(async () => "template-imported"),
     loadTemplate: vi.fn(),
     deleteTemplate: vi.fn(),
     restoreQueryHistory: vi.fn(),
@@ -152,5 +154,33 @@ describe("QueryBuilderSidebar", () => {
     await wrapper.get('[data-history-load="history-1"]').trigger("click")
 
     expect(currentStore.restoreQueryHistory).toHaveBeenCalledWith("history-1")
+  })
+
+  it("exports a saved template bundle from the sidebar action", async () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderSidebar)
+
+    await wrapper.get('[data-template-export="template-1"]').trigger("click")
+
+    expect(currentStore.exportTemplateBundle).toHaveBeenCalledWith("template-1")
+  })
+
+  it("imports a template bundle from the sidebar file input", async () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderSidebar)
+    const file = {
+      text: vi.fn(async () => '{"schema":"siyuan-query-builder/template-bundle"}'),
+    }
+    const input = wrapper.get('[data-template-import-input]').element as HTMLInputElement
+
+    Object.defineProperty(input, "files", {
+      configurable: true,
+      value: [file],
+    })
+
+    await wrapper.get('[data-template-import-input]').trigger("change")
+
+    expect(file.text).toHaveBeenCalled()
+    expect(currentStore.importTemplateBundle).toHaveBeenCalledWith('{"schema":"siyuan-query-builder/template-bundle"}')
   })
 })

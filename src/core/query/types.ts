@@ -104,6 +104,14 @@ export interface QueryHistoryEntry {
   snapshot: QueryBuilderSnapshot
 }
 
+export interface QueryTemplateBundle {
+  schema: "siyuan-query-builder/template-bundle"
+  version: 1
+  exportedAt: string
+  template: QueryTemplate
+  views: ViewConfig[]
+}
+
 export interface ResultRow {
   id: string
   content: string
