@@ -94,6 +94,7 @@ function createStore() {
     moveFilter: vi.fn(),
     toggleField: vi.fn(),
     addCustomField: () => {},
+    generateExampleDocument: vi.fn(),
     saveTemplate: () => {},
     runQuery: () => {},
   })
@@ -202,6 +203,19 @@ describe("QueryBuilderEditor", () => {
 
     expect(addFilterButton.classes()).toEqual(expect.arrayContaining(['btn', 'btn--solid']))
     expect(addFilterButton.classes()).not.toContain('btn--ghost')
+  })
+
+  it('renders an outline generate-example button in field mappings and triggers document generation', async () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderEditor)
+    const button = wrapper.get('[data-generate-examples]')
+
+    expect(button.classes()).toEqual(expect.arrayContaining(['btn', 'btn--outline']))
+    expect(button.text()).toContain('生成示例')
+
+    await button.trigger('click')
+
+    expect(currentStore.generateExampleDocument).toHaveBeenCalled()
   })
 
   it('renders and cycles the relation toggle beside the delete action', async () => {

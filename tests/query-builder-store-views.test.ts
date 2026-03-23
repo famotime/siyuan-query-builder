@@ -51,7 +51,16 @@ vi.mock("@/main", () => ({
 
 vi.mock("@/api", () => ({
   appendBlock: vi.fn(async () => []),
+  createDocWithMd: vi.fn(async () => "20260323093000-example"),
   getBlockByID: vi.fn(async () => null),
+  getNotebookConf: vi.fn(async () => ({
+    name: "工作笔记",
+    closed: false,
+    refCreateSavePath: "/",
+    createDocNameTemplate: "2006-01-02",
+    dailyNoteSavePath: "/日记",
+    dailyNoteTemplatePath: "",
+  })),
   lsNotebooks: vi.fn(async () => ({
     notebooks: [],
   })),
@@ -63,7 +72,7 @@ vi.mock("@/core/runtime/query-runtime", () => ({
   createQueryRuntime: () => runtime,
 }))
 
-import { getBlockByID, lsNotebooks } from "@/api"
+import { createDocWithMd, getBlockByID, getNotebookConf, lsNotebooks } from "@/api"
 import { createQueryBuilderStore } from "@/composables/query-builder-store"
 import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
 import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
@@ -82,6 +91,15 @@ describe("createQueryBuilderStore view management", () => {
     vi.mocked(lsNotebooks).mockResolvedValue({
       notebooks: [],
     })
+    vi.mocked(getNotebookConf).mockResolvedValue({
+      name: "工作笔记",
+      closed: false,
+      refCreateSavePath: "/",
+      createDocNameTemplate: "2006-01-02",
+      dailyNoteSavePath: "/日记",
+      dailyNoteTemplatePath: "",
+    })
+    vi.mocked(createDocWithMd).mockResolvedValue("20260323093000-example")
     vi.mocked(getBlockByID).mockResolvedValue(null)
     window.siyuan = undefined
     window.confirm = vi.fn(() => true)
@@ -955,5 +973,39 @@ describe("createQueryBuilderStore view management", () => {
     ])
     expect(store.draft.template.filters[0]?.condition).toBe("and")
     expect(store.draft.template.filters[1]?.condition).toBe("and")
+  })
+
+  it("creates a preset-ready example document in the daily note directory", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-03-23T09:30:00.000Z"))
+    const store = createQueryBuilderStore()
+    store.notebooks = [
+      {
+        id: "box-work",
+        name: "工作笔记",
+        icon: "",
+        sort: 0,
+        closed: false,
+      },
+    ]
+    store.draft.template.scope = {
+      type: "notebook",
+      value: "box-work",
+    }
+
+    await (store as any).generateExampleDocument()
+
+    expect(getNotebookConf).toHaveBeenCalledWith("box-work")
+    expect(createDocWithMd).toHaveBeenCalledWith(
+      "box-work",
+      "/日记/2026-03-23 Query Builder 示例",
+      expect.stringContaining("任务清单示例"),
+    )
+    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).toContain('status="Todo"')
+    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).toContain('project="官网改版"')
+    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).toContain('status="Unread"')
+    expect(showMessage).toHaveBeenCalledWith("已生成预设示例文档：2026-03-23 Query Builder 示例", 3500, "info")
+
+    vi.useRealTimers()
   })
 })

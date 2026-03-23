@@ -1,10 +1,17 @@
 import { computed, inject, proxyRefs, reactive, ref } from "vue"
 import type { InjectionKey } from "vue"
 
-import { lsNotebooks } from "@/api"
+import { createDocWithMd, getNotebookConf, lsNotebooks } from "@/api"
+import {
+  buildDailyNoteExamplePath,
+  buildPresetExampleDocumentMarkdown,
+  formatExampleDocumentTitle,
+  pickExampleNotebookId,
+} from "@/core/example-document"
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
 import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
+import { showMessage } from "@/external/siyuan"
 import type { QueryBuilderSnapshot, QueryHistoryEntry, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
@@ -458,6 +465,33 @@ export function createQueryBuilderStore() {
     await templateViews.refreshSavedViews(draft.template.id)
   }
 
+  async function generateExampleDocument() {
+    try {
+      if (!notebooks.value.length) {
+        const notebookResult = await lsNotebooks()
+        notebooks.value = notebookResult?.notebooks || []
+      }
+
+      const notebookId = pickExampleNotebookId(notebooks.value, draft.template.scope)
+      if (!notebookId) {
+        showMessage("未找到可用笔记本", 4000, "error")
+        return false
+      }
+
+      const notebookConf = await getNotebookConf(notebookId)
+      const title = formatExampleDocumentTitle(new Date())
+      const path = buildDailyNoteExamplePath(notebookConf?.dailyNoteSavePath, title)
+      const markdown = buildPresetExampleDocumentMarkdown(draft.view.fieldMappings, new Date())
+
+      await createDocWithMd(notebookId, path, markdown)
+      showMessage(`已生成预设示例文档：${title}`, 3500, "info")
+      return true
+    } catch (generationError) {
+      showMessage(generationError instanceof Error ? generationError.message : "生成示例文档失败", 5000, "error")
+      return false
+    }
+  }
+
   return proxyRefs({
     advancedMode,
     advancedSql,
@@ -492,6 +526,7 @@ export function createQueryBuilderStore() {
     fieldLabel,
     fieldOptions,
     groupByProxy,
+    generateExampleDocument,
     importTemplateBundle: templateViews.importTemplateBundle,
     initialize,
     insertEmbed: queryExecution.insertEmbed,

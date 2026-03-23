@@ -140,30 +140,40 @@
             <span class="section-kicker">Field Mapping</span>
             <h3>字段映射</h3>
           </div>
-          <button
-            class="section-toggle"
-            type="button"
-            data-section-toggle="mappings"
-            :title="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
-            :aria-label="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
-            :aria-expanded="String(!collapsedSections.mappings)"
-            @click="toggleSection('mappings')"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              :class="{ 'is-expanded': !collapsedSections.mappings }"
+          <div class="section-head-actions">
+            <button
+              class="btn btn--outline btn--small"
+              data-generate-examples
+              type="button"
+              @click="store.generateExampleDocument"
             >
-              <path
-                d="M7 10l5 5 5-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2.2"
-              />
-            </svg>
-          </button>
+              生成示例
+            </button>
+            <button
+              class="section-toggle"
+              type="button"
+              data-section-toggle="mappings"
+              :title="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
+              :aria-label="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
+              :aria-expanded="String(!collapsedSections.mappings)"
+              @click="toggleSection('mappings')"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                :class="{ 'is-expanded': !collapsedSections.mappings }"
+              >
+                <path
+                  d="M7 10l5 5 5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.2"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
         <p class="section-copy">
           快速编辑、看板列和统计字段都会依赖这里的属性名称。
@@ -719,6 +729,17 @@ h3 {
 .btn--ghost:hover {
   background: var(--sqb-bg-strong);
   color: var(--sqb-text);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--sqb-text);
+  border-color: var(--sqb-border);
+}
+
+.btn--outline:hover {
+  border-color: var(--sqb-primary);
+  color: var(--sqb-primary);
 }
 
 .chip {
