@@ -65,7 +65,7 @@ describe("createQueryRuntime", () => {
       {
         id: "block-1",
         attrs: {
-          status: "Done",
+          "custom-status": "Done",
         },
       },
     ])

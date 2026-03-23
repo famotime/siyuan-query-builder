@@ -52,13 +52,14 @@ vi.mock("@/main", () => ({
 vi.mock("@/api", () => ({
   appendBlock: vi.fn(async () => []),
   createDocWithMd: vi.fn(async () => "20260323093000-example"),
+  getChildBlocks: vi.fn(async () => []),
   getBlockByID: vi.fn(async () => null),
   getNotebookConf: vi.fn(async () => ({
     name: "工作笔记",
     closed: false,
     refCreateSavePath: "/",
     createDocNameTemplate: "2006-01-02",
-    dailyNoteSavePath: "/日记",
+    dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
     dailyNoteTemplatePath: "",
   })),
   lsNotebooks: vi.fn(async () => ({
@@ -72,7 +73,7 @@ vi.mock("@/core/runtime/query-runtime", () => ({
   createQueryRuntime: () => runtime,
 }))
 
-import { createDocWithMd, getBlockByID, getNotebookConf, lsNotebooks } from "@/api"
+import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, setBlockAttrs } from "@/api"
 import { createQueryBuilderStore } from "@/composables/query-builder-store"
 import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
 import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
@@ -96,10 +97,12 @@ describe("createQueryBuilderStore view management", () => {
       closed: false,
       refCreateSavePath: "/",
       createDocNameTemplate: "2006-01-02",
-      dailyNoteSavePath: "/日记",
+      dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
       dailyNoteTemplatePath: "",
     })
     vi.mocked(createDocWithMd).mockResolvedValue("20260323093000-example")
+    vi.mocked(getChildBlocks).mockResolvedValue([])
+    vi.mocked(setBlockAttrs).mockResolvedValue([])
     vi.mocked(getBlockByID).mockResolvedValue(null)
     window.siyuan = undefined
     window.confirm = vi.fn(() => true)
@@ -978,6 +981,18 @@ describe("createQueryBuilderStore view management", () => {
   it("creates a preset-ready example document in the daily note directory", async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2026-03-23T09:30:00.000Z"))
+    vi.mocked(getChildBlocks).mockResolvedValue([
+      { id: "p-1", type: "p", content: "修复登录页视觉样式 #task #frontend" },
+      { id: "p-2", type: "p", content: "同步 API 文档给前端 #task #backend" },
+      { id: "p-3", type: "p", content: "整理迭代复盘行动项 #task #ops" },
+      { id: "p-4", type: "p", content: "归档旧版埋点脚本 #task #maintenance" },
+      { id: "p-5", type: "p", content: "官网改版第一阶段排期确认" },
+      { id: "p-6", type: "p", content: "开放平台 SDK 发布准备" },
+      { id: "p-7", type: "p", content: "知识库迁移收尾" },
+      { id: "p-8", type: "p", content: "阅读《Designing Data-Intensive Applications》 #reading #backend" },
+      { id: "p-9", type: "p", content: "跟进《Refactoring UI》案例 #reading #design" },
+      { id: "p-10", type: "p", content: "浏览 SiYuan API 变更记录 #reading #siyuan" },
+    ] as any)
     const store = createQueryBuilderStore()
     store.notebooks = [
       {
@@ -998,12 +1013,20 @@ describe("createQueryBuilderStore view management", () => {
     expect(getNotebookConf).toHaveBeenCalledWith("box-work")
     expect(createDocWithMd).toHaveBeenCalledWith(
       "box-work",
-      "/日记/2026-03-23 Query Builder 示例",
-      expect.stringContaining("任务清单示例"),
+      "/日记/2026/03/2026-03-23 Query Builder 示例",
+      expect.stringContaining("## 任务清单示例"),
     )
-    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).toContain('status="Todo"')
-    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).toContain('project="官网改版"')
-    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).toContain('status="Unread"')
+    expect(vi.mocked(createDocWithMd).mock.calls[0]?.[2]).not.toContain('status="Todo"')
+    expect(getChildBlocks).toHaveBeenCalledWith("20260323093000-example")
+    expect(setBlockAttrs).toHaveBeenCalledWith("p-1", expect.objectContaining({
+      "custom-status": "Todo",
+      "custom-dueDate": "2026-03-24",
+      "custom-project": "官网改版",
+    }))
+    expect(setBlockAttrs).toHaveBeenCalledWith("p-8", expect.objectContaining({
+      "custom-status": "Unread",
+      "custom-priority": "P1",
+    }))
     expect(showMessage).toHaveBeenCalledWith("已生成预设示例文档：2026-03-23 Query Builder 示例", 3500, "info")
 
     vi.useRealTimers()

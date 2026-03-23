@@ -50,6 +50,8 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("blocks.box = 'box-1'")
     expect(compiled.sql).toContain("attr_status")
     expect(compiled.sql).toContain("attr_dueDate")
+    expect(compiled.sql).toContain("attributes.name = 'custom-status'")
+    expect(compiled.sql).toContain("attributes.name = 'custom-dueDate'")
     expect(compiled.sql).toContain("date('now', '+7 day')")
     expect(compiled.sql).toContain("ORDER BY")
   })

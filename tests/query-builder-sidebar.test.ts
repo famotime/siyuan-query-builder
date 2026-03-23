@@ -96,6 +96,9 @@ describe("QueryBuilderSidebar", () => {
     expect(wrapper.text()).toContain("任务清单")
     expect(wrapper.text()).toContain("高反链核心笔记")
     expect(wrapper.text()).toContain("项目看板")
+    expect(wrapper.get('[data-preset-category-toggle="daily"]').classes()).toContain("preset-group__toggle")
+    expect(wrapper.get('[data-preset-category-icon="daily"]').exists()).toBe(true)
+    expect(wrapper.get('[data-preset-category="links"]').classes()).toContain("preset-group--separated")
 
     await wrapper.get('[data-preset-category-toggle="daily"]').trigger("click")
     expect(wrapper.findAll(".preset-group .item strong").map(item => item.text())).not.toContain("任务清单")

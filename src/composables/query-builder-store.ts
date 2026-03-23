@@ -1,10 +1,10 @@
 import { computed, inject, proxyRefs, reactive, ref } from "vue"
 import type { InjectionKey } from "vue"
 
-import { createDocWithMd, getNotebookConf, lsNotebooks } from "@/api"
+import { createDocWithMd, getChildBlocks, getNotebookConf, lsNotebooks, setBlockAttrs } from "@/api"
 import {
   buildDailyNoteExamplePath,
-  buildPresetExampleDocumentMarkdown,
+  buildPresetExampleDocument,
   formatExampleDocumentTitle,
   pickExampleNotebookId,
 } from "@/core/example-document"
@@ -479,11 +479,22 @@ export function createQueryBuilderStore() {
       }
 
       const notebookConf = await getNotebookConf(notebookId)
-      const title = formatExampleDocumentTitle(new Date())
-      const path = buildDailyNoteExamplePath(notebookConf?.dailyNoteSavePath, title)
-      const markdown = buildPresetExampleDocumentMarkdown(draft.view.fieldMappings, new Date())
+      const now = new Date()
+      const title = formatExampleDocumentTitle(now)
+      const path = buildDailyNoteExamplePath(notebookConf?.dailyNoteSavePath, now)
+      const example = buildPresetExampleDocument(now, draft.view.fieldMappings)
 
-      await createDocWithMd(notebookId, path, markdown)
+      const documentId = await createDocWithMd(notebookId, path, example.markdown)
+      const childBlocks = await getChildBlocks(documentId)
+      const paragraphBlocks = childBlocks.filter(block => block.type === "p")
+
+      await Promise.all(paragraphBlocks.map((block, index) => {
+        const attrs = example.blockAttrs[index]
+        if (!attrs || !block.id) {
+          return Promise.resolve()
+        }
+        return setBlockAttrs(block.id, attrs)
+      }))
       showMessage(`已生成预设示例文档：${title}`, 3500, "info")
       return true
     } catch (generationError) {

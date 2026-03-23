@@ -1,4 +1,5 @@
 import { createEmbedBlockMarkdown } from "@/core/embed"
+import { toStorageAttrName } from "@/core/query/attributes"
 import type {
   CompiledQuery,
   FieldMappings,
@@ -45,7 +46,7 @@ export function createQueryRuntime(adapter: KernelAdapter) {
     async updateField(blockId: string, field: keyof FieldMappings, value: string, mappings: FieldMappings) {
       const attrKey = mappings[field]
       await adapter.setBlockAttrs(blockId, {
-        [attrKey]: value,
+        [toStorageAttrName(attrKey)]: value,
       })
     },
     async insertEmbedBlock(payload: {

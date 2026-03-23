@@ -71,6 +71,8 @@
           v-for="group in presetGroups"
           :key="group.id"
           class="preset-group"
+          :class="{ 'preset-group--separated': group.index > 0 }"
+          :data-preset-category="group.id"
         >
           <button
             :data-preset-category-toggle="group.id"
@@ -78,8 +80,26 @@
             type="button"
             @click="togglePresetCategory(group.id)"
           >
-            <span class="preset-group__title">{{ group.label }}</span>
-            <span class="preset-group__meta">{{ group.items.length }}</span>
+            <span class="preset-group__heading">
+              <span class="preset-group__title">{{ group.label }}</span>
+              <span class="preset-group__meta">{{ group.items.length }}</span>
+            </span>
+            <svg
+              :data-preset-category-icon="group.id"
+              class="preset-group__icon"
+              :class="{ 'is-expanded': isPresetCategoryExpanded(group.id) }"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M9 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
+            </svg>
           </button>
           <div v-if="isPresetCategoryExpanded(group.id)">
             <button
@@ -318,8 +338,9 @@ const presetCategoryMeta = {
 const presetGroups = computed(() => {
   const order: Array<PresetDefinition["category"]> = ["daily", "links", "attributes"]
   return order
-    .map(category => ({
+    .map((category, index) => ({
       id: category,
+      index,
       label: presetCategoryMeta[category],
       items: store.presets.filter((preset: PresetDefinition) => preset.category === category),
     }))
@@ -616,6 +637,12 @@ h2 {
   margin-top: 10px;
 }
 
+.preset-group--separated {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sqb-border);
+}
+
 .preset-group__toggle {
   width: 100%;
   display: flex;
@@ -632,6 +659,12 @@ h2 {
   font: 700 12px/1.3 var(--sqb-sans);
 }
 
+.preset-group__heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .preset-group__title {
   letter-spacing: 0.04em;
 }
@@ -639,6 +672,18 @@ h2 {
 .preset-group__meta {
   color: var(--sqb-text-muted);
   font: 600 11px/1.2 var(--sqb-sans);
+}
+
+.preset-group__icon {
+  width: 15px;
+  height: 15px;
+  color: var(--sqb-text-muted);
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.preset-group__icon.is-expanded {
+  transform: rotate(90deg);
+  color: var(--sqb-primary);
 }
 
 .item {
