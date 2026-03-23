@@ -28,6 +28,21 @@ describe('src/index.scss — token completeness', () => {
     expect(scss).toMatch(/\.b3-theme-dark[\s\S]+--sqb-bg/)
   })
 
+  it('implements light mode via SiYuan .b3-theme-light class for root and inline embeds', () => {
+    expect(scss).toContain('.b3-theme-light #siyuan-query-builder-root')
+    expect(scss).toMatch(/\.b3-theme-light[\s\S]+--sqb-bg/)
+    expect(scss).toContain('.b3-theme-light .sqb-inline-host')
+    expect(scss).toMatch(/\.b3-theme-light \.sqb-inline-host[\s\S]+--sqb-inline-bg/)
+  })
+
+  it('defines inline embed theme tokens for host-scoped light and dark themes', () => {
+    expect(scss).toContain('.sqb-inline-host')
+    expect(scss).toContain('--sqb-inline-bg:')
+    expect(scss).toContain('--sqb-inline-text:')
+    expect(scss).toContain('.b3-theme-dark .sqb-inline-host')
+    expect(scss).toMatch(/\.b3-theme-dark \.sqb-inline-host[\s\S]+--sqb-inline-bg/)
+  })
+
   it('dark mode overrides shadow tokens', () => {
     expect(scss).toMatch(/prefers-color-scheme.*dark[\s\S]+--sqb-shadow-soft/)
     expect(scss).toMatch(/\.b3-theme-dark[\s\S]+--sqb-shadow-soft/)

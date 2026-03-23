@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import InlineQueryWidget from "@/inline/InlineQueryWidget.vue"
 
 describe("InlineQueryWidget", () => {
-  it("renders embedded results with the dark widget theme class", () => {
+  it("renders embedded results without a hardcoded theme class", () => {
     const wrapper = mount(InlineQueryWidget, {
       props: {
         title: "任务概览",
@@ -25,6 +25,6 @@ describe("InlineQueryWidget", () => {
       },
     })
 
-    expect(wrapper.get(".inline-widget").classes()).toContain("inline-widget--dark")
+    expect(wrapper.get(".inline-widget").classes()).toEqual(["inline-widget"])
   })
 })
