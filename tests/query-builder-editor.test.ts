@@ -139,6 +139,17 @@ describe("QueryBuilderEditor", () => {
     expect(wrapper.find('input[type="number"]').exists()).toBe(true)
   })
 
+  it('shows preset mapping hints below the field mapping inputs', () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderEditor)
+
+    expect(wrapper.get('[data-mapping-hint="status"]').text()).toContain('Todo / Doing / Done')
+    expect(wrapper.get('[data-mapping-hint="dueDate"]').text()).toContain('YYYY-MM-DD')
+    expect(wrapper.get('[data-mapping-hint="priority"]').text()).toContain('P0 / P1 / P2 / P3')
+    expect(wrapper.get('[data-mapping-hint="project"]').text()).toContain('项目周报')
+    expect(wrapper.get('[data-mapping-hint="owner"]').text()).toContain('张三')
+  })
+
   it('renders validation issues before query execution', () => {
     currentStore = createStore()
     currentStore.validationIssues = [

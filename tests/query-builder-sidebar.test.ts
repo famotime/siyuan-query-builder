@@ -36,6 +36,16 @@ function createStore() {
 }
 
 describe("QueryBuilderSidebar", () => {
+  it("renders the real plugin icon in the hero brand instead of a text placeholder", () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderSidebar)
+    const icon = wrapper.get('[data-plugin-icon]')
+
+    expect(icon.element.tagName).toBe('IMG')
+    expect(icon.attributes('src')).toContain('icon.png')
+    expect(wrapper.text()).not.toContain('QB')
+  })
+
   it("deletes a saved template without applying it", async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderSidebar)

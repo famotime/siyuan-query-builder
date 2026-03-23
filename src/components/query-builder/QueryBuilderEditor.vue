@@ -182,6 +182,12 @@
               v-model="store.draft.view.fieldMappings[key]"
               class="control"
             >
+            <small
+              :data-mapping-hint="key"
+              class="field-hint"
+            >
+              {{ mappingHints[key] }}
+            </small>
           </label>
         </div>
       </article>
@@ -387,6 +393,13 @@ import EditorViewSettingsSection from "@/components/query-builder/EditorViewSett
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()
+const mappingHints: Record<"status" | "dueDate" | "priority" | "project" | "owner", string> = {
+  status: "预设值：Todo / Doing / Done",
+  dueDate: "预设值：YYYY-MM-DD，例如 2026-03-23",
+  priority: "预设值：P0 / P1 / P2 / P3",
+  project: "示例：项目周报、知识库整理",
+  owner: "示例：张三、Alice",
+}
 const collapsedSections = reactive({
   filters: false,
   mappings: false,
@@ -732,6 +745,12 @@ h3 {
 .field span {
   color: var(--sqb-secondary);
   font-weight: 700;
+}
+
+.field-hint {
+  color: var(--sqb-text-muted);
+  font: 12px/1.45 var(--sqb-sans);
+  letter-spacing: 0.01em;
 }
 
 .filter-row {

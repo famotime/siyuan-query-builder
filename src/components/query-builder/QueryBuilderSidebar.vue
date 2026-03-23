@@ -3,7 +3,11 @@
     <div class="card card--hero">
       <div class="brand">
         <div class="brand__mark">
-          QB
+          <img
+            data-plugin-icon
+            :src="pluginIconUrl"
+            alt="思源易搭 Query Builder"
+          >
         </div>
         <div class="brand__content">
           <p class="eyebrow eyebrow--hero">
@@ -271,6 +275,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
+import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
@@ -405,16 +410,23 @@ async function exportTemplate(templateId: string) {
 }
 
 .brand__mark {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 48px;
   height: 48px;
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(120, 168, 134, 0.28), rgba(88, 109, 95, 0.82));
-  color: rgba(240, 245, 241, 0.96);
   border: 1px solid rgba(190, 214, 196, 0.14);
-  font: 700 14px/1 var(--sqb-sans);
-  letter-spacing: 0.08em;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.brand__mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .brand__content {
