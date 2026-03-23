@@ -16,9 +16,6 @@
           <h1 class="hero-title">
             易搭
           </h1>
-          <p class="hero-subtitle">
-            Query Workspace
-          </p>
         </div>
       </div>
       <p class="muted muted--hero">
@@ -78,6 +75,7 @@
             :data-preset-category-toggle="group.id"
             class="preset-group__toggle"
             type="button"
+            :aria-expanded="String(isPresetCategoryExpanded(group.id))"
             @click="togglePresetCategory(group.id)"
           >
             <span class="preset-group__heading">
@@ -101,11 +99,14 @@
               />
             </svg>
           </button>
-          <div v-if="isPresetCategoryExpanded(group.id)">
+          <div
+            v-if="isPresetCategoryExpanded(group.id)"
+            class="preset-group__body"
+          >
             <button
               v-for="preset in group.items"
               :key="preset.id"
-              class="item"
+              class="item preset-item"
               @click="store.applySnapshot(preset.snapshot)"
             >
               <strong>{{ preset.title }}</strong>
@@ -455,10 +456,6 @@ async function exportTemplate(templateId: string) {
     0 16px 36px rgba(14, 19, 17, 0.26);
 }
 
-.card--history {
-  margin-top: auto;
-}
-
 .eyebrow {
   margin: 0 0 8px;
   text-transform: uppercase;
@@ -634,13 +631,18 @@ h2 {
 }
 
 .preset-group {
-  margin-top: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--sqb-border-strong);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%),
+    var(--sqb-surface-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .preset-group--separated {
   margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--sqb-border);
 }
 
 .preset-group__toggle {
@@ -649,41 +651,83 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--sqb-border);
-  border-radius: 10px;
-  background: var(--sqb-surface-soft);
-  color: var(--sqb-text);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--sqb-primary-strong);
   cursor: pointer;
   text-align: left;
-  font: 700 12px/1.3 var(--sqb-sans);
+  font: inherit;
 }
 
 .preset-group__heading {
-  display: inline-flex;
+  flex: 1;
+  min-width: 0;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .preset-group__title {
+  min-width: 0;
+  color: var(--sqb-primary-strong);
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  font: 700 14px/1.18 var(--sqb-serif);
 }
 
 .preset-group__meta {
-  color: var(--sqb-text-muted);
-  font: 600 11px/1.2 var(--sqb-sans);
+  flex: none;
+  width: fit-content;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--sqb-primary-soft);
+  color: var(--sqb-primary-strong);
+  font: 700 11px/1.2 var(--sqb-sans);
+  white-space: nowrap;
 }
 
 .preset-group__icon {
   width: 15px;
   height: 15px;
-  color: var(--sqb-text-muted);
+  flex: none;
+  color: var(--sqb-primary-strong);
   transition: transform 140ms ease, color 140ms ease;
 }
 
 .preset-group__icon.is-expanded {
   transform: rotate(90deg);
   color: var(--sqb-primary);
+}
+
+.preset-group__body {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--sqb-border);
+}
+
+.preset-item {
+  margin-top: 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--sqb-bg);
+}
+
+.preset-item strong {
+  font: 600 13px/1.35 var(--sqb-sans);
+}
+
+.preset-item span {
+  color: var(--sqb-text-muted);
+  font: 12px/1.5 var(--sqb-sans);
+}
+
+.preset-item:hover {
+  border-color: var(--sqb-primary);
+  transform: translateY(-1px);
 }
 
 .item {
