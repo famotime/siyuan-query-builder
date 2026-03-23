@@ -6,13 +6,18 @@
           QB
         </div>
         <div class="brand__content">
-          <p class="eyebrow">
+          <p class="eyebrow eyebrow--hero">
             Query builder
           </p>
-          <h1>易搭</h1>
+          <h1 class="hero-title">
+            易搭
+          </h1>
+          <p class="hero-subtitle">
+            Query Workspace
+          </p>
         </div>
       </div>
-      <p class="muted">
+      <p class="muted muted--hero">
         先定义范围和条件，再切到表格、看板或统计视图，并继续回写块属性。
       </p>
     </div>
@@ -365,10 +370,14 @@ async function exportTemplate(templateId: string) {
 
 .card--hero {
   background:
-    radial-gradient(circle at top right, rgba(120, 168, 134, 0.18), transparent 42%),
-    linear-gradient(160deg, rgba(241, 236, 228, 0.98), rgba(232, 239, 231, 0.94)),
+    radial-gradient(circle at top right, rgba(120, 168, 134, 0.18), transparent 38%),
+    radial-gradient(circle at bottom left, rgba(196, 166, 106, 0.12), transparent 34%),
+    linear-gradient(165deg, rgba(42, 49, 45, 0.98), rgba(29, 34, 32, 0.98)),
     var(--sqb-surface);
-  border-color: var(--sqb-border-strong);
+  border-color: rgba(154, 178, 160, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 36px rgba(14, 19, 17, 0.26);
 }
 
 .card--history {
@@ -381,6 +390,11 @@ async function exportTemplate(templateId: string) {
   letter-spacing: 0.16em;
   font: 700 11px/1.3 var(--sqb-sans);
   color: var(--sqb-primary);
+}
+
+.eyebrow--hero {
+  margin-bottom: 6px;
+  color: rgba(186, 213, 193, 0.88);
 }
 
 .brand {
@@ -396,8 +410,9 @@ async function exportTemplate(templateId: string) {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(120, 168, 134, 0.28), rgba(216, 240, 222, 0.88));
-  color: var(--sqb-primary-strong);
+  background: linear-gradient(135deg, rgba(120, 168, 134, 0.28), rgba(88, 109, 95, 0.82));
+  color: rgba(240, 245, 241, 0.96);
+  border: 1px solid rgba(190, 214, 196, 0.14);
   font: 700 14px/1 var(--sqb-sans);
   letter-spacing: 0.08em;
 }
@@ -412,6 +427,20 @@ h1 {
   font-family: var(--sqb-serif);
 }
 
+.hero-title {
+  margin: 0;
+  color: rgba(248, 250, 248, 0.96);
+  letter-spacing: 0.02em;
+}
+
+.hero-subtitle {
+  margin: 6px 0 0;
+  color: rgba(186, 198, 190, 0.82);
+  font: 600 12px/1.35 var(--sqb-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 h2 {
   margin: 0;
   font-size: 15px;
@@ -423,6 +452,10 @@ h2 {
   margin: 0;
   color: var(--sqb-text-muted);
   font: 13px/1.55 var(--sqb-sans);
+}
+
+.muted--hero {
+  color: rgba(210, 219, 213, 0.86);
 }
 
 .actions,
