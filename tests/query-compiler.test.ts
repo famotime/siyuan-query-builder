@@ -284,4 +284,49 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("= 'Doing')")
     expect(compiled.sql).toContain("substr(blocks.updated, 1, 8) BETWEEN strftime('%Y%m%d', 'now', '-7 day') AND strftime('%Y%m%d', 'now'))")
   })
+
+  it("builds filter clauses in the same order as the filter array", () => {
+    const template: QueryTemplate = {
+      id: "template-order",
+      version: 1,
+      name: "Ordered Filters",
+      scope: {
+        type: "all_blocks",
+      },
+      filters: [
+        {
+          id: "filter-priority",
+          field: "attr:priority",
+          operator: "eq",
+          value: "P0",
+        },
+        {
+          id: "filter-status",
+          field: "attr:status",
+          operator: "eq",
+          value: "Doing",
+          condition: "and",
+        },
+        {
+          id: "filter-content",
+          field: "content",
+          operator: "contains",
+          value: "发布",
+          condition: "or",
+        },
+      ],
+      sorts: [],
+      fields: ["content", "attr:priority", "attr:status"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+    const priorityIndex = compiled.sql.indexOf("= 'P0'")
+    const statusIndex = compiled.sql.indexOf("= 'Doing'")
+    const contentIndex = compiled.sql.indexOf("发布")
+
+    expect(priorityIndex).toBeGreaterThan(-1)
+    expect(statusIndex).toBeGreaterThan(priorityIndex)
+    expect(contentIndex).toBeGreaterThan(statusIndex)
+  })
 })

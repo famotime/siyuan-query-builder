@@ -237,6 +237,13 @@
               v-for="(filter, index) in store.draft.template.filters"
               :key="filter.id"
               class="filter-row"
+              :data-filter-row="filter.id"
+              :class="{ 'filter-row--dragging': draggingFilterId === filter.id }"
+              draggable="true"
+              @dragstart="onFilterDragStart(filter.id)"
+              @dragend="clearFilterDrag"
+              @dragover.prevent
+              @drop.prevent="onFilterDrop(filter.id)"
             >
               <div
                 v-if="index === 0"
@@ -353,7 +360,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue"
+import { reactive, ref } from "vue"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorViewSettingsSection from "@/components/query-builder/EditorViewSettingsSection.vue"
@@ -366,9 +373,26 @@ const collapsedSections = reactive({
   scope: false,
   view: false,
 })
+const draggingFilterId = ref("")
 
 function toggleSection(section: keyof typeof collapsedSections) {
   collapsedSections[section] = !collapsedSections[section]
+}
+
+function onFilterDragStart(filterId: string) {
+  draggingFilterId.value = filterId
+}
+
+function onFilterDrop(targetFilterId: string) {
+  if (!draggingFilterId.value) {
+    return
+  }
+  store.moveFilter(draggingFilterId.value, targetFilterId)
+  draggingFilterId.value = ""
+}
+
+function clearFilterDrag() {
+  draggingFilterId.value = ""
 }
 </script>
 
@@ -659,10 +683,26 @@ h3 {
   grid-template-columns: 88px repeat(3, minmax(0, 1fr)) auto;
   gap: 10px;
   align-items: center;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px dashed transparent;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.filter-row:hover {
+  border-color: var(--sqb-border);
+  background: var(--sqb-surface-soft);
 }
 
 .filter-row--sort {
   grid-template-columns: minmax(0, 1fr) 120px auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.filter-row--dragging {
+  opacity: 0.72;
 }
 
 .filter-row__condition {

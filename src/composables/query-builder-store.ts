@@ -360,6 +360,31 @@ export function createQueryBuilderStore() {
     }
   }
 
+  function moveFilter(filterId: string, targetFilterId: string) {
+    if (filterId === targetFilterId) {
+      return
+    }
+
+    const currentIndex = draft.template.filters.findIndex(filter => filter.id === filterId)
+    const targetIndex = draft.template.filters.findIndex(filter => filter.id === targetFilterId)
+
+    if (currentIndex < 0 || targetIndex < 0) {
+      return
+    }
+
+    const nextFilters = [...draft.template.filters]
+    const [movedFilter] = nextFilters.splice(currentIndex, 1)
+    if (!movedFilter) {
+      return
+    }
+    nextFilters.splice(targetIndex, 0, movedFilter)
+
+    draft.template.filters = nextFilters.map((filter, index) => ({
+      ...filter,
+      condition: index === 0 ? "and" : filter.condition || "and",
+    }))
+  }
+
   function addSort() {
     draft.template.sorts.push({
       field: draft.template.aggregation ? AGGREGATE_VALUE_FIELD : "updated",
@@ -464,6 +489,7 @@ export function createQueryBuilderStore() {
     loadTemplate: templateViews.loadTemplate,
     mappingKeys,
     mappingLabels,
+    moveFilter,
     notebooks,
     openBlock: queryExecution.openBlock,
     openDocumentTargets,

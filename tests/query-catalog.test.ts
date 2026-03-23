@@ -58,6 +58,17 @@ describe("createPresets", () => {
         value: "0",
       }),
     ]))
+
+    const topTags = presets.find(item => item.id === "preset-top-documents-by-tags")
+    expect(topTags).toBeDefined()
+    expect(topTags?.title).toBe("包含最多标签的文档(Top10)")
+    expect(topTags?.snapshot.template.limit).toBe(10)
+    expect(topTags?.snapshot.template.sorts).toEqual([
+      {
+        field: "tagCount",
+        direction: "desc",
+      },
+    ])
   })
 
   it("hydrates missing view state from the template and applies it back symmetrically", () => {

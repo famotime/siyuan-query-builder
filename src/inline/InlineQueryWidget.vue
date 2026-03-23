@@ -1,5 +1,5 @@
 <template>
-  <section class="inline-widget">
+  <section class="inline-widget inline-widget--dark">
     <header class="inline-widget__header">
       <div class="inline-widget__heading">
         <div class="inline-widget__icon" aria-hidden="true">
@@ -199,11 +199,16 @@ function openBlock(blockId: string) {
   margin: 8px 0;
   padding: 18px;
   border-radius: 24px;
+}
+
+.inline-widget--dark {
   background:
-    radial-gradient(circle at top right, rgba(196, 166, 106, 0.12), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 241, 234, 0.92));
-  border: 1px solid rgba(116, 121, 110, 0.16);
-  box-shadow: 0 16px 34px rgba(57, 61, 52, 0.08);
+    radial-gradient(circle at top right, rgba(196, 166, 106, 0.16), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(74, 124, 89, 0.18), transparent 30%),
+    linear-gradient(180deg, rgba(27, 32, 30, 0.98), rgba(19, 24, 22, 0.96));
+  border: 1px solid rgba(154, 178, 160, 0.18);
+  box-shadow: 0 16px 34px rgba(10, 14, 12, 0.28);
+  color: rgba(240, 244, 241, 0.96);
 }
 
 .inline-widget__header,
@@ -216,7 +221,7 @@ function openBlock(blockId: string) {
 
 .inline-widget__header {
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(228, 224, 216, 0.86);
+  border-bottom: 1px solid rgba(154, 178, 160, 0.16);
 }
 
 .inline-widget__heading {
@@ -233,8 +238,8 @@ function openBlock(blockId: string) {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: rgba(74, 124, 89, 0.14);
-  color: var(--sqb-primary);
+  background: rgba(74, 124, 89, 0.2);
+  color: rgba(215, 233, 221, 0.96);
 }
 
 .inline-widget__icon svg {
@@ -256,10 +261,10 @@ h4 {
   color: var(--sqb-text);
 }
 
-.inline-widget__meta {
-  margin: 4px 0 0;
-  color: var(--sqb-text-muted);
-  font: 13px/1.45 var(--sqb-sans);
+h2 {
+  margin: 0;
+  font: 700 20px/1.08 var(--sqb-serif);
+  color: rgba(242, 245, 243, 0.96);
 }
 
 .inline-widget__badges {
@@ -275,15 +280,15 @@ h4 {
   justify-content: center;
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(228, 224, 216, 0.92);
-  color: var(--sqb-secondary);
+  background: rgba(79, 87, 83, 0.9);
+  color: rgba(230, 236, 232, 0.92);
   font: 700 11px/1.2 var(--sqb-sans);
   letter-spacing: 0.04em;
 }
 
 .inline-widget__badge--primary {
-  background: rgba(74, 124, 89, 0.12);
-  color: var(--sqb-primary-strong);
+  background: rgba(74, 124, 89, 0.24);
+  color: rgba(215, 233, 221, 0.96);
 }
 
 .pill {
@@ -293,8 +298,8 @@ h4 {
   min-width: 36px;
   padding: 7px 11px;
   border-radius: 999px;
-  background: rgba(74, 124, 89, 0.12);
-  color: var(--sqb-primary-strong);
+  background: rgba(74, 124, 89, 0.24);
+  color: rgba(221, 236, 226, 0.98);
   font: 700 12px/1.2 var(--sqb-sans);
 }
 
@@ -314,9 +319,9 @@ h4 {
 .list__item {
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(116, 121, 110, 0.14);
-  box-shadow: 0 10px 20px rgba(57, 61, 52, 0.05);
+  background: rgba(40, 47, 44, 0.92);
+  border: 1px solid rgba(154, 178, 160, 0.14);
+  box-shadow: 0 10px 20px rgba(10, 14, 12, 0.12);
 }
 
 .empty {
@@ -329,8 +334,8 @@ h4 {
   gap: 10px;
   text-align: center;
   border-radius: 22px;
-  border: 1px dashed rgba(205, 201, 191, 0.9);
-  background: rgba(255, 255, 255, 0.56);
+  border: 1px dashed rgba(154, 178, 160, 0.28);
+  background: rgba(34, 40, 37, 0.82);
 }
 
 .empty__icon {
@@ -347,7 +352,7 @@ h4 {
 
 .empty__icon::before {
   inset: 4px 8px 8px 4px;
-  border: 4px solid #d2cec8;
+  border: 4px solid rgba(171, 184, 176, 0.56);
   border-radius: 50%;
 }
 
@@ -357,21 +362,21 @@ h4 {
   width: 16px;
   height: 4px;
   border-radius: 999px;
-  background: #d2cec8;
+  background: rgba(171, 184, 176, 0.56);
   transform: rotate(48deg);
   transform-origin: center;
 }
 
 .empty h5 {
   margin: 0;
-  color: #8e877e;
+  color: rgba(236, 241, 238, 0.94);
   font: 700 18px/1.2 var(--sqb-serif);
 }
 
 .empty p {
   max-width: 360px;
   margin: 0;
-  color: #8e877e;
+  color: rgba(197, 206, 200, 0.84);
   font: 13px/1.55 var(--sqb-sans);
 }
 
@@ -379,13 +384,13 @@ h4 {
   display: block;
   margin-bottom: 6px;
   font: 700 28px/1 var(--sqb-serif);
-  color: var(--sqb-primary-strong);
+  color: rgba(232, 240, 235, 0.98);
 }
 
 .cards__item span,
 .board__card small,
 .list__item small {
-  color: var(--sqb-text-muted);
+  color: rgba(195, 205, 199, 0.82);
   font: 13px/1.45 var(--sqb-sans);
 }
 
@@ -417,12 +422,12 @@ h4 {
   padding: 14px;
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(240, 236, 228, 0.74), rgba(255, 255, 255, 0.7));
-  border: 1px solid rgba(116, 121, 110, 0.14);
+    linear-gradient(180deg, rgba(34, 40, 37, 0.88), rgba(25, 30, 28, 0.9));
+  border: 1px solid rgba(154, 178, 160, 0.12);
 }
 
 .board__title {
-  color: var(--sqb-text);
+  color: rgba(238, 242, 239, 0.96);
   font: 600 14px/1.3 var(--sqb-sans);
 }
 
@@ -439,12 +444,12 @@ h4 {
 .board__project,
 .board__date {
   margin: 0;
-  color: var(--sqb-text-muted);
+  color: rgba(195, 205, 199, 0.82);
   font: 13px/1.45 var(--sqb-sans);
 }
 
 .board__project {
-  color: var(--sqb-text);
+  color: rgba(238, 242, 239, 0.96);
   font-weight: 600;
 }
 
@@ -452,8 +457,8 @@ h4 {
   margin-top: 18px;
   overflow: auto;
   border-radius: 18px;
-  border: 1px solid rgba(116, 121, 110, 0.12);
-  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(154, 178, 160, 0.14);
+  background: rgba(33, 39, 36, 0.88);
 }
 
 .table {
@@ -464,7 +469,7 @@ h4 {
 .table th,
 .table td {
   padding: 12px 10px;
-  border-bottom: 1px solid rgba(116, 121, 110, 0.12);
+  border-bottom: 1px solid rgba(154, 178, 160, 0.12);
   text-align: left;
   vertical-align: top;
   font: 13px/1.45 var(--sqb-sans);
@@ -473,8 +478,8 @@ h4 {
 .table th {
   position: sticky;
   top: 0;
-  background: rgba(245, 241, 234, 0.96);
-  color: var(--sqb-secondary);
+  background: rgba(43, 50, 47, 0.96);
+  color: rgba(206, 217, 210, 0.84);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font: 700 10px/1.2 var(--sqb-sans);
@@ -489,18 +494,18 @@ h4 {
 }
 
 .table__row:hover {
-  background: rgba(245, 241, 234, 0.68);
+  background: rgba(57, 66, 61, 0.52);
 }
 
 .table__muted {
-  color: var(--sqb-text-muted);
+  color: rgba(181, 191, 185, 0.76);
 }
 
 .link {
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--sqb-primary-strong);
+  color: rgba(222, 236, 226, 0.98);
   cursor: pointer;
   text-align: left;
   font: 600 13px/1.4 var(--sqb-sans);
@@ -515,8 +520,8 @@ h4 {
 .tokens span {
   padding: 5px 9px;
   border-radius: 999px;
-  background: rgba(196, 166, 106, 0.16);
-  color: #6e5723;
+  background: rgba(196, 166, 106, 0.2);
+  color: rgba(245, 226, 183, 0.96);
   font: 600 11px/1.2 var(--sqb-sans);
 }
 

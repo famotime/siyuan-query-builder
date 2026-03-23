@@ -88,6 +88,7 @@ function createStore() {
     requiresValue: () => true,
     addSort: () => {},
     removeSort: () => {},
+    moveFilter: vi.fn(),
     toggleField: vi.fn(),
     addCustomField: () => {},
     saveTemplate: () => {},
@@ -206,5 +207,35 @@ describe("QueryBuilderEditor", () => {
     await relation.setValue('and')
 
     expect(currentStore.draft.template.filters[1].condition).toBe('and')
+  })
+
+  it("supports dragging one filter row before another to reorder conditions", async () => {
+    currentStore = createStore()
+    currentStore.draft.template.filters = [
+      {
+        id: "filter-1",
+        field: "content",
+        operator: "contains",
+        value: "任务",
+      },
+      {
+        id: "filter-2",
+        field: "attr:status",
+        operator: "eq",
+        value: "Doing",
+        condition: "and",
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderEditor)
+    const source = wrapper.get('[data-filter-row="filter-1"]')
+    const target = wrapper.get('[data-filter-row="filter-2"]')
+
+    expect(source.attributes("draggable")).toBe("true")
+
+    await source.trigger("dragstart")
+    await target.trigger("drop")
+
+    expect(currentStore.moveFilter).toHaveBeenCalledWith("filter-1", "filter-2")
   })
 })

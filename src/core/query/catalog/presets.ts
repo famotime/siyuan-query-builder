@@ -4,6 +4,7 @@ import {
   BACKLINK_COUNT_FIELD,
   LINK_COUNT_FIELD,
   OUT_LINK_COUNT_FIELD,
+  TAG_COUNT_FIELD,
 } from "./constants"
 import { createDefaultViewConfig, createId } from "./view-state"
 
@@ -300,6 +301,33 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     viewType: "table",
   }
 
+  const topTaggedDocumentsByTagCountTemplate: QueryTemplate = {
+    id: createId("preset"),
+    version: 1,
+    name: "包含最多标签的文档(Top10)",
+    scope: {
+      type: "block_type",
+      value: "d",
+    },
+    filters: [
+      {
+        id: createId("filter"),
+        field: TAG_COUNT_FIELD,
+        operator: "gt",
+        value: "0",
+      },
+    ],
+    sorts: [
+      {
+        field: TAG_COUNT_FIELD,
+        direction: "desc",
+      },
+    ],
+    fields: ["content", TAG_COUNT_FIELD, "box", "updated", "path"],
+    limit: 10,
+    viewType: "table",
+  }
+
   const todayEditedDocumentsTemplate: QueryTemplate = {
     id: createId("preset"),
     version: 1,
@@ -392,6 +420,12 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
       title: "最近 30 天新建文档",
       description: "按创建时间查看最近新增积累，适合做月度整理回顾。",
       snapshot: createPresetSnapshot(recentlyCreatedDocumentsTemplate, "table"),
+    },
+    {
+      id: "preset-top-documents-by-tags",
+      title: "包含最多标签的文档(Top10)",
+      description: "快速找出标签数量最多的文档，适合梳理高密度主题页面。",
+      snapshot: createPresetSnapshot(topTaggedDocumentsByTagCountTemplate, "table"),
     },
     {
       id: "preset-today-edited-documents",
