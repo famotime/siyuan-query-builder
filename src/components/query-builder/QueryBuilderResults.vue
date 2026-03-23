@@ -123,8 +123,37 @@
         <div
           v-if="store.advancedMode"
           class="sql-box"
+          data-sql-preview
         >
-          <pre>{{ store.advancedSql || "运行查询后会显示生成后的 SQL 表达。" }}</pre>
+          <div class="sql-box__surface">
+            <div class="sql-box__toolbar">
+              <span class="sql-box__language">SQL</span>
+              <button
+                class="sql-box__copy"
+                data-sql-copy
+                type="button"
+                title="复制 SQL"
+                aria-label="复制 SQL"
+                :disabled="!hasAdvancedSql"
+                @click="copyAdvancedSql"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M9 9.75V7.5A2.25 2.25 0 0 1 11.25 5.25h7.5A2.25 2.25 0 0 1 21 7.5V15a2.25 2.25 0 0 1-2.25 2.25H16.5M9 9.75H6.75A2.25 2.25 0 0 0 4.5 12v6a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 16.5 18v-.75M9 9.75h7.5v7.5H9z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </button>
+            </div>
+            <pre class="sql-box__code"><code>{{ store.advancedSql || "运行查询后会显示生成后的 SQL 表达。" }}</code></pre>
+          </div>
         </div>
       </section>
 
@@ -313,11 +342,52 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
+
 import ResultsEmbedPanel from "@/components/query-builder/ResultsEmbedPanel.vue"
 import ResultsSavedViewsPanel from "@/components/query-builder/ResultsSavedViewsPanel.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import { showMessage } from "@/external/siyuan"
 
 const store = useQueryBuilderStore()
+
+const hasAdvancedSql = computed(() => Boolean(store.advancedSql?.trim()))
+
+async function writeClipboardText(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+
+  const textarea = document.createElement("textarea")
+  textarea.value = text
+  textarea.setAttribute("readonly", "true")
+  textarea.style.position = "fixed"
+  textarea.style.opacity = "0"
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  const copied = document.execCommand?.("copy")
+  document.body.removeChild(textarea)
+
+  if (!copied) {
+    throw new Error("clipboard unavailable")
+  }
+}
+
+async function copyAdvancedSql() {
+  if (!hasAdvancedSql.value) {
+    return
+  }
+
+  try {
+    await writeClipboardText(store.advancedSql)
+    showMessage("已复制 SQL", 2500, "info")
+  } catch (error) {
+    console.error("[siyuan-query-builder] failed to copy SQL preview", error)
+    showMessage("复制 SQL 失败", 3500, "error")
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -750,19 +820,83 @@ h3 {
 }
 
 .sql-box {
-  padding: 0 14px 14px;
+  padding: 0 18px 18px;
 }
 
-.sql-box pre {
+.sql-box__surface {
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--sqb-border-strong);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 42%),
+    var(--sqb-bg-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sql-box__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--sqb-border);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.sql-box__language {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sqb-text-muted);
+  font: 700 11px/1.2 var(--sqb-mono);
+}
+
+.sql-box__copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--sqb-text-muted);
+  cursor: pointer;
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease, opacity 80ms ease;
+}
+
+.sql-box__copy:hover:not(:disabled) {
+  border-color: var(--sqb-border);
+  background: var(--sqb-surface);
+  color: var(--sqb-text);
+}
+
+.sql-box__copy:focus-visible {
+  outline: 2px solid var(--sqb-primary);
+  outline-offset: 2px;
+}
+
+.sql-box__copy:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.sql-box__copy svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sql-box__code {
   margin: 0;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--sqb-bg-strong);
+  padding: 14px 16px 16px;
   color: var(--sqb-text);
   white-space: pre-wrap;
   word-break: break-word;
   font: 12px/1.55 var(--sqb-mono);
-  border: 1px solid var(--sqb-border);
+}
+
+.sql-box__code code {
+  font: inherit;
 }
 
 .empty {

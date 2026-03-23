@@ -2,10 +2,18 @@ import { mount } from "@vue/test-utils"
 import { describe, expect, it, vi } from "vitest"
 import { reactive } from "vue"
 
+const { showMessage } = vi.hoisted(() => ({
+  showMessage: vi.fn(),
+}))
+
 let currentStore: any
 
 vi.mock("@/composables/query-builder-store", () => ({
   useQueryBuilderStore: () => currentStore,
+}))
+
+vi.mock("@/external/siyuan", () => ({
+  showMessage,
 }))
 
 import QueryBuilderResults from "@/components/query-builder/QueryBuilderResults.vue"
@@ -199,5 +207,31 @@ describe("QueryBuilderResults", () => {
 
     expect(currentStore.selectEmbedTarget).toHaveBeenCalledWith("20260322201501-hij9012")
     expect(wrapper.find("[data-embed-target-menu]").exists()).toBe(false)
+  })
+
+  it("renders SQL preview as a code block and copies generated SQL from the toolbar icon", async () => {
+    currentStore = createStore()
+    currentStore.advancedMode = true
+    currentStore.advancedSql = "select * from blocks where type = 'd'"
+    const writeText = vi.fn(async () => {})
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText,
+      },
+    })
+
+    const wrapper = mount(QueryBuilderResults)
+    const preview = wrapper.get("[data-sql-preview]")
+    const copyButton = wrapper.get("[data-sql-copy]")
+
+    expect(preview.get("code").text()).toBe("select * from blocks where type = 'd'")
+    expect(copyButton.attributes("aria-label")).toBe("复制 SQL")
+
+    await copyButton.trigger("click")
+
+    expect(writeText).toHaveBeenCalledWith("select * from blocks where type = 'd'")
+    expect(showMessage).toHaveBeenCalledWith("已复制 SQL", 2500, "info")
   })
 })
