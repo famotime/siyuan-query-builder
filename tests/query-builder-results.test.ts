@@ -101,22 +101,7 @@ describe("QueryBuilderResults", () => {
     expect(wrapper.text()).toContain("当前分组不支持拖拽回写，只有按状态分组时才能拖拽改状态。")
   })
 
-  it("switches view type through the store and syncs template view type", async () => {
-    currentStore = createStore()
-    currentStore.setViewType = vi.fn((type: string) => {
-      currentStore.draft.view.type = type
-      currentStore.draft.template.viewType = type
-    })
-
-    const wrapper = mount(QueryBuilderResults)
-    await wrapper.get('[data-view-type="board"]').trigger("click")
-
-    expect(currentStore.setViewType).toHaveBeenCalledWith("board")
-    expect(currentStore.draft.view.type).toBe("board")
-    expect(currentStore.draft.template.viewType).toBe("board")
-  })
-
-  it("shows a default badge on every saved view card and uses it to switch the single highlighted default view", async () => {
+  it("prefers loading the matching saved view when switching tabs so the active card and result view stay in sync", async () => {
     currentStore = createStore()
     currentStore.savedViews = [
       {
@@ -132,7 +117,82 @@ describe("QueryBuilderResults", () => {
         defaultView: false,
       },
     ]
-    currentStore.loadSavedView = vi.fn(async () => true)
+    currentStore.setViewType = vi.fn((type: string) => {
+      currentStore.draft.view.type = type
+      currentStore.draft.template.viewType = type
+    })
+    currentStore.loadSavedView = vi.fn(async (viewId: string) => {
+      const nextView = currentStore.savedViews.find((view: any) => view.id === viewId)
+      if (!nextView) {
+        return false
+      }
+      currentStore.draft.view.id = nextView.id
+      currentStore.draft.view.type = nextView.type
+      currentStore.draft.template.viewType = nextView.type
+      return true
+    })
+
+    const wrapper = mount(QueryBuilderResults)
+    await wrapper.get('[data-view-type="board"]').trigger("click")
+
+    expect(currentStore.loadSavedView).toHaveBeenCalledWith("view-2")
+    expect(currentStore.setViewType).not.toHaveBeenCalled()
+    expect(currentStore.draft.view.id).toBe("view-2")
+    expect(currentStore.draft.view.type).toBe("board")
+    expect(currentStore.draft.template.viewType).toBe("board")
+    expect(wrapper.get('[data-view-type="board"]').classes()).toContain("tabs__item--active")
+  })
+
+  it("falls back to setViewType when no saved view matches the requested tab", async () => {
+    currentStore = createStore()
+    currentStore.savedViews = [
+      {
+        id: "view-1",
+        queryTemplateId: "template-1",
+        type: "table",
+        defaultView: true,
+      },
+    ]
+    currentStore.setViewType = vi.fn((type: string) => {
+      currentStore.draft.view.type = type
+      currentStore.draft.template.viewType = type
+    })
+    currentStore.loadSavedView = vi.fn(async () => false)
+
+    const wrapper = mount(QueryBuilderResults)
+    await wrapper.get('[data-view-type="list"]').trigger("click")
+
+    expect(currentStore.loadSavedView).not.toHaveBeenCalled()
+    expect(currentStore.setViewType).toHaveBeenCalledWith("list")
+    expect(currentStore.draft.view.type).toBe("list")
+  })
+
+  it("shows a default badge on every saved view card and lets the whole card click switch the active saved view", async () => {
+    currentStore = createStore()
+    currentStore.savedViews = [
+      {
+        id: "view-1",
+        queryTemplateId: "template-1",
+        type: "table",
+        defaultView: true,
+      },
+      {
+        id: "view-2",
+        queryTemplateId: "template-1",
+        type: "board",
+        defaultView: false,
+      },
+    ]
+    currentStore.loadSavedView = vi.fn(async (viewId: string) => {
+      const nextView = currentStore.savedViews.find((view: any) => view.id === viewId)
+      if (!nextView) {
+        return false
+      }
+      currentStore.draft.view.id = nextView.id
+      currentStore.draft.view.type = nextView.type
+      currentStore.draft.template.viewType = nextView.type
+      return true
+    })
     currentStore.setDefaultSavedView = vi.fn(async () => true)
     currentStore.deleteSavedView = vi.fn(async () => true)
     currentStore.saveViewAs = vi.fn(async () => true)
@@ -159,12 +219,17 @@ describe("QueryBuilderResults", () => {
     expect(firstDescription.text()).toContain("适合核对明细")
     expect(secondDescription.text()).toContain("适合按阶段推进")
 
-    await wrapper.get('[data-view-load="view-2"]').trigger("click")
+    await cards[1]!.trigger("click")
+
+    expect(currentStore.loadSavedView).toHaveBeenCalledWith("view-2")
+    expect(currentStore.draft.view.id).toBe("view-2")
+    expect(currentStore.draft.view.type).toBe("board")
+    expect(cards[1]!.classes()).toContain("saved-views__item--active")
+
     await secondBadge.trigger("click")
     await wrapper.get('[data-view-delete="view-2"]').trigger("click")
     await wrapper.get("[data-view-save-as]").trigger("click")
 
-    expect(currentStore.loadSavedView).toHaveBeenCalledWith("view-2")
     expect(currentStore.setDefaultSavedView).toHaveBeenCalledWith("view-2")
     expect(currentStore.deleteSavedView).toHaveBeenCalledWith("view-2")
     expect(currentStore.saveViewAs).toHaveBeenCalled()
@@ -177,6 +242,39 @@ describe("QueryBuilderResults", () => {
     const wrapper = mount(QueryBuilderResults)
 
     expect(wrapper.get("[data-results-empty]").text()).toContain("结果会在这里出现")
+  })
+
+  it("hides empty list metadata and renders existing metadata on a separate aligned line", () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "list"
+    currentStore.resultSet = {
+      rows: [
+        { id: "block-1" },
+        { id: "block-2" },
+      ],
+      total: 2,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    currentStore.listItems = [
+      {
+        id: "block-1",
+        title: "我的 OpenClaw Token 账单降了72%，只因装了这个插件",
+        meta: [],
+      },
+      {
+        id: "block-2",
+        title: "2026-03-23 Query Builder 示例",
+        meta: ["项目周报", "P1"],
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderResults)
+    const listItems = wrapper.findAll("[data-list-item]")
+
+    expect(listItems).toHaveLength(2)
+    expect(wrapper.text()).not.toContain("无附加信息")
+    expect(listItems[0]!.find("[data-list-item-meta]").exists()).toBe(false)
+    expect(listItems[1]!.get("[data-list-item-meta]").text()).toBe("项目周报 · P1")
   })
 
   it("opens the embed target menu, refreshes document targets, and wires target selection", async () => {

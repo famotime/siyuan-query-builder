@@ -43,8 +43,14 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     savedViews,
   })
 
-  function applyTemplateAndView(template: QueryTemplate, view: ViewConfig) {
-    applyTemplateAndViewState(draft, template, view, resetResultState)
+  function applyTemplateAndView(
+    template: QueryTemplate,
+    view: ViewConfig,
+    options: {
+      preserveResultState?: boolean
+    } = {},
+  ) {
+    applyTemplateAndViewState(draft, template, view, resetResultState, options)
   }
 
   function resetDraft() {
@@ -214,7 +220,9 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       if (!view) {
         return false
     }
-    applyTemplateAndView(draft.template, view)
+    applyTemplateAndView(draft.template, view, {
+      preserveResultState: true,
+    })
     draft.template.viewType = view.type
     return true
   }

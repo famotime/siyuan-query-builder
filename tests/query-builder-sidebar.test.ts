@@ -137,7 +137,7 @@ describe("QueryBuilderSidebar", () => {
     const firstSummary = wrapper.get('[data-template-summary="template-1"]')
     const secondSummary = wrapper.get('[data-template-summary="template-2"]')
 
-    expect(firstSummary.text()).toBe("默认：统计卡片 · 2 个视图")
+    expect(firstSummary.text()).toBe("默认：卡片 · 2 个视图")
     expect(secondSummary.text()).toBe("默认：列表 · 3 个视图")
     expect(firstSummary.element.tagName).toBe("SPAN")
   })

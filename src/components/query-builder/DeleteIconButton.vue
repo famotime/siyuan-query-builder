@@ -10,12 +10,12 @@
       aria-hidden="true"
     >
       <path
-        d="M9.75 3.75h4.5c.83 0 1.5.67 1.5 1.5v1.5h3.5M5.25 6.75h13.5M8.25 6.75l.67 11.01c.05.84.75 1.49 1.59 1.49h3c.84 0 1.54-.65 1.59-1.49l.67-11.01M10.5 10.25v5.5M13.5 10.25v5.5"
+        d="M8.5 5.75h7M10 4.25h4c.55 0 1 .45 1 1v.5h3M5.5 5.75h3M7.5 7.75h9l-.7 9.1a1.8 1.8 0 0 1-1.79 1.65h-4a1.8 1.8 0 0 1-1.79-1.65zM10.25 10.5v4.75M13.75 10.5v4.75"
         fill="none"
         stroke="currentColor"
         stroke-linecap="round"
         stroke-linejoin="round"
-        stroke-width="1.8"
+        stroke-width="2"
       />
     </svg>
   </button>
@@ -60,8 +60,8 @@ defineProps<{
 }
 
 .delete-icon-button svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   display: block;
 }
 </style>

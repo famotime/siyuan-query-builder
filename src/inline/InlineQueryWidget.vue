@@ -59,7 +59,10 @@
             >
               {{ item.title || "未命名块" }}
             </button>
-            <small>{{ item.meta.join(" · ") || "无附加信息" }}</small>
+            <small
+              v-if="item.meta.length"
+              class="list__meta"
+            >{{ item.meta.join(" · ") }}</small>
           </div>
         </li>
       </ul>
@@ -389,7 +392,7 @@ h2 {
 
 .cards__item span,
 .board__card small,
-.list__item small {
+.list__meta {
   color: var(--sqb-inline-text-muted);
   font: 13px/1.45 var(--sqb-sans);
 }
@@ -405,7 +408,13 @@ h2 {
 
 .list__main {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+}
+
+.list__meta {
+  display: block;
+  margin: 0;
+  padding-left: 1px;
 }
 
 .board {

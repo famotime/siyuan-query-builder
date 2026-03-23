@@ -140,12 +140,12 @@
               aria-hidden="true"
             >
               <path
-                d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"
+                d="M12 4.5v8.25m0 0-3.5-3.5m3.5 3.5 3.5-3.5M4.75 14.5h4.1l1.45 2.2h3.4l1.45-2.2h4.1v2.1c0 1.05-.85 1.9-1.9 1.9H6.65c-1.05 0-1.9-.85-1.9-1.9z"
                 fill="none"
                 stroke="currentColor"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="1.8"
+                stroke-width="1.9"
               />
             </svg>
           </button>
@@ -220,12 +220,12 @@
               aria-hidden="true"
             >
               <path
-                d="M12 20V10m0 0 4 4m-4-4-4 4M5 6h14"
+                d="M12 19.5v-8.25m0 0-3.5 3.5m3.5-3.5 3.5 3.5M4.75 9.5h4.1l1.45-2.2h3.4l1.45 2.2h4.1v-2.1c0-1.05-.85-1.9-1.9-1.9H6.65c-1.05 0-1.9.85-1.9 1.9z"
                 fill="none"
                 stroke="currentColor"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="1.8"
+                stroke-width="1.9"
               />
             </svg>
           </button>
@@ -355,7 +355,7 @@ function viewTypeLabel(type: string) {
     case "list":
       return "列表"
     case "cards":
-      return "统计卡片"
+      return "卡片"
     default:
       return "表格"
   }

@@ -118,7 +118,7 @@ export function createQueryBuilderStore() {
       case "list":
         return "列表"
       case "cards":
-        return "统计卡片"
+        return "卡片"
       default:
         return "表格"
     }

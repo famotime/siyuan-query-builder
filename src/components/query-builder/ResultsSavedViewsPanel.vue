@@ -29,13 +29,14 @@
         data-saved-view-card
         data-card-size="compact"
         :class="{ 'saved-views__item--active': view.id === activeViewId }"
+        @click="emit('load', view.id)"
       >
         <div class="saved-views__top">
           <button
             class="saved-views__main"
             type="button"
             :data-view-load="view.id"
-            @click="emit('load', view.id)"
+            @click.stop="emit('load', view.id)"
           >
             <span class="saved-views__copy">
               <strong>{{ viewTypeLabel(view.type) }}</strong>
@@ -50,7 +51,7 @@
               :data-view-default-badge="view.id"
               :data-state="view.defaultView ? 'active' : 'idle'"
               type="button"
-              @click="emit('setDefault', view.id)"
+              @click.stop="emit('setDefault', view.id)"
             >
               默认
             </button>
@@ -59,7 +60,7 @@
             class="saved-views__delete"
             title="删除视图"
             aria-label="删除视图"
-            @click="emit('delete', view.id)"
+            @click.stop="emit('delete', view.id)"
           />
           </div>
         </div>
@@ -98,7 +99,7 @@ function viewTypeLabel(type: string) {
     case "list":
       return "列表"
     case "cards":
-      return "统计卡片"
+      return "卡片"
     default:
       return "表格"
   }

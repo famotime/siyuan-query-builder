@@ -10,6 +10,9 @@ export function applyTemplateAndViewState(
   template: QueryTemplate,
   view: ViewConfig,
   resetResultState: () => void,
+  options: {
+    preserveResultState?: boolean
+  } = {},
 ) {
   const nextView = hydrateViewConfig(view, template)
   const next = cloneSnapshot({
@@ -18,7 +21,9 @@ export function applyTemplateAndViewState(
   })
   draft.template = next.template
   draft.view = next.view
-  resetResultState()
+  if (!options.preserveResultState) {
+    resetResultState()
+  }
 }
 
 export function resetDraftState(

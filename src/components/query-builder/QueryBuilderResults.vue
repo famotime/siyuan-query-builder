@@ -30,7 +30,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
               data-view-type="table"
               type="button"
-              @click="store.setViewType('table')"
+              @click="selectResultViewType('table')"
             >
               表格
             </button>
@@ -39,7 +39,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
               data-view-type="board"
               type="button"
-              @click="store.setViewType('board')"
+              @click="selectResultViewType('board')"
             >
               看板
             </button>
@@ -48,7 +48,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
               data-view-type="list"
               type="button"
-              @click="store.setViewType('list')"
+              @click="selectResultViewType('list')"
             >
               列表
             </button>
@@ -57,7 +57,7 @@
               :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
               data-view-type="cards"
               type="button"
-              @click="store.setViewType('cards')"
+              @click="selectResultViewType('cards')"
             >
               卡片
             </button>
@@ -301,14 +301,21 @@
           v-for="item in store.listItems"
           :key="item.id"
           class="list__item"
+          data-list-item
         >
-          <button
-            class="link"
-            @click="store.openBlock(item.id)"
-          >
-            {{ item.title || "未命名块" }}
-          </button>
-          <small>{{ item.meta.join(" · ") || "无附加信息" }}</small>
+          <div class="list__main">
+            <button
+              class="link"
+              @click="store.openBlock(item.id)"
+            >
+              {{ item.title || "未命名块" }}
+            </button>
+            <small
+              v-if="item.meta.length"
+              class="list__meta"
+              data-list-item-meta
+            >{{ item.meta.join(" · ") }}</small>
+          </div>
         </li>
       </ul>
 
@@ -387,6 +394,16 @@ async function copyAdvancedSql() {
     console.error("[siyuan-query-builder] failed to copy SQL preview", error)
     showMessage("复制 SQL 失败", 3500, "error")
   }
+}
+
+async function selectResultViewType(type: "table" | "board" | "list" | "cards") {
+  const matchingSavedView = store.savedViews?.find(view => view.type === type)
+  if (matchingSavedView) {
+    await store.loadSavedView(matchingSavedView.id)
+    return
+  }
+
+  store.setViewType(type)
 }
 </script>
 
@@ -1066,10 +1083,21 @@ h3 {
   border: 1px solid var(--sqb-border);
 }
 
-.list__item small,
+.list__meta,
 .cards__item span {
   color: var(--sqb-text-muted);
   font: 13px/1.4 var(--sqb-sans);
+}
+
+.list__main {
+  display: grid;
+  gap: 8px;
+}
+
+.list__meta {
+  display: block;
+  margin: 0;
+  padding-left: 1px;
 }
 
 .cards {

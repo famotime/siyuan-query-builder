@@ -749,6 +749,46 @@ describe("createQueryBuilderStore view management", () => {
     ])
   })
 
+  it("keeps the existing query result set when switching between saved views of the same template", async () => {
+    const store = createQueryBuilderStore()
+
+    runtime.execute.mockResolvedValueOnce({
+      rows: [
+        {
+          id: "block-1",
+          content: "任务 A",
+          attrs: {
+            status: "Doing",
+          },
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    })
+
+    store.draft.template.name = "任务清单"
+    await store.saveTemplate()
+    const tableViewId = store.draft.view.id
+
+    store.setViewType("board")
+    store.draft.template.groupBy = `attr:${store.draft.view.fieldMappings.status}`
+    await store.saveViewAs()
+    const boardViewId = store.draft.view.id
+
+    await store.loadSavedView(tableViewId)
+    await store.runQuery()
+
+    expect(store.resultSet?.rows).toHaveLength(1)
+    expect(store.resultSet?.rows[0]?.id).toBe("block-1")
+
+    await store.loadSavedView(boardViewId)
+
+    expect(store.draft.view.id).toBe(boardViewId)
+    expect(store.draft.view.type).toBe("board")
+    expect(store.resultSet?.rows).toHaveLength(1)
+    expect(store.resultSet?.rows[0]?.id).toBe("block-1")
+  })
+
   it("appends a newly added saved view to the right instead of inserting it before existing views", async () => {
     const store = createQueryBuilderStore()
 

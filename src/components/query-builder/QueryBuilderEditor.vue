@@ -260,6 +260,7 @@
                 'filter-row--dragging': draggingFilterId === filter.id,
                 'filter-row--drop-before': dragOverFilterId === filter.id && dragOverPlacement === 'before',
                 'filter-row--drop-after': dragOverFilterId === filter.id && dragOverPlacement === 'after',
+                'filter-row--range': filter.operator === 'date_between',
               }"
               @dragend="clearFilterDrag"
               @dragover.prevent="onFilterDragOver(filter.id, $event)"
@@ -285,7 +286,6 @@
                   <circle cx="5" cy="12" r="1.1" fill="currentColor" />
                   <circle cx="11" cy="12" r="1.1" fill="currentColor" />
                 </svg>
-                <span>拖拽</span>
               </div>
               <select
                 v-model="filter.field"
@@ -339,16 +339,24 @@
                 class="filter-row__actions"
                 :data-filter-actions="filter.id"
               >
-                <button
-                  :data-filter-condition-toggle="filter.id"
-                  class="filter-row__logic"
-                  type="button"
-                  :title="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
-                  :aria-label="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
-                  @click="toggleFilterCondition(index)"
-                >
-                  {{ displayFilterCondition(filter.condition) }}
-                </button>
+                <template v-if="index > 0">
+                  <button
+                    :data-filter-condition-toggle="filter.id"
+                    class="filter-row__logic"
+                    :data-state="filter.condition || 'and'"
+                    type="button"
+                    :title="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
+                    :aria-label="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
+                    @click="toggleFilterCondition(index)"
+                  >
+                    {{ displayFilterCondition(filter.condition) }}
+                  </button>
+                </template>
+                <span
+                  v-else
+                  class="filter-row__logic-spacer"
+                  aria-hidden="true"
+                />
                 <DeleteIconButton
                   :data-filter-delete="filter.id"
                   class="filter-row__delete"
@@ -394,12 +402,23 @@ const COMMON_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> =
   { value: "empty", label: "为空" },
   { value: "not_empty", label: "非空" },
 ]
+const DATE_COMPATIBLE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
+  { value: "eq", label: "等于" },
+  { value: "neq", label: "不等于" },
+  { value: "gt", label: "大于" },
+  { value: "empty", label: "为空" },
+  { value: "not_empty", label: "非空" },
+]
 const DATE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
   { value: "date_between", label: "日期区间" },
   { value: "next_days", label: "未来 N 天" },
   { value: "last_days", label: "最近 N 天" },
 ]
 const DATE_ONLY_OPERATORS = new Set<FilterOperator>(DATE_FILTER_OPERATORS.map(option => option.value))
+const DATE_COMPATIBLE_OPERATOR_VALUES = new Set<FilterOperator>([
+  ...DATE_COMPATIBLE_FILTER_OPERATORS.map(option => option.value),
+  ...DATE_FILTER_OPERATORS.map(option => option.value),
+])
 const mappingHints: Record<"status" | "dueDate" | "priority" | "project" | "owner", string> = {
   status: "预设值：Todo / Doing / Done",
   dueDate: "预设值：YYYY-MM-DD，例如 2026-03-23",
@@ -429,11 +448,17 @@ function isDateField(field: string) {
 
 function filterOperatorOptions(field: string) {
   return isDateField(field)
-    ? [...COMMON_FILTER_OPERATORS, ...DATE_FILTER_OPERATORS]
+    ? [...DATE_COMPATIBLE_FILTER_OPERATORS, ...DATE_FILTER_OPERATORS]
     : COMMON_FILTER_OPERATORS
 }
 
 function normalizeFilterOperator(filter: QueryFilter) {
+  if (isDateField(filter.field) && !DATE_COMPATIBLE_OPERATOR_VALUES.has(filter.operator)) {
+    filter.operator = "eq"
+    filter.value = ""
+    return
+  }
+
   if (DATE_ONLY_OPERATORS.has(filter.operator) && !isDateField(filter.field)) {
     filter.operator = "contains"
     filter.value = ""
@@ -804,19 +829,26 @@ h3 {
 
 .filter-row {
   display: grid;
-  grid-template-columns: auto repeat(3, minmax(0, 1fr)) auto;
-  gap: 10px;
+  grid-template-columns: 36px minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.15fr) auto;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 14px;
-  border: 1px dashed transparent;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--sqb-border);
+  background: linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%), var(--sqb-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   position: relative;
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
 
 .filter-row:hover {
-  border-color: var(--sqb-border);
-  background: var(--sqb-surface-soft);
+  border-color: var(--sqb-border-strong);
+  background: linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%), var(--sqb-surface-soft);
+}
+
+.filter-row--range {
+  grid-template-columns: 36px minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 
 .filter-row--sort {
@@ -854,18 +886,24 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  align-self: stretch;
-  min-width: 70px;
-  padding: 0 10px;
-  border-radius: 12px;
+  align-self: center;
+  width: 28px;
+  min-width: 28px;
+  height: 32px;
+  padding: 0;
+  border-radius: 10px;
   border: 1px dashed var(--sqb-border);
   background: var(--sqb-surface-soft);
   color: var(--sqb-text-muted);
-  font: 700 12px/1.2 var(--sqb-sans);
-  letter-spacing: 0.04em;
   cursor: grab;
   user-select: none;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.filter-row__drag-handle:hover {
+  border-color: var(--sqb-border-strong);
+  background: var(--sqb-bg-strong);
+  color: var(--sqb-text);
 }
 
 .filter-row__drag-handle:active {
@@ -873,34 +911,48 @@ h3 {
 }
 
 .filter-row__drag-handle svg {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
 }
 
 .filter-row__actions {
-  display: inline-flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
   align-items: center;
   justify-self: end;
   gap: 8px;
 }
 
-.filter-row__logic {
-  min-width: 58px;
+.filter-row__logic,
+.filter-row__logic-spacer {
+  width: 74px;
   height: 32px;
+}
+
+.filter-row__logic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-soft);
-  color: var(--sqb-text);
-  font: 700 12px/1 var(--sqb-sans);
-  letter-spacing: 0.06em;
+  border-radius: 11px;
+  border: 1px solid var(--sqb-border-strong);
+  background: var(--sqb-secondary-soft);
+  color: var(--sqb-secondary);
+  font: 700 11px/1 var(--sqb-sans);
+  letter-spacing: 0.12em;
   cursor: pointer;
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
+.filter-row__logic[data-state='and'] {
+  background: var(--sqb-primary-soft);
+  color: var(--sqb-primary-strong);
+}
+
 .filter-row__logic:hover {
   border-color: var(--sqb-primary);
-  background: var(--sqb-primary-soft);
+  background: var(--sqb-surface-strong);
   color: var(--sqb-primary);
 }
 
@@ -912,6 +964,12 @@ h3 {
 
 .filter-row__logic:active {
   transform: translateY(1px);
+}
+
+.filter-row__logic-spacer {
+  display: block;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .filter-row__delete {
@@ -1029,9 +1087,22 @@ h3 {
   }
 
   .filter-row__drag-handle,
-  .filter-row__actions,
-  .filter-row__logic {
+  .filter-row__actions {
     width: 100%;
+  }
+
+  .filter-row__actions {
+    justify-self: stretch;
+    justify-content: flex-end;
+  }
+
+  .filter-row__logic {
+    width: auto;
+    min-width: 74px;
+  }
+
+  .filter-row__logic-spacer {
+    display: none;
   }
 
 }

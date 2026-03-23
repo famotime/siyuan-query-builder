@@ -226,7 +226,7 @@ describe("QueryBuilderEditor", () => {
     expect(currentStore.generateExampleDocument).toHaveBeenCalled()
   })
 
-  it('renders and cycles the relation toggle beside the delete action', async () => {
+  it('renders the relation toggle only from the second filter onward and cycles it beside the delete action', async () => {
     currentStore = createStore()
     currentStore.draft.template.filters = [
       {
@@ -245,10 +245,14 @@ describe("QueryBuilderEditor", () => {
     ]
 
     const wrapper = mount(QueryBuilderEditor)
+    const firstActions = wrapper.get('[data-filter-actions="filter-1"]')
     const actions = wrapper.get('[data-filter-actions="filter-2"]')
+    const firstDeleteButton = firstActions.get('[data-filter-delete="filter-1"]')
     const relation = actions.get('[data-filter-condition-toggle="filter-2"]')
     const deleteButton = actions.get('[data-filter-delete="filter-2"]')
 
+    expect(firstDeleteButton.exists()).toBe(true)
+    expect(firstActions.find('[data-filter-condition-toggle="filter-1"]').exists()).toBe(false)
     expect(relation.element.tagName).toBe('BUTTON')
     expect(relation.text()).toBe('OR')
     expect(relation.classes()).toContain('filter-row__logic')
@@ -260,14 +264,14 @@ describe("QueryBuilderEditor", () => {
     expect(relation.text()).toBe('AND')
   })
 
-  it('shows date operators only for time-related fields and normalizes incompatible operators on field change', async () => {
+  it('shows only date-compatible operators for time-related fields and normalizes incompatible operators on field change', async () => {
     currentStore = createStore()
     currentStore.draft.template.filters = [
       {
         id: 'filter-1',
-        field: 'updated',
-        operator: 'last_days',
-        value: '7',
+        field: 'content',
+        operator: 'contains',
+        value: '任务',
       },
     ]
 
@@ -275,13 +279,25 @@ describe("QueryBuilderEditor", () => {
     const fieldSelect = wrapper.get('[data-filter-field="filter-1"]')
     const operatorSelect = wrapper.get('[data-filter-operator="filter-1"]')
 
+    await fieldSelect.setValue('updated')
+
+    expect(currentStore.draft.template.filters[0].operator).toBe('eq')
+    expect(operatorSelect.text()).toContain('等于')
+    expect(operatorSelect.text()).toContain('不等于')
+    expect(operatorSelect.text()).toContain('大于')
+    expect(operatorSelect.text()).toContain('日期区间')
+    expect(operatorSelect.text()).toContain('未来 N 天')
+    expect(operatorSelect.text()).toContain('最近 N 天')
+    expect(operatorSelect.text()).not.toContain('包含')
+    expect(operatorSelect.text()).not.toContain('不包含')
+
     expect(operatorSelect.text()).toContain('日期区间')
     expect(operatorSelect.text()).toContain('未来 N 天')
     expect(operatorSelect.text()).toContain('最近 N 天')
 
     await fieldSelect.setValue('content')
 
-    expect(currentStore.draft.template.filters[0].operator).toBe('contains')
+    expect(currentStore.draft.template.filters[0].operator).toBe('eq')
     expect(operatorSelect.text()).not.toContain('日期区间')
     expect(operatorSelect.text()).not.toContain('未来 N 天')
     expect(operatorSelect.text()).not.toContain('最近 N 天')
