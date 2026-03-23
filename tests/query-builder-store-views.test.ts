@@ -919,4 +919,41 @@ describe("createQueryBuilderStore view management", () => {
       }),
     ])
   })
+
+  it("moves a filter after the target row when dropping into the lower half", () => {
+    const store = createQueryBuilderStore()
+    store.draft.template.filters = [
+      {
+        id: "filter-1",
+        field: "content",
+        operator: "contains",
+        condition: "and",
+        value: "任务",
+      },
+      {
+        id: "filter-2",
+        field: "attr:status",
+        operator: "eq",
+        condition: "or",
+        value: "Doing",
+      },
+      {
+        id: "filter-3",
+        field: "updated",
+        operator: "last_days",
+        condition: "and",
+        value: "7",
+      },
+    ]
+
+    store.moveFilter("filter-1", "filter-2", "after")
+
+    expect(store.draft.template.filters.map(filter => filter.id)).toEqual([
+      "filter-2",
+      "filter-1",
+      "filter-3",
+    ])
+    expect(store.draft.template.filters[0]?.condition).toBe("and")
+    expect(store.draft.template.filters[1]?.condition).toBe("and")
+  })
 })

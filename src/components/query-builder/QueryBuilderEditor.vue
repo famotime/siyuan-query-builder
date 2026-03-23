@@ -194,7 +194,8 @@
           </div>
           <div class="section-head-actions">
             <button
-              class="btn btn--ghost btn--small"
+              class="btn btn--solid"
+              data-add-filter
               @click="store.addFilter"
             >
               添加条件
@@ -238,33 +239,37 @@
               :key="filter.id"
               class="filter-row"
               :data-filter-row="filter.id"
-              :class="{ 'filter-row--dragging': draggingFilterId === filter.id }"
-              draggable="true"
-              @dragstart="onFilterDragStart(filter.id)"
+              :class="{
+                'filter-row--dragging': draggingFilterId === filter.id,
+                'filter-row--drop-before': dragOverFilterId === filter.id && dragOverPlacement === 'before',
+                'filter-row--drop-after': dragOverFilterId === filter.id && dragOverPlacement === 'after',
+              }"
               @dragend="clearFilterDrag"
-              @dragover.prevent
+              @dragover.prevent="onFilterDragOver(filter.id, $event)"
               @drop.prevent="onFilterDrop(filter.id)"
             >
               <div
-                v-if="index === 0"
-                class="filter-row__condition filter-row__condition--root"
+                class="filter-row__drag-handle"
+                :data-filter-drag-handle="filter.id"
+                draggable="true"
+                title="拖拽调整条件顺序"
+                aria-label="拖拽调整条件顺序"
+                @dragstart="onFilterDragStart(filter.id)"
+                @dragend="clearFilterDrag"
               >
-                首条
+                <svg
+                  viewBox="0 0 16 16"
+                  aria-hidden="true"
+                >
+                  <circle cx="5" cy="4" r="1.1" fill="currentColor" />
+                  <circle cx="11" cy="4" r="1.1" fill="currentColor" />
+                  <circle cx="5" cy="8" r="1.1" fill="currentColor" />
+                  <circle cx="11" cy="8" r="1.1" fill="currentColor" />
+                  <circle cx="5" cy="12" r="1.1" fill="currentColor" />
+                  <circle cx="11" cy="12" r="1.1" fill="currentColor" />
+                </svg>
+                <span>拖拽</span>
               </div>
-              <select
-                v-else
-                :data-filter-condition="filter.id"
-                class="control filter-row__condition"
-                :value="filter.condition || 'and'"
-                @change="filter.condition = ($event.target as HTMLSelectElement).value as 'and' | 'or'"
-              >
-                <option value="and">
-                  AND
-                </option>
-                <option value="or">
-                  OR
-                </option>
-              </select>
               <select
                 v-model="filter.field"
                 class="control"
@@ -333,13 +338,28 @@
                 :value="String(filter.value || '')"
                 @input="filter.value = ($event.target as HTMLInputElement).value"
               >
-              <DeleteIconButton
-                :data-filter-delete="filter.id"
-                class="filter-row__delete"
-                title="删除条件"
-                aria-label="删除条件"
-                @click="store.removeFilter(filter.id)"
-              />
+              <div
+                class="filter-row__actions"
+                :data-filter-actions="filter.id"
+              >
+                <button
+                  :data-filter-condition-toggle="filter.id"
+                  class="filter-row__logic"
+                  type="button"
+                  :title="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
+                  :aria-label="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
+                  @click="toggleFilterCondition(index)"
+                >
+                  {{ displayFilterCondition(filter.condition) }}
+                </button>
+                <DeleteIconButton
+                  :data-filter-delete="filter.id"
+                  class="filter-row__delete"
+                  title="删除条件"
+                  aria-label="删除条件"
+                  @click="store.removeFilter(filter.id)"
+                />
+              </div>
             </div>
           </div>
           <p
@@ -374,6 +394,8 @@ const collapsedSections = reactive({
   view: false,
 })
 const draggingFilterId = ref("")
+const dragOverFilterId = ref("")
+const dragOverPlacement = ref<"before" | "after" | "">("")
 
 function toggleSection(section: keyof typeof collapsedSections) {
   collapsedSections[section] = !collapsedSections[section]
@@ -383,16 +405,50 @@ function onFilterDragStart(filterId: string) {
   draggingFilterId.value = filterId
 }
 
+function displayFilterCondition(condition?: "and" | "or") {
+  return condition === "or" ? "OR" : "AND"
+}
+
+function toggleFilterCondition(index: number) {
+  const filter = store.draft.template.filters[index]
+  if (!filter) {
+    return
+  }
+
+  filter.condition = (filter.condition || "and") === "and" ? "or" : "and"
+}
+
+function onFilterDragOver(targetFilterId: string, event: DragEvent) {
+  if (!draggingFilterId.value || draggingFilterId.value === targetFilterId) {
+    dragOverFilterId.value = ""
+    dragOverPlacement.value = ""
+    return
+  }
+
+  const target = event.currentTarget as HTMLElement | null
+  if (!target) {
+    return
+  }
+
+  const rect = target.getBoundingClientRect()
+  const midpoint = rect.top + rect.height / 2
+
+  dragOverFilterId.value = targetFilterId
+  dragOverPlacement.value = event.clientY <= midpoint ? "before" : "after"
+}
+
 function onFilterDrop(targetFilterId: string) {
   if (!draggingFilterId.value) {
     return
   }
-  store.moveFilter(draggingFilterId.value, targetFilterId)
-  draggingFilterId.value = ""
+  store.moveFilter(draggingFilterId.value, targetFilterId, dragOverPlacement.value || "before")
+  clearFilterDrag()
 }
 
 function clearFilterDrag() {
   draggingFilterId.value = ""
+  dragOverFilterId.value = ""
+  dragOverPlacement.value = ""
 }
 </script>
 
@@ -680,13 +736,14 @@ h3 {
 
 .filter-row {
   display: grid;
-  grid-template-columns: 88px repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: auto repeat(3, minmax(0, 1fr)) auto;
   gap: 10px;
   align-items: center;
   padding: 8px 10px;
   border-radius: 14px;
   border: 1px dashed transparent;
-  transition: border-color 140ms ease, background 140ms ease;
+  position: relative;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
 
 .filter-row:hover {
@@ -705,24 +762,92 @@ h3 {
   opacity: 0.72;
 }
 
-.filter-row__condition {
-  min-height: 44px;
+.filter-row--drop-before::before,
+.filter-row--drop-after::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--sqb-primary);
+  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
 }
 
-.filter-row__condition--root {
-  display: flex;
+.filter-row--drop-before::before {
+  top: -2px;
+}
+
+.filter-row--drop-after::after {
+  bottom: -2px;
+}
+
+.filter-row__drag-handle {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  gap: 6px;
+  align-self: stretch;
+  min-width: 70px;
+  padding: 0 10px;
+  border-radius: 12px;
   border: 1px dashed var(--sqb-border);
   background: var(--sqb-surface-soft);
   color: var(--sqb-text-muted);
   font: 700 12px/1.2 var(--sqb-sans);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
+  cursor: grab;
+  user-select: none;
+}
+
+.filter-row__drag-handle:active {
+  cursor: grabbing;
+}
+
+.filter-row__drag-handle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.filter-row__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 8px;
+}
+
+.filter-row__logic {
+  min-width: 58px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text);
+  font: 700 12px/1 var(--sqb-sans);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.filter-row__logic:hover {
+  border-color: var(--sqb-primary);
+  background: var(--sqb-primary-soft);
+  color: var(--sqb-primary);
+}
+
+.filter-row__logic:focus-visible {
+  outline: none;
+  border-color: var(--sqb-primary);
+  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+}
+
+.filter-row__logic:active {
+  transform: translateY(1px);
 }
 
 .filter-row__delete {
-  justify-self: end;
+  justify-self: auto;
 }
 
 .section-head--top {
@@ -833,6 +958,12 @@ h3 {
     flex-direction: column;
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .filter-row__drag-handle,
+  .filter-row__actions,
+  .filter-row__logic {
+    width: 100%;
   }
 
 }

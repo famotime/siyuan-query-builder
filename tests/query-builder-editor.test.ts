@@ -180,7 +180,17 @@ describe("QueryBuilderEditor", () => {
     expect(currentStore.toggleField).toHaveBeenCalledWith('attr:status')
   })
 
-  it('renders and updates the relation selector for filters after the first one', async () => {
+  it('uses the same primary button style for adding filters as running queries', () => {
+    currentStore = createStore()
+
+    const wrapper = mount(QueryBuilderEditor)
+    const addFilterButton = wrapper.get('[data-add-filter]')
+
+    expect(addFilterButton.classes()).toEqual(expect.arrayContaining(['btn', 'btn--solid']))
+    expect(addFilterButton.classes()).not.toContain('btn--ghost')
+  })
+
+  it('renders and cycles the relation toggle beside the delete action', async () => {
     currentStore = createStore()
     currentStore.draft.template.filters = [
       {
@@ -199,17 +209,22 @@ describe("QueryBuilderEditor", () => {
     ]
 
     const wrapper = mount(QueryBuilderEditor)
-    const relation = wrapper.get('[data-filter-condition="filter-2"]')
+    const actions = wrapper.get('[data-filter-actions="filter-2"]')
+    const relation = actions.get('[data-filter-condition-toggle="filter-2"]')
+    const deleteButton = actions.get('[data-filter-delete="filter-2"]')
 
-    expect(relation.element).toBeInstanceOf(HTMLSelectElement)
-    expect((relation.element as HTMLSelectElement).value).toBe('or')
+    expect(relation.element.tagName).toBe('BUTTON')
+    expect(relation.text()).toBe('OR')
+    expect(relation.classes()).toContain('filter-row__logic')
+    expect(deleteButton.exists()).toBe(true)
 
-    await relation.setValue('and')
+    await relation.trigger('click')
 
     expect(currentStore.draft.template.filters[1].condition).toBe('and')
+    expect(relation.text()).toBe('AND')
   })
 
-  it("supports dragging one filter row before another to reorder conditions", async () => {
+  it("shows a drag handle and a drop indicator before reordering filters", async () => {
     currentStore = createStore()
     currentStore.draft.template.filters = [
       {
@@ -228,14 +243,33 @@ describe("QueryBuilderEditor", () => {
     ]
 
     const wrapper = mount(QueryBuilderEditor)
-    const source = wrapper.get('[data-filter-row="filter-1"]')
+    const sourceHandle = wrapper.get('[data-filter-drag-handle="filter-1"]')
     const target = wrapper.get('[data-filter-row="filter-2"]')
 
-    expect(source.attributes("draggable")).toBe("true")
+    Object.defineProperty(target.element, "getBoundingClientRect", {
+      configurable: true,
+      value: () => ({
+        top: 100,
+        bottom: 180,
+        left: 0,
+        right: 320,
+        width: 320,
+        height: 80,
+        x: 0,
+        y: 100,
+        toJSON: () => ({}),
+      }),
+    })
 
-    await source.trigger("dragstart")
+    expect(sourceHandle.attributes("draggable")).toBe("true")
+    expect(sourceHandle.attributes("title")).toContain("拖拽")
+
+    await sourceHandle.trigger("dragstart")
+    await target.trigger("dragover", { clientY: 108 })
+
+    expect(target.classes()).toContain("filter-row--drop-before")
     await target.trigger("drop")
 
-    expect(currentStore.moveFilter).toHaveBeenCalledWith("filter-1", "filter-2")
+    expect(currentStore.moveFilter).toHaveBeenCalledWith("filter-1", "filter-2", "before")
   })
 })

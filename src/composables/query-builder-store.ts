@@ -367,7 +367,7 @@ export function createQueryBuilderStore() {
     }
   }
 
-  function moveFilter(filterId: string, targetFilterId: string) {
+  function moveFilter(filterId: string, targetFilterId: string, placement: "before" | "after" = "before") {
     if (filterId === targetFilterId) {
       return
     }
@@ -384,7 +384,13 @@ export function createQueryBuilderStore() {
     if (!movedFilter) {
       return
     }
-    nextFilters.splice(targetIndex, 0, movedFilter)
+
+    const adjustedTargetIndex = nextFilters.findIndex(filter => filter.id === targetFilterId)
+    if (adjustedTargetIndex < 0) {
+      return
+    }
+
+    nextFilters.splice(placement === "after" ? adjustedTargetIndex + 1 : adjustedTargetIndex, 0, movedFilter)
 
     draft.template.filters = nextFilters.map((filter, index) => ({
       ...filter,
