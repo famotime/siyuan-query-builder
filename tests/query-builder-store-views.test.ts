@@ -55,16 +55,24 @@ vi.mock("@/api", () => ({
   getChildBlocks: vi.fn(async () => []),
   getBlockByID: vi.fn(async () => null),
   getNotebookConf: vi.fn(async () => ({
+    box: "box-work",
     name: "工作笔记",
-    closed: false,
-    refCreateSavePath: "/",
-    createDocNameTemplate: "2006-01-02",
-    dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
-    dailyNoteTemplatePath: "",
+    conf: {
+      name: "工作笔记",
+      closed: false,
+      refCreateSavePath: "/",
+      createDocNameTemplate: "2006-01-02",
+      dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
+      dailyNoteTemplatePath: "",
+    },
   })),
   lsNotebooks: vi.fn(async () => ({
     notebooks: [],
   })),
+  renderSprig: vi.fn(async (template: string) => template
+    .replace('{{now | date "2006/03"}}', "2026/03")
+    .replace('{{now | date "2006/01"}}', "2026/03")
+    .replace('{{now | date "2006-01-02"}}', "2026-03-23")),
   setBlockAttrs: vi.fn(async () => []),
   sql: vi.fn(async () => []),
 }))
@@ -73,7 +81,7 @@ vi.mock("@/core/runtime/query-runtime", () => ({
   createQueryRuntime: () => runtime,
 }))
 
-import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, setBlockAttrs } from "@/api"
+import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, renderSprig, setBlockAttrs } from "@/api"
 import { createQueryBuilderStore } from "@/composables/query-builder-store"
 import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
 import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
@@ -93,15 +101,24 @@ describe("createQueryBuilderStore view management", () => {
       notebooks: [],
     })
     vi.mocked(getNotebookConf).mockResolvedValue({
+      box: "box-work",
       name: "工作笔记",
-      closed: false,
-      refCreateSavePath: "/",
-      createDocNameTemplate: "2006-01-02",
-      dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
-      dailyNoteTemplatePath: "",
+      conf: {
+        name: "工作笔记",
+        closed: false,
+        refCreateSavePath: "/",
+        createDocNameTemplate: "2006-01-02",
+        dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
+        dailyNoteTemplatePath: "",
+      },
     })
     vi.mocked(createDocWithMd).mockClear()
     vi.mocked(createDocWithMd).mockResolvedValue("20260323093000-example")
+    vi.mocked(renderSprig).mockClear()
+    vi.mocked(renderSprig).mockImplementation(async (template: string) => template
+      .replace('{{now | date "2006/03"}}', "2026/03")
+      .replace('{{now | date "2006/01"}}', "2026/03")
+      .replace('{{now | date "2006-01-02"}}', "2026-03-23"))
     vi.mocked(getChildBlocks).mockClear()
     vi.mocked(getChildBlocks).mockResolvedValue([])
     vi.mocked(setBlockAttrs).mockClear()
@@ -1015,6 +1032,7 @@ describe("createQueryBuilderStore view management", () => {
     await (store as any).generateExampleDocument()
 
     expect(getNotebookConf).toHaveBeenCalledWith("box-work")
+    expect(renderSprig).toHaveBeenCalledWith("/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}")
     expect(createDocWithMd).toHaveBeenCalledWith(
       "box-work",
       "/日记/2026/03/2026-03-23 Query Builder 示例",
@@ -1031,7 +1049,11 @@ describe("createQueryBuilderStore view management", () => {
       "custom-status": "Unread",
       "custom-priority": "P1",
     }))
-    expect(showMessage).toHaveBeenCalledWith("已生成预设示例文档：2026-03-23 Query Builder 示例", 3500, "info")
+    expect(showMessage).toHaveBeenCalledWith(
+      "已生成预设示例文档：2026-03-23 Query Builder 示例（路径：/日记/2026/03/2026-03-23 Query Builder 示例）",
+      3500,
+      "info",
+    )
 
     vi.useRealTimers()
   })
@@ -1057,15 +1079,22 @@ describe("createQueryBuilderStore view management", () => {
       return null
     })
     vi.mocked(getNotebookConf).mockImplementation(async (notebookId: string) => ({
+      box: notebookId,
       name: notebookId,
-      closed: false,
-      refCreateSavePath: "/",
-      createDocNameTemplate: "2006-01-02",
-      dailyNoteSavePath: notebookId === "box-current"
-        ? "/当前笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}"
-        : "/其他笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}",
-      dailyNoteTemplatePath: "",
+      conf: {
+        name: notebookId,
+        closed: false,
+        refCreateSavePath: "/",
+        createDocNameTemplate: "2006-01-02",
+        dailyNoteSavePath: notebookId === "box-current"
+          ? "/当前笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}"
+          : "/其他笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}",
+        dailyNoteTemplatePath: "",
+      },
     }))
+    vi.mocked(renderSprig).mockImplementation(async (template: string) => template
+      .replace('{{now | date "2006/01"}}', "2026/03")
+      .replace('{{now | date "2006-01-02"}}', "2026-03-23"))
     vi.mocked(getChildBlocks).mockResolvedValue([])
     const store = createQueryBuilderStore()
     store.notebooks = [
@@ -1079,6 +1108,7 @@ describe("createQueryBuilderStore view management", () => {
 
     await (store as any).generateExampleDocument()
 
+    expect(renderSprig).toHaveBeenCalledWith("/当前笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}")
     expect(createDocWithMd).toHaveBeenCalledWith(
       "box-current",
       "/当前笔记本日记/2026/03/2026-03-23 Query Builder 示例",

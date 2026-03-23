@@ -1,7 +1,7 @@
 import { computed, inject, proxyRefs, reactive, ref } from "vue"
 import type { InjectionKey } from "vue"
 
-import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, setBlockAttrs } from "@/api"
+import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, renderSprig, setBlockAttrs } from "@/api"
 import {
   buildDailyNoteExamplePath,
   buildPresetExampleDocument,
@@ -493,7 +493,11 @@ export function createQueryBuilderStore() {
       const notebookConf = await getNotebookConf(notebookId)
       const now = new Date()
       const title = formatExampleDocumentTitle(now)
-      const path = buildDailyNoteExamplePath(notebookConf?.dailyNoteSavePath, now)
+      const dailyNotePathTemplate = notebookConf?.conf?.dailyNoteSavePath
+      const resolvedDailyNotePath = dailyNotePathTemplate
+        ? await renderSprig(dailyNotePathTemplate)
+        : undefined
+      const path = buildDailyNoteExamplePath(resolvedDailyNotePath, now)
       const example = buildPresetExampleDocument(now, draft.view.fieldMappings)
 
       const documentId = await createDocWithMd(notebookId, path, example.markdown)
@@ -507,7 +511,7 @@ export function createQueryBuilderStore() {
         }
         return setBlockAttrs(block.id, attrs)
       }))
-      showMessage(`已生成预设示例文档：${title}`, 3500, "info")
+      showMessage(`已生成预设示例文档：${title}（路径：${path}）`, 3500, "info")
       return true
     } catch (generationError) {
       showMessage(generationError instanceof Error ? generationError.message : "生成示例文档失败", 5000, "error")
