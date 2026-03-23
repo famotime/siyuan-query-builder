@@ -212,6 +212,30 @@ describe("createInlineBlockRenderer", () => {
     expect(host.innerHTML).toContain("未找到模板：missing-template")
   })
 
+  it("mounts the inline widget in a theme-token host wrapper", async () => {
+    const plugin = createPlugin()
+    createAppMock.mockReturnValue({
+      mount: vi.fn(),
+      unmount: vi.fn(),
+    })
+    templateStoreGet.mockResolvedValue(createSnapshot())
+
+    const renderer = createInlineBlockRenderer(plugin)
+    renderer.start()
+
+    const host = document.createElement("div")
+    await window[SQB_EMBED_BRIDGE_KEY]?.renderHost(host, {
+      templateId: "template-1",
+      viewType: "table",
+      title: "任务清单",
+    })
+
+    const inlineHost = host.firstElementChild as HTMLElement | null
+
+    expect(inlineHost).not.toBeNull()
+    expect(inlineHost?.classList.contains("sqb-inline-host")).toBe(true)
+  })
+
   it("cleans up bridge state, event listeners, controller state, and mounted apps on destroy", async () => {
     const plugin = createPlugin()
     const unmount = vi.fn()

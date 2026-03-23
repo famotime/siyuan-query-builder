@@ -32,6 +32,11 @@ interface DisplayValueOptions {
   notebookNameById?: Record<string, string>
 }
 
+interface FieldLabelOptions {
+  knownLabels?: Map<string, string> | Record<string, string>
+  fieldMappings?: FieldMappings
+}
+
 export function createDraft(): QueryBuilderSnapshot {
   const template = createEmptyTemplate()
   return {
@@ -166,6 +171,43 @@ export function displayValue(row: ResultRow, field: string, options: DisplayValu
     return String(row.hpath ?? row[field] ?? "")
   }
   return String(row[field] ?? "")
+}
+
+export function resolveFieldLabel(field: string, options: FieldLabelOptions = {}) {
+  const knownLabel = options.knownLabels instanceof Map
+    ? options.knownLabels.get(field)
+    : options.knownLabels?.[field]
+
+  if (knownLabel) {
+    return knownLabel
+  }
+
+  if (field.startsWith("attr:")) {
+    const attrName = field.slice("attr:".length).trim()
+    if (!attrName) {
+      return "属性"
+    }
+
+    const mappedLabel = Object.entries(options.fieldMappings || {}).find(([, value]) => value === attrName)?.[0]
+    if (mappedLabel) {
+      switch (mappedLabel) {
+        case "status":
+          return "状态"
+        case "dueDate":
+          return "截止日期"
+        case "priority":
+          return "优先级"
+        case "project":
+          return "项目"
+        case "owner":
+          return "负责人"
+      }
+    }
+
+    return `属性：${attrName}`
+  }
+
+  return field
 }
 
 export function resolveEditableField(template: QueryTemplate, view: ViewConfig, field: string): EditableField | null {

@@ -149,7 +149,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
 
-import { displayValue as formatDisplayValue } from "@/composables/query-builder-store/shared"
+import {
+  displayValue as formatDisplayValue,
+  resolveFieldLabel,
+} from "@/composables/query-builder-store/shared"
+import { createFieldOptions } from "@/core/query/catalog"
 import { buildBoardColumns } from "@/core/view/board"
 import type { FieldMappings, ResultSet, ViewType } from "@/core/query/types"
 import { buildCardsSummary, buildListItems } from "@/inline/view-models"
@@ -171,16 +175,18 @@ const listItems = computed(() => buildListItems(props.result.rows, [
   `attr:${props.fieldMappings.dueDate}`,
 ]))
 const boardColumns = computed(() => buildBoardColumns(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
+const fieldOptionMap = computed(() => new Map(
+  createFieldOptions(props.fieldMappings).map(option => [option.value, option.label]),
+))
 const notebookNameById = computed(() => Object.fromEntries(
   (props.notebooks || []).map(notebook => [notebook.id, notebook.name]),
 ))
 
 function fieldLabel(field: string) {
-  if (field === "content")
-    return "标题 / 内容"
-  if (field.startsWith("attr:"))
-    return field.slice("attr:".length)
-  return field
+  return resolveFieldLabel(field, {
+    knownLabels: fieldOptionMap.value,
+    fieldMappings: props.fieldMappings,
+  })
 }
 
 function displayValue(row: ResultSet["rows"][number], field: string) {
@@ -452,6 +458,7 @@ h2 {
   border-radius: 18px;
   border: 1px solid var(--sqb-inline-border-soft);
   background: var(--sqb-inline-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .table {
@@ -466,6 +473,7 @@ h2 {
   text-align: left;
   vertical-align: top;
   font: 13px/1.45 var(--sqb-sans);
+  word-break: break-word;
 }
 
 .table th {
@@ -473,13 +481,17 @@ h2 {
   top: 0;
   background: var(--sqb-inline-table-head);
   color: var(--sqb-inline-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font: 700 10px/1.2 var(--sqb-sans);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  font: 700 12px/1.3 var(--sqb-sans);
 }
 
 .table td:first-child {
-  min-width: 220px;
+  min-width: 240px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .table__row {

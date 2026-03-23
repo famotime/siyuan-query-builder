@@ -51,7 +51,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
     const snapshot = await templateStore.get(payload.templateId, payload.viewId)
     const notebooks = await notebooksPromise
     const host = document.createElement("div")
-    host.className = "sqb-inline-root"
+    host.className = "sqb-inline-root sqb-inline-host"
     shieldInlineElement(host)
     element.innerHTML = ""
     element.appendChild(host)

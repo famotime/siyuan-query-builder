@@ -30,6 +30,7 @@ import {
   nextAggregationField,
   normalizeCustomField,
   requiresValue,
+  resolveFieldLabel,
   resolveEditableField,
   syncAggregateTemplate,
   updateDateRange,
@@ -163,6 +164,9 @@ export function createQueryBuilderStore() {
   const fieldOptions = computed(() => mergeFieldOptions(
     createFieldOptions(draft.view.fieldMappings),
     draft.template,
+  ))
+  const fieldOptionMap = computed(() => new Map(
+    fieldOptions.value.map(option => [option.value, option.label]),
   ))
   const notebookNameById = computed(() => Object.fromEntries(
     notebooks.value.map(notebook => [notebook.id, notebook.name]),
@@ -331,7 +335,10 @@ export function createQueryBuilderStore() {
   })
 
   function fieldLabel(field: string) {
-    return fieldOptions.value.find(option => option.value === field)?.label || field
+    return resolveFieldLabel(field, {
+      knownLabels: fieldOptionMap.value,
+      fieldMappings: draft.view.fieldMappings,
+    })
   }
 
   function displayValue(row: ResultSet["rows"][number], field: string) {
