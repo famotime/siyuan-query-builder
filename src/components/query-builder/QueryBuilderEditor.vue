@@ -278,7 +278,9 @@
               </div>
               <select
                 v-model="filter.field"
+                :data-filter-field="filter.id"
                 class="control"
+                @change="normalizeFilterOperator(filter)"
               >
                 <option
                   v-for="option in store.fieldOptions"
@@ -290,37 +292,15 @@
               </select>
               <select
                 v-model="filter.operator"
+                :data-filter-operator="filter.id"
                 class="control"
               >
-                <option value="eq">
-                  等于
-                </option>
-                <option value="neq">
-                  不等于
-                </option>
-                <option value="gt">
-                  大于
-                </option>
-                <option value="contains">
-                  包含
-                </option>
-                <option value="not_contains">
-                  不包含
-                </option>
-                <option value="empty">
-                  为空
-                </option>
-                <option value="not_empty">
-                  非空
-                </option>
-                <option value="date_between">
-                  日期区间
-                </option>
-                <option value="next_days">
-                  未来 N 天
-                </option>
-                <option value="last_days">
-                  最近 N 天
+                <option
+                  v-for="option in filterOperatorOptions(filter.field)"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
                 </option>
               </select>
               <template v-if="filter.operator === 'date_between'">
@@ -386,13 +366,29 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue"
+import { reactive, ref, watch } from "vue"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorViewSettingsSection from "@/components/query-builder/EditorViewSettingsSection.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import type { FilterOperator, QueryFilter } from "@/core/query/types"
 
 const store = useQueryBuilderStore()
+const COMMON_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
+  { value: "eq", label: "等于" },
+  { value: "neq", label: "不等于" },
+  { value: "gt", label: "大于" },
+  { value: "contains", label: "包含" },
+  { value: "not_contains", label: "不包含" },
+  { value: "empty", label: "为空" },
+  { value: "not_empty", label: "非空" },
+]
+const DATE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
+  { value: "date_between", label: "日期区间" },
+  { value: "next_days", label: "未来 N 天" },
+  { value: "last_days", label: "最近 N 天" },
+]
+const DATE_ONLY_OPERATORS = new Set<FilterOperator>(DATE_FILTER_OPERATORS.map(option => option.value))
 const mappingHints: Record<"status" | "dueDate" | "priority" | "project" | "owner", string> = {
   status: "预设值：Todo / Doing / Done",
   dueDate: "预设值：YYYY-MM-DD，例如 2026-03-23",
@@ -412,6 +408,25 @@ const dragOverPlacement = ref<"before" | "after" | "">("")
 
 function toggleSection(section: keyof typeof collapsedSections) {
   collapsedSections[section] = !collapsedSections[section]
+}
+
+function isDateField(field: string) {
+  return field === "created"
+    || field === "updated"
+    || field === `attr:${store.draft.view.fieldMappings.dueDate}`
+}
+
+function filterOperatorOptions(field: string) {
+  return isDateField(field)
+    ? [...COMMON_FILTER_OPERATORS, ...DATE_FILTER_OPERATORS]
+    : COMMON_FILTER_OPERATORS
+}
+
+function normalizeFilterOperator(filter: QueryFilter) {
+  if (DATE_ONLY_OPERATORS.has(filter.operator) && !isDateField(filter.field)) {
+    filter.operator = "contains"
+    filter.value = ""
+  }
 }
 
 function onFilterDragStart(filterId: string) {
@@ -463,6 +478,14 @@ function clearFilterDrag() {
   dragOverFilterId.value = ""
   dragOverPlacement.value = ""
 }
+
+watch(
+  () => store.draft.template.filters.map(filter => `${filter.id}:${filter.field}:${filter.operator}`),
+  () => {
+    store.draft.template.filters.forEach(normalizeFilterOperator)
+  },
+  { immediate: true },
+)
 </script>
 
 <style lang="scss" scoped>

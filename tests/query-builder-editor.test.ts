@@ -55,6 +55,7 @@ function createStore() {
     fieldOptions: [
       { value: "content", label: "标题 / 内容" },
       { value: "updated", label: "更新时间" },
+      { value: "attr:dueDate", label: "截止日期" },
       { value: "tagCount", label: "标签数量" },
       { value: "agg:value", label: "统计值" },
       { value: "attr:status", label: "状态" },
@@ -62,12 +63,14 @@ function createStore() {
     selectableFieldOptions: [
       { value: "content", label: "标题 / 内容" },
       { value: "updated", label: "更新时间" },
+      { value: "attr:dueDate", label: "截止日期" },
       { value: "tagCount", label: "标签数量" },
       { value: "attr:status", label: "状态" },
     ],
     sortFieldOptions: [
       { value: "content", label: "标题 / 内容" },
       { value: "updated", label: "更新时间" },
+      { value: "attr:dueDate", label: "截止日期" },
       { value: "tagCount", label: "标签数量" },
       { value: "agg:value", label: "统计值" },
       { value: "attr:status", label: "状态" },
@@ -233,6 +236,52 @@ describe("QueryBuilderEditor", () => {
 
     expect(currentStore.draft.template.filters[1].condition).toBe('and')
     expect(relation.text()).toBe('AND')
+  })
+
+  it('shows date operators only for time-related fields and normalizes incompatible operators on field change', async () => {
+    currentStore = createStore()
+    currentStore.draft.template.filters = [
+      {
+        id: 'filter-1',
+        field: 'updated',
+        operator: 'last_days',
+        value: '7',
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderEditor)
+    const fieldSelect = wrapper.get('[data-filter-field="filter-1"]')
+    const operatorSelect = wrapper.get('[data-filter-operator="filter-1"]')
+
+    expect(operatorSelect.text()).toContain('日期区间')
+    expect(operatorSelect.text()).toContain('未来 N 天')
+    expect(operatorSelect.text()).toContain('最近 N 天')
+
+    await fieldSelect.setValue('content')
+
+    expect(currentStore.draft.template.filters[0].operator).toBe('contains')
+    expect(operatorSelect.text()).not.toContain('日期区间')
+    expect(operatorSelect.text()).not.toContain('未来 N 天')
+    expect(operatorSelect.text()).not.toContain('最近 N 天')
+  })
+
+  it('keeps date operators available for mapped due date fields', () => {
+    currentStore = createStore()
+    currentStore.draft.template.filters = [
+      {
+        id: 'filter-1',
+        field: 'attr:dueDate',
+        operator: 'date_between',
+        value: ['2026-03-01', '2026-03-31'],
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderEditor)
+    const operatorSelect = wrapper.get('[data-filter-operator="filter-1"]')
+
+    expect(operatorSelect.text()).toContain('日期区间')
+    expect(operatorSelect.text()).toContain('未来 N 天')
+    expect(operatorSelect.text()).toContain('最近 N 天')
   })
 
   it("shows a drag handle and a drop indicator before reordering filters", async () => {
