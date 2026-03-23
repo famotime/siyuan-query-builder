@@ -1,14 +1,14 @@
 import { computed, inject, proxyRefs, reactive, ref } from "vue"
 import type { InjectionKey } from "vue"
 
-import { createDocWithMd, getChildBlocks, getNotebookConf, lsNotebooks, setBlockAttrs } from "@/api"
+import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, setBlockAttrs } from "@/api"
 import {
   buildDailyNoteExamplePath,
   buildPresetExampleDocument,
   formatExampleDocumentTitle,
   pickExampleNotebookId,
 } from "@/core/example-document"
-import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
+import { getActiveDocumentTarget, type ActiveDocumentTarget, type EmbedTargetPreview } from "@/core/embed-target"
 import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
 import { showMessage } from "@/external/siyuan"
@@ -472,7 +472,19 @@ export function createQueryBuilderStore() {
         notebooks.value = notebookResult?.notebooks || []
       }
 
-      const notebookId = pickExampleNotebookId(notebooks.value, draft.template.scope)
+      let notebookId = ""
+      const activeDocument = getActiveDocumentTarget(window)
+      if (activeDocument?.id) {
+        const currentBlock = await getBlockByID(activeDocument.id)
+        const currentNotebookId = String(currentBlock?.box || "").trim()
+        if (currentNotebookId) {
+          notebookId = currentNotebookId
+        }
+      }
+
+      if (!notebookId) {
+        notebookId = pickExampleNotebookId(notebooks.value, draft.template.scope)
+      }
       if (!notebookId) {
         showMessage("未找到可用笔记本", 4000, "error")
         return false

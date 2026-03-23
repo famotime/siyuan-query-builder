@@ -143,6 +143,8 @@ describe("createInlineBlockRenderer", () => {
       return 1
     }))
     vi.stubGlobal("cancelAnimationFrame", vi.fn())
+    document.body.className = ""
+    document.documentElement.className = ""
     delete (window as Record<string, unknown>)[SQB_EMBED_BRIDGE_KEY]
   })
 
@@ -234,6 +236,30 @@ describe("createInlineBlockRenderer", () => {
 
     expect(inlineHost).not.toBeNull()
     expect(inlineHost?.classList.contains("sqb-inline-host")).toBe(true)
+  })
+
+  it("mirrors the current SiYuan theme class onto the inline host", async () => {
+    document.body.classList.add("b3-theme-light")
+    const plugin = createPlugin()
+    createAppMock.mockReturnValue({
+      mount: vi.fn(),
+      unmount: vi.fn(),
+    })
+    templateStoreGet.mockResolvedValue(createSnapshot())
+
+    const renderer = createInlineBlockRenderer(plugin)
+    renderer.start()
+
+    const host = document.createElement("div")
+    await window[SQB_EMBED_BRIDGE_KEY]?.renderHost(host, {
+      templateId: "template-1",
+      viewType: "table",
+      title: "任务清单",
+    })
+
+    const inlineHost = host.firstElementChild as HTMLElement | null
+
+    expect(inlineHost?.classList.contains("b3-theme-light")).toBe(true)
   })
 
   it("cleans up bridge state, event listeners, controller state, and mounted apps on destroy", async () => {

@@ -54,7 +54,8 @@
         </p>
         <div
           v-if="!collapsedSections.scope"
-          class="form-grid"
+          class="form-grid form-grid--scope"
+          data-scope-form
         >
           <label class="field">
             <span>范围类型</span>
@@ -612,7 +613,7 @@ h3 {
 .section-toggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0;
   width: 28px;
   height: 28px;
@@ -769,6 +770,10 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
+}
+
+.form-grid--scope {
+  grid-template-columns: 1fr;
 }
 
 .form-grid--aggregation {

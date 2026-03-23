@@ -118,6 +118,14 @@ describe("QueryBuilderEditor", () => {
     expect(wrapper.text()).toContain("范围类型")
   })
 
+  it("lays out scope controls in a single-column form", () => {
+    currentStore = createStore()
+    currentStore.draft.template.scope.type = 'notebook'
+    const wrapper = mount(QueryBuilderEditor)
+
+    expect(wrapper.get('[data-scope-form]').classes()).toContain('form-grid--scope')
+  })
+
   it("uses the aggregation select directly and defaults to not using aggregation", () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderEditor)

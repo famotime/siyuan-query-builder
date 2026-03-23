@@ -67,6 +67,8 @@ return (async () => {
   const payload = ${payloadJson};
   const host = document.createElement("div");
   host.className = "sqb-inline-host";
+  if (document.body.classList.contains("b3-theme-light")) host.classList.add("b3-theme-light");
+  if (document.body.classList.contains("b3-theme-dark")) host.classList.add("b3-theme-dark");
   host.dataset.sqbInline = ${JSON.stringify(encoded)};
 
   const fallback = document.createElement("div");

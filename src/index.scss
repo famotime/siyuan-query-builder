@@ -134,7 +134,8 @@
   color: var(--sqb-inline-primary);
 }
 
-.b3-theme-light .sqb-inline-host {
+.b3-theme-light .sqb-inline-host,
+.sqb-inline-host.b3-theme-light {
   --sqb-inline-bg:
     radial-gradient(circle at top right, rgba(196, 166, 106, 0.1), transparent 24%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 241, 234, 0.92));
@@ -238,7 +239,8 @@
     linear-gradient(180deg, #1e2220 0%, #1b2620 52%, #192320 100%);
 }
 
-.b3-theme-dark .sqb-inline-host {
+.b3-theme-dark .sqb-inline-host,
+.sqb-inline-host.b3-theme-dark {
   --sqb-inline-bg:
     radial-gradient(circle at top right, rgba(196, 166, 106, 0.16), transparent 26%),
     radial-gradient(circle at bottom left, rgba(74, 124, 89, 0.18), transparent 30%),

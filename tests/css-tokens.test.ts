@@ -41,6 +41,8 @@ describe('src/index.scss — token completeness', () => {
     expect(scss).toContain('--sqb-inline-text:')
     expect(scss).toContain('.b3-theme-dark .sqb-inline-host')
     expect(scss).toMatch(/\.b3-theme-dark \.sqb-inline-host[\s\S]+--sqb-inline-bg/)
+    expect(scss).toContain('.sqb-inline-host.b3-theme-light')
+    expect(scss).toContain('.sqb-inline-host.b3-theme-dark')
   })
 
   it('dark mode overrides shadow tokens', () => {

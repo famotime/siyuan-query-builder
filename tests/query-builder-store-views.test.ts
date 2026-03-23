@@ -100,9 +100,13 @@ describe("createQueryBuilderStore view management", () => {
       dailyNoteSavePath: "/日记/{{now | date \"2006/03\"}}/{{now | date \"2006-01-02\"}}",
       dailyNoteTemplatePath: "",
     })
+    vi.mocked(createDocWithMd).mockClear()
     vi.mocked(createDocWithMd).mockResolvedValue("20260323093000-example")
+    vi.mocked(getChildBlocks).mockClear()
     vi.mocked(getChildBlocks).mockResolvedValue([])
+    vi.mocked(setBlockAttrs).mockClear()
     vi.mocked(setBlockAttrs).mockResolvedValue([])
+    vi.mocked(getBlockByID).mockClear()
     vi.mocked(getBlockByID).mockResolvedValue(null)
     window.siyuan = undefined
     window.confirm = vi.fn(() => true)
@@ -1028,6 +1032,58 @@ describe("createQueryBuilderStore view management", () => {
       "custom-priority": "P1",
     }))
     expect(showMessage).toHaveBeenCalledWith("已生成预设示例文档：2026-03-23 Query Builder 示例", 3500, "info")
+
+    vi.useRealTimers()
+  })
+
+  it("uses the current document notebook daily-note config before falling back to scoped notebook config", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-03-23T09:30:00.000Z"))
+    window.siyuan = {
+      getActiveEditor: () => ({
+        rootId: "20260323080000-active1",
+        title: "当前日报",
+      }),
+    } as any
+    vi.mocked(getBlockByID).mockImplementation(async (id: string) => {
+      if (id === "20260323080000-active1") {
+        return {
+          id,
+          box: "box-current",
+          type: "d",
+          content: "当前日报",
+        } as any
+      }
+      return null
+    })
+    vi.mocked(getNotebookConf).mockImplementation(async (notebookId: string) => ({
+      name: notebookId,
+      closed: false,
+      refCreateSavePath: "/",
+      createDocNameTemplate: "2006-01-02",
+      dailyNoteSavePath: notebookId === "box-current"
+        ? "/当前笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}"
+        : "/其他笔记本日记/{{now | date \"2006/01\"}}/{{now | date \"2006-01-02\"}}",
+      dailyNoteTemplatePath: "",
+    }))
+    vi.mocked(getChildBlocks).mockResolvedValue([])
+    const store = createQueryBuilderStore()
+    store.notebooks = [
+      { id: "box-scope", name: "Scope", icon: "", sort: 0, closed: false } as Notebook,
+      { id: "box-current", name: "Current", icon: "", sort: 1, closed: false } as Notebook,
+    ]
+    store.draft.template.scope = {
+      type: "notebook",
+      value: "box-scope",
+    }
+
+    await (store as any).generateExampleDocument()
+
+    expect(createDocWithMd).toHaveBeenCalledWith(
+      "box-current",
+      "/当前笔记本日记/2026/03/2026-03-23 Query Builder 示例",
+      expect.any(String),
+    )
 
     vi.useRealTimers()
   })
