@@ -15,6 +15,7 @@ import { createInlineBridgeRegistry } from "@/inline/bridge-registry"
 import InlineQueryWidget from "@/inline/InlineQueryWidget.vue"
 import { createInlineRenderController } from "@/inline/render-controller"
 import { createInlineScanLifecycle } from "@/inline/scan-lifecycle"
+import { syncSiyuanThemeMarkers } from "@/ui/theme"
 
 const EVENTS_TO_STOP = [
   "compositionstart",
@@ -37,22 +38,6 @@ function shieldInlineElement(element: HTMLElement) {
   }
 }
 
-function syncInlineThemeClass(element: HTMLElement) {
-  element.classList.remove("b3-theme-light", "b3-theme-dark")
-  const themeHost = element.closest(".b3-theme-light, .b3-theme-dark")
-    || document.body.closest(".b3-theme-light, .b3-theme-dark")
-    || document.documentElement.closest(".b3-theme-light, .b3-theme-dark")
-    || (document.body.classList.contains("b3-theme-light") ? document.body : null)
-    || (document.body.classList.contains("b3-theme-dark") ? document.body : null)
-
-  if (themeHost?.classList.contains("b3-theme-light")) {
-    element.classList.add("b3-theme-light")
-  }
-  if (themeHost?.classList.contains("b3-theme-dark")) {
-    element.classList.add("b3-theme-dark")
-  }
-}
-
 function renderInlineError(element: HTMLElement, message: string) {
   element.innerHTML = `<div class="sqb-inline-error">${message}</div>`
 }
@@ -68,7 +53,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
     const notebooks = await notebooksPromise
     const host = document.createElement("div")
     host.className = "sqb-inline-root sqb-inline-host"
-    syncInlineThemeClass(host)
+    syncSiyuanThemeMarkers(host)
     shieldInlineElement(host)
     element.innerHTML = ""
     element.appendChild(host)

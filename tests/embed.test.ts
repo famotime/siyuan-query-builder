@@ -29,4 +29,15 @@ describe("createEmbedBlockMarkdown", () => {
     expect(markdown).not.toContain("return [];")
     expect(markdown).toContain("return;")
   })
+
+  it("writes an explicit theme marker into the embed host when SiYuan theme classes are unavailable", () => {
+    const markdown = createEmbedBlockMarkdown({
+      templateId: "template-42",
+      viewType: "board",
+      title: "项目看板",
+    })
+
+    expect(markdown).toContain('host.dataset.sqbTheme')
+    expect(markdown).toContain('window?.siyuan?.config?.appearance?.mode')
+  })
 })

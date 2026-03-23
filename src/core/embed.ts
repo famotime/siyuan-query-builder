@@ -67,8 +67,23 @@ return (async () => {
   const payload = ${payloadJson};
   const host = document.createElement("div");
   host.className = "sqb-inline-host";
-  if (document.body.classList.contains("b3-theme-light")) host.classList.add("b3-theme-light");
-  if (document.body.classList.contains("b3-theme-dark")) host.classList.add("b3-theme-dark");
+  const themeHost = item.closest?.(".b3-theme-light, .b3-theme-dark")
+    || document.body?.closest?.(".b3-theme-light, .b3-theme-dark")
+    || document.documentElement?.closest?.(".b3-theme-light, .b3-theme-dark");
+  let theme = "";
+  if (themeHost?.classList?.contains("b3-theme-light") || document.body?.classList?.contains("b3-theme-light") || document.documentElement?.classList?.contains("b3-theme-light")) theme = "light";
+  if (themeHost?.classList?.contains("b3-theme-dark") || document.body?.classList?.contains("b3-theme-dark") || document.documentElement?.classList?.contains("b3-theme-dark")) theme = "dark";
+  if (!theme) {
+    const appearanceMode = window?.siyuan?.config?.appearance?.mode;
+    if (appearanceMode === 0) theme = "light";
+    if (appearanceMode === 1) theme = "dark";
+  }
+  if (!theme && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches) theme = "dark";
+  if (!theme && window.matchMedia?.("(prefers-color-scheme: light)")?.matches) theme = "light";
+  if (theme) {
+    host.classList.add("b3-theme-" + theme);
+    host.dataset.sqbTheme = theme;
+  }
   host.dataset.sqbInline = ${JSON.stringify(encoded)};
 
   const fallback = document.createElement("div");
