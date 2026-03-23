@@ -67,15 +67,32 @@
         直接加载常用查询草稿，快速开始当前工作流。
       </p>
       <template v-if="presetsExpanded">
-        <button
-          v-for="preset in store.presets"
-          :key="preset.id"
-          class="item"
-          @click="store.applySnapshot(preset.snapshot)"
+        <section
+          v-for="group in presetGroups"
+          :key="group.id"
+          class="preset-group"
         >
-          <strong>{{ preset.title }}</strong>
-          <span>{{ preset.description }}</span>
-        </button>
+          <button
+            :data-preset-category-toggle="group.id"
+            class="preset-group__toggle"
+            type="button"
+            @click="togglePresetCategory(group.id)"
+          >
+            <span class="preset-group__title">{{ group.label }}</span>
+            <span class="preset-group__meta">{{ group.items.length }}</span>
+          </button>
+          <div v-if="isPresetCategoryExpanded(group.id)">
+            <button
+              v-for="preset in group.items"
+              :key="preset.id"
+              class="item"
+              @click="store.applySnapshot(preset.snapshot)"
+            >
+              <strong>{{ preset.title }}</strong>
+              <span>{{ preset.description }}</span>
+            </button>
+          </div>
+        </section>
       </template>
     </div>
 
@@ -163,9 +180,11 @@
           >
             <span class="item-main__copy">
               <strong>{{ summary.templateName }}</strong>
-              <span>默认：{{ viewTypeLabel(summary.defaultViewType) }}</span>
+              <span
+                :data-template-summary="summary.templateId"
+                class="item-main__summary"
+              >默认：{{ viewTypeLabel(summary.defaultViewType) }} · {{ summary.viewCount }} 个视图</span>
             </span>
-            <span class="item-main__meta">{{ summary.viewCount }} 个视图</span>
           </button>
           <button
             class="item-action"
@@ -273,17 +292,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, reactive, ref } from "vue"
 
 import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import type { PresetDefinition } from "@/core/query/catalog"
 
 const store = useQueryBuilderStore()
 const presetsExpanded = ref(true)
 const historyExpanded = ref(true)
 const savedTemplatesExpanded = ref(true)
 const templateImportInput = ref<HTMLInputElement | null>(null)
+const presetCategoryExpanded = reactive<Record<string, boolean>>({
+  daily: true,
+  links: true,
+  attributes: true,
+})
+const presetCategoryMeta = {
+  daily: "日常管理",
+  links: "链接管理",
+  attributes: "自定义属性",
+} satisfies Record<NonNullable<PresetDefinition["category"]>, string>
+
+const presetGroups = computed(() => {
+  const order: Array<PresetDefinition["category"]> = ["daily", "links", "attributes"]
+  return order
+    .map(category => ({
+      id: category,
+      label: presetCategoryMeta[category],
+      items: store.presets.filter((preset: PresetDefinition) => preset.category === category),
+    }))
+    .filter(group => group.items.length)
+})
 
 function viewTypeLabel(type: string) {
   switch (type) {
@@ -313,6 +354,14 @@ function formatExecutedAt(value: string) {
 
 function triggerTemplateImport() {
   templateImportInput.value?.click()
+}
+
+function togglePresetCategory(category: string) {
+  presetCategoryExpanded[category] = !presetCategoryExpanded[category]
+}
+
+function isPresetCategoryExpanded(category: string) {
+  return presetCategoryExpanded[category] !== false
 }
 
 async function handleTemplateImport(event: Event) {
@@ -563,6 +612,35 @@ h2 {
   font: 13px/1.5 var(--sqb-sans);
 }
 
+.preset-group {
+  margin-top: 10px;
+}
+
+.preset-group__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--sqb-border);
+  border-radius: 10px;
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text);
+  cursor: pointer;
+  text-align: left;
+  font: 700 12px/1.3 var(--sqb-sans);
+}
+
+.preset-group__title {
+  letter-spacing: 0.04em;
+}
+
+.preset-group__meta {
+  color: var(--sqb-text-muted);
+  font: 600 11px/1.2 var(--sqb-sans);
+}
+
 .item {
   width: 100%;
   display: flex;
@@ -614,10 +692,10 @@ h2 {
   gap: 4px;
 }
 
-.item-main__meta {
-  flex: 0 0 auto;
+.item-main__summary {
   color: var(--sqb-text-muted);
   font: 12px/1.4 var(--sqb-sans);
+  font-weight: 400;
 }
 
 .item-delete {

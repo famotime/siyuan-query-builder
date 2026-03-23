@@ -59,13 +59,28 @@ describe("QueryBuilderSidebar", () => {
     expect(currentStore.applySnapshot).not.toHaveBeenCalled()
   })
 
-  it("collapses and expands preset and saved template sections", async () => {
+  it("groups presets by category and collapses each category independently", async () => {
     currentStore = createStore()
     currentStore.presets = [
       {
         id: "preset-1",
-        title: "任务面板",
+        category: "daily",
+        title: "任务清单",
         description: "查看任务",
+        snapshot: {},
+      },
+      {
+        id: "preset-2",
+        category: "links",
+        title: "高反链核心笔记",
+        description: "查看链接",
+        snapshot: {},
+      },
+      {
+        id: "preset-3",
+        category: "attributes",
+        title: "项目看板",
+        description: "查看属性",
         snapshot: {},
       },
     ]
@@ -73,26 +88,32 @@ describe("QueryBuilderSidebar", () => {
     const wrapper = mount(QueryBuilderSidebar)
     expect(wrapper.get('[data-section-toggle="presets"]').get("svg").exists()).toBe(true)
     expect(wrapper.get('[data-section-toggle="saved-templates"]').get("svg").exists()).toBe(true)
-    expect(wrapper.get('[data-presets-count]').text()).toBe("1")
+    expect(wrapper.get('[data-presets-count]').text()).toBe("3")
 
-    expect(wrapper.text()).toContain("任务面板")
+    expect(wrapper.text()).toContain("日常管理")
+    expect(wrapper.text()).toContain("链接管理")
+    expect(wrapper.text()).toContain("自定义属性")
     expect(wrapper.text()).toContain("任务清单")
+    expect(wrapper.text()).toContain("高反链核心笔记")
+    expect(wrapper.text()).toContain("项目看板")
+
+    await wrapper.get('[data-preset-category-toggle="daily"]').trigger("click")
+    expect(wrapper.findAll(".preset-group .item strong").map(item => item.text())).not.toContain("任务清单")
+    expect(wrapper.text()).toContain("高反链核心笔记")
+    expect(wrapper.text()).toContain("项目看板")
 
     await wrapper.get('[data-section-toggle="presets"]').trigger("click")
-    expect(wrapper.text()).not.toContain("任务面板")
-    expect(wrapper.text()).toContain("任务清单")
-
+    expect(wrapper.text()).not.toContain("高反链核心笔记")
     await wrapper.get('[data-section-toggle="saved-templates"]').trigger("click")
     expect(wrapper.text()).not.toContain("任务清单")
 
     await wrapper.get('[data-section-toggle="presets"]').trigger("click")
     await wrapper.get('[data-section-toggle="saved-templates"]').trigger("click")
 
-    expect(wrapper.text()).toContain("任务面板")
-    expect(wrapper.text()).toContain("任务清单")
+    expect(wrapper.text()).toContain("日常管理")
   })
 
-  it("shows the saved default view label from the actual view type", () => {
+  it("shows merged saved-template metadata as muted copy below the template name", () => {
     currentStore = createStore()
     currentStore.savedTemplateSummaries = [
       {
@@ -110,11 +131,12 @@ describe("QueryBuilderSidebar", () => {
     ]
 
     const wrapper = mount(QueryBuilderSidebar)
+    const firstSummary = wrapper.get('[data-template-summary="template-1"]')
+    const secondSummary = wrapper.get('[data-template-summary="template-2"]')
 
-    expect(wrapper.text()).toContain("统计卡片")
-    expect(wrapper.text()).toContain("列表")
-    expect(wrapper.text()).toContain("2 个视图")
-    expect(wrapper.text()).toContain("3 个视图")
+    expect(firstSummary.text()).toBe("默认：统计卡片 · 2 个视图")
+    expect(secondSummary.text()).toBe("默认：列表 · 3 个视图")
+    expect(firstSummary.element.tagName).toBe("SPAN")
   })
 
   it("loads a template by id instead of replaying a stored snapshot", async () => {

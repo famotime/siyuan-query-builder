@@ -16,6 +16,7 @@ describe("createPresets", () => {
 
     expect(preset).toBeDefined()
     expect(preset?.title).toBe("高反链核心笔记")
+    expect(preset?.category).toBe("links")
     expect(preset?.snapshot.template.scope).toEqual({
       type: "block_type",
       value: "d",
@@ -46,6 +47,7 @@ describe("createPresets", () => {
 
     const recentLinked = presets.find(item => item.id === "preset-recent-linked-documents")
     expect(recentLinked?.snapshot.view.type).toBe("list")
+    expect(recentLinked?.category).toBe("links")
     expect(recentLinked?.snapshot.template.filters).toEqual(expect.arrayContaining([
       expect.objectContaining({
         field: "updated",
@@ -62,6 +64,7 @@ describe("createPresets", () => {
     const topTags = presets.find(item => item.id === "preset-top-documents-by-tags")
     expect(topTags).toBeDefined()
     expect(topTags?.title).toBe("包含最多标签的文档(Top10)")
+    expect(topTags?.category).toBe("daily")
     expect(topTags?.snapshot.template.limit).toBe(10)
     expect(topTags?.snapshot.template.sorts).toEqual([
       {

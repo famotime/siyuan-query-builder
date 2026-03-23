@@ -10,6 +10,7 @@ import { createDefaultViewConfig, createId } from "./view-state"
 
 export interface PresetDefinition {
   id: string
+  category: "daily" | "links" | "attributes"
   title: string
   description: string
   snapshot: QueryBuilderSnapshot
@@ -357,78 +358,91 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
   return [
     {
       id: "preset-weekly-tasks",
+      category: "attributes",
       title: "任务清单",
       description: "状态未完成且未来 7 天到期的任务",
       snapshot: createPresetSnapshot(taskTemplate, "table"),
     },
     {
       id: "preset-project-board",
+      category: "attributes",
       title: "项目看板",
       description: "按状态分组的项目块看板",
       snapshot: createPresetSnapshot(boardTemplate, "board"),
     },
     {
       id: "preset-reading-queue",
+      category: "attributes",
       title: "阅读清单",
       description: "未读内容按优先级排序",
       snapshot: createPresetSnapshot(readingTemplate, "table"),
     },
     {
       id: "preset-recent-meetings",
+      category: "daily",
       title: "会议回顾",
       description: "最近 30 天会议记录按项目查看",
       snapshot: createPresetSnapshot(meetingTemplate, "table"),
     },
     {
       id: "preset-core-documents-by-backlinks",
+      category: "links",
       title: "高反链核心笔记",
       description: "按反向链接数排序，快速识别被最多笔记依赖的核心文档。",
       snapshot: createPresetSnapshot(topTaggedDocumentsTemplate, "table"),
     },
     {
       id: "preset-index-documents-by-outlinks",
+      category: "links",
       title: "高正链索引笔记",
       description: "按正向链接数排序，识别承担目录和导航角色的索引文档。",
       snapshot: createPresetSnapshot(topOutlinkedDocumentsTemplate, "table"),
     },
     {
       id: "preset-bidirectional-core-documents",
+      category: "links",
       title: "双向连接核心区",
       description: "同时有较多正链和反链的文档，适合优先精修知识网络中枢。",
       snapshot: createPresetSnapshot(bidirectionalCoreDocumentsTemplate, "table"),
     },
     {
       id: "preset-island-documents-without-links",
+      category: "links",
       title: "无链接孤岛笔记",
       description: "筛出没有建立任何链接关系的文档，方便补齐知识网络连接。",
       snapshot: createPresetSnapshot(islandDocumentsTemplate, "table"),
     },
     {
       id: "preset-recent-linked-documents",
+      category: "links",
       title: "近期活跃链接笔记",
       description: "查看最近 30 天更新且已经形成链接关系的活跃文档。",
       snapshot: createPresetSnapshot(recentLinkedDocumentsTemplate, "list"),
     },
     {
       id: "preset-recently-updated-documents-7d",
+      category: "daily",
       title: "最近 7 天更新文档",
       description: "按更新时间回顾最近一周处理过的文档。",
       snapshot: createPresetSnapshot(recentlyUpdatedDocumentsTemplate, "table"),
     },
     {
       id: "preset-recently-created-documents-30d",
+      category: "daily",
       title: "最近 30 天新建文档",
       description: "按创建时间查看最近新增积累，适合做月度整理回顾。",
       snapshot: createPresetSnapshot(recentlyCreatedDocumentsTemplate, "table"),
     },
     {
       id: "preset-top-documents-by-tags",
+      category: "daily",
       title: "包含最多标签的文档(Top10)",
       description: "快速找出标签数量最多的文档，适合梳理高密度主题页面。",
       snapshot: createPresetSnapshot(topTaggedDocumentsByTagCountTemplate, "table"),
     },
     {
       id: "preset-today-edited-documents",
+      category: "daily",
       title: "今日编辑速览",
       description: "聚焦今天更新过的文档，快速回看当前工作痕迹。",
       snapshot: createPresetSnapshot(todayEditedDocumentsTemplate, "table"),
