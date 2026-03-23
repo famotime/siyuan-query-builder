@@ -179,6 +179,14 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     try {
       const snapshot = createSnapshot(draft)
       snapshot.template.viewType = snapshot.view.type
+      const duplicateTypeView = savedViews.value.find(view =>
+        view.queryTemplateId === snapshot.template.id
+        && view.type === snapshot.view.type,
+      )
+      if (duplicateTypeView) {
+        showMessage("该视图类型已存在，无需重复添加", 3500, "error")
+        return false
+      }
       await savePersistedTemplate(snapshot.template)
       const nextView = {
         ...snapshot.view,

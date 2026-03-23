@@ -666,6 +666,7 @@ describe("createQueryBuilderStore view management", () => {
     store.draft.template.groupBy = `attr:${store.draft.view.fieldMappings.status}`
     await store.runQuery()
     await store.saveTemplate()
+    store.setViewType("list")
     await store.saveViewAs()
     await flushMetricsWrites()
 
@@ -678,6 +679,7 @@ describe("createQueryBuilderStore view management", () => {
       boardDrags: 0,
       viewSwitches: {
         board: 1,
+        list: 1,
       },
     })
   })
@@ -745,6 +747,42 @@ describe("createQueryBuilderStore view management", () => {
         direction: "asc",
       },
     ])
+  })
+
+  it("appends a newly added saved view to the right instead of inserting it before existing views", async () => {
+    const store = createQueryBuilderStore()
+
+    store.draft.template.name = "任务清单"
+    await store.saveTemplate()
+    const initialViewId = store.draft.view.id
+
+    store.setViewType("board")
+    store.draft.template.groupBy = `attr:${store.draft.view.fieldMappings.status}`
+
+    await store.saveViewAs()
+
+    expect(store.savedViews.map(view => view.id)).toEqual([
+      initialViewId,
+      store.draft.view.id,
+    ])
+    expect(store.savedViews.map(view => view.type)).toEqual([
+      "table",
+      "board",
+    ])
+  })
+
+  it("prevents adding a duplicate saved view of the same type for one template", async () => {
+    const store = createQueryBuilderStore()
+
+    store.draft.template.name = "任务清单"
+    await store.saveTemplate()
+    const originalViewId = store.draft.view.id
+
+    await expect(store.saveViewAs()).resolves.toBe(false)
+
+    expect(store.savedViews).toHaveLength(1)
+    expect(store.savedViews[0]?.id).toBe(originalViewId)
+    expect(showMessage).toHaveBeenCalledWith("该视图类型已存在，无需重复添加", 3500, "error")
   })
 
   it("initializes notebooks and embed target state from persisted preferences", async () => {

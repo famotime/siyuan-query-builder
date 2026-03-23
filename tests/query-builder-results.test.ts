@@ -116,7 +116,7 @@ describe("QueryBuilderResults", () => {
     expect(currentStore.draft.template.viewType).toBe("board")
   })
 
-  it("shows saved views for the current template and wires view actions", async () => {
+  it("shows a default badge on every saved view card and uses it to switch the single highlighted default view", async () => {
     currentStore = createStore()
     currentStore.savedViews = [
       {
@@ -139,13 +139,28 @@ describe("QueryBuilderResults", () => {
 
     const wrapper = mount(QueryBuilderResults)
     const grid = wrapper.get("[data-saved-views-grid]")
+    const cards = grid.findAll("[data-saved-view-card]")
+    const firstBadge = wrapper.get('[data-view-default-badge="view-1"]')
+    const secondBadge = wrapper.get('[data-view-default-badge="view-2"]')
+    const secondMeta = wrapper.get('[data-view-card-meta="view-2"]')
+    const firstDescription = wrapper.get('[data-view-description="view-1"]')
+    const secondDescription = wrapper.get('[data-view-description="view-2"]')
 
     expect(wrapper.text()).toContain("已保存视图")
     expect(wrapper.text()).toContain("默认")
-    expect(grid.findAll("[data-saved-view-card]").length).toBe(2)
+    expect(grid.attributes("data-grid-columns")).toBe("4")
+    expect(cards.length).toBe(2)
+    expect(cards[0]?.attributes("data-card-size")).toBe("compact")
+    expect(wrapper.find('[data-view-default="view-2"]').exists()).toBe(false)
+    expect(firstBadge.attributes("data-state")).toBe("active")
+    expect(secondBadge.attributes("data-state")).toBe("idle")
+    expect(secondMeta.get('[data-view-default-badge="view-2"]').exists()).toBe(true)
+    expect(secondMeta.get('[data-view-delete="view-2"]').exists()).toBe(true)
+    expect(firstDescription.text()).toContain("适合核对明细")
+    expect(secondDescription.text()).toContain("适合按阶段推进")
 
     await wrapper.get('[data-view-load="view-2"]').trigger("click")
-    await wrapper.get('[data-view-default="view-2"]').trigger("click")
+    await secondBadge.trigger("click")
     await wrapper.get('[data-view-delete="view-2"]').trigger("click")
     await wrapper.get("[data-view-save-as]").trigger("click")
 
