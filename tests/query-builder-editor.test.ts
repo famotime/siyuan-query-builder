@@ -113,14 +113,28 @@ describe("QueryBuilderEditor", () => {
     expect(wrapper.text()).toContain("范围类型")
   })
 
-  it("shows statistical function controls for aggregate queries", () => {
+  it("uses the aggregation select directly and defaults to not using aggregation", () => {
     currentStore = createStore()
+    const wrapper = mount(QueryBuilderEditor)
+    const aggregationSelect = wrapper.get('[data-aggregation-function]')
+
+    expect(wrapper.text()).not.toContain("启用统计函数")
+    expect((aggregationSelect.element as HTMLSelectElement).value).toBe("")
+    expect(aggregationSelect.text()).toContain("不使用")
+    expect(wrapper.find('[data-aggregation-field]').exists()).toBe(false)
+  })
+
+  it("shows statistical field selection when aggregation mode is enabled from the dropdown", async () => {
+    currentStore = createStore()
+    const wrapper = mount(QueryBuilderEditor)
+    const aggregationSelect = wrapper.get('[data-aggregation-function]')
+
+    await aggregationSelect.setValue("sum")
     currentStore.aggregationEnabled = true
     currentStore.aggregationFunctionProxy = "sum"
-    const wrapper = mount(QueryBuilderEditor)
+    await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain("统计函数")
-    expect(wrapper.text()).toContain("统计字段")
+    expect(wrapper.find('[data-aggregation-field]').exists()).toBe(true)
     expect(wrapper.find('input[type="number"]').exists()).toBe(true)
   })
 

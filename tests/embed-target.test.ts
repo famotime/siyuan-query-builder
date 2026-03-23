@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  createEmbedTargetPreview,
   formatEmbedTargetHint,
   getActiveDocumentTarget,
   getOpenDocumentTargets,
@@ -36,6 +37,19 @@ describe("embed target helpers", () => {
       title: "",
       content: "这是块内容摘要",
     })).toBe("块：这是块内容摘要")
+  })
+
+  it("keeps the full document title in the embed hint even when preview labels are shortened", () => {
+    const fullTitle = "这是一个非常长的文档标题，用来确认嵌入提示区域不会截断已经选中的文档名称，并且在标题很长很长很长的时候依然展示完整内容"
+    const preview = createEmbedTargetPreview({
+      id: "20260322195501-def5678",
+      type: "d",
+      content: fullTitle,
+      name: fullTitle,
+    }, "20260322195501-def5678")
+
+    expect(preview?.title.endsWith("…")).toBe(true)
+    expect(formatEmbedTargetHint(preview || null)).toBe(`文档：${fullTitle}`)
   })
 
   it("normalizes recent embed target ids with trim, dedupe and max size", () => {

@@ -3,6 +3,7 @@ export interface EmbedTargetPreview {
   type: "document" | "block"
   title: string
   content: string
+  fullTitle?: string
 }
 
 export interface ActiveDocumentTarget {
@@ -116,7 +117,7 @@ export function formatEmbedTargetHint(target: EmbedTargetPreview | null) {
     return ""
   }
   if (target.type === "document") {
-    return `文档：${target.title || target.id}`
+    return `文档：${target.fullTitle || target.title || target.id}`
   }
   return `块：${target.content || target.title || target.id}`
 }
@@ -136,6 +137,7 @@ export function createEmbedTargetPreview(block: Partial<Block> | null | undefine
     type: block?.type === "d" ? "document" : "block",
     title: summarizeBlockLabel(String(block?.content || block?.name || id), 40),
     content: summarizeBlockLabel(String(block?.content || block?.fcontent || block?.name || id), 48),
+    fullTitle: String(block?.content || block?.name || id).replace(/\s+/g, " ").trim() || id,
   }
 }
 

@@ -20,21 +20,33 @@
     <div class="grid">
       <article class="card card--scope">
         <div class="section-head">
+          <div class="section-heading">
+            <span class="section-kicker">Scope</span>
+            <h3>查询范围</h3>
+          </div>
           <button
             class="section-toggle"
             type="button"
             data-section-toggle="scope"
+            :title="collapsedSections.scope ? '展开查询范围' : '收起查询范围'"
+            :aria-label="collapsedSections.scope ? '展开查询范围' : '收起查询范围'"
             :aria-expanded="String(!collapsedSections.scope)"
             @click="toggleSection('scope')"
           >
-            <div class="section-heading">
-              <span class="section-kicker">Scope</span>
-              <h3>查询范围</h3>
-            </div>
-            <span
-              class="section-toggle__chevron"
-              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.scope }"
-            >⌄</span>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              :class="{ 'is-expanded': !collapsedSections.scope }"
+            >
+              <path
+                d="M7 10l5 5 5-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.2"
+              />
+            </svg>
           </button>
         </div>
         <p class="section-copy">
@@ -124,21 +136,33 @@
 
       <article class="card card--mappings">
         <div class="section-head">
+          <div class="section-heading">
+            <span class="section-kicker">Field Mapping</span>
+            <h3>字段映射</h3>
+          </div>
           <button
             class="section-toggle"
             type="button"
             data-section-toggle="mappings"
+            :title="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
+            :aria-label="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
             :aria-expanded="String(!collapsedSections.mappings)"
             @click="toggleSection('mappings')"
           >
-            <div class="section-heading">
-              <span class="section-kicker">Field Mapping</span>
-              <h3>字段映射</h3>
-            </div>
-            <span
-              class="section-toggle__chevron"
-              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.mappings }"
-            >⌄</span>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              :class="{ 'is-expanded': !collapsedSections.mappings }"
+            >
+              <path
+                d="M7 10l5 5 5-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.2"
+              />
+            </svg>
           </button>
         </div>
         <p class="section-copy">
@@ -164,28 +188,42 @@
 
       <article class="card card--full">
         <div class="section-head">
-          <button
-            class="section-toggle"
-            type="button"
-            data-section-toggle="filters"
-            :aria-expanded="String(!collapsedSections.filters)"
-            @click="toggleSection('filters')"
-          >
-            <div class="section-heading">
-              <span class="section-kicker">Filters</span>
-              <h3>条件编辑器</h3>
-            </div>
-            <span
-              class="section-toggle__chevron"
-              :class="{ 'section-toggle__chevron--collapsed': collapsedSections.filters }"
-            >⌄</span>
-          </button>
-          <button
-            class="btn btn--ghost btn--small"
-            @click="store.addFilter"
-          >
-            添加条件
-          </button>
+          <div class="section-heading">
+            <span class="section-kicker">Filters</span>
+            <h3>条件编辑器</h3>
+          </div>
+          <div class="section-head-actions">
+            <button
+              class="btn btn--ghost btn--small"
+              @click="store.addFilter"
+            >
+              添加条件
+            </button>
+            <button
+              class="section-toggle"
+              type="button"
+              data-section-toggle="filters"
+              :title="collapsedSections.filters ? '展开条件编辑器' : '收起条件编辑器'"
+              :aria-label="collapsedSections.filters ? '展开条件编辑器' : '收起条件编辑器'"
+              :aria-expanded="String(!collapsedSections.filters)"
+              @click="toggleSection('filters')"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                :class="{ 'is-expanded': !collapsedSections.filters }"
+              >
+                <path
+                  d="M7 10l5 5 5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.2"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
         <p class="section-copy">
           组合字段、操作符和值来描述真正要筛出的内容。
@@ -378,12 +416,18 @@ function toggleSection(section: keyof typeof collapsedSections) {
 }
 
 .section-head,
+.section-head-actions,
 .actions,
 .actions--inline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 14px;
+}
+
+.section-head,
+.actions,
+.actions--inline {
+  justify-content: space-between;
 }
 
 .grid {
@@ -440,15 +484,16 @@ h3 {
 }
 
 .section-toggle {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sqb-border);
+  border-radius: 8px;
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text-muted);
   cursor: pointer;
 }
 
@@ -471,14 +516,17 @@ h3 {
   font: 13px/1.55 var(--sqb-sans);
 }
 
-.section-toggle__chevron {
-  display: inline-block;
-  color: var(--sqb-text-muted);
-  font: 600 18px/1 var(--sqb-sans);
-  transition: transform 0.2s ease;
+.section-toggle:hover {
+  background: var(--sqb-bg-strong);
 }
 
-.section-toggle__chevron--collapsed {
+.section-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 140ms ease;
+}
+
+.section-toggle svg.is-expanded {
   transform: rotate(180deg);
 }
 

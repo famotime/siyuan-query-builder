@@ -89,23 +89,37 @@
       </div>
 
       <section class="advanced-panel">
-        <button
-          class="advanced-panel__toggle"
-          data-advanced-mode-toggle
-          type="button"
-          :aria-expanded="String(store.advancedMode)"
-          @click="store.advancedMode = !store.advancedMode"
-        >
+        <div class="advanced-panel__head">
           <div class="advanced-panel__copy">
-            <strong>SQL</strong>
+            <span class="advanced-panel__eyebrow">SQL</span>
+            <strong>SQL 预览</strong>
             <span>查看当前查询生成的 SQL 表达。</span>
           </div>
-          <span
-            class="advanced-panel__chevron"
-            :class="{ 'advanced-panel__chevron--open': store.advancedMode }"
-            aria-hidden="true"
-          >⌄</span>
-        </button>
+          <button
+            class="section-toggle"
+            data-advanced-mode-toggle
+            type="button"
+            :title="store.advancedMode ? '收起 SQL 预览' : '展开 SQL 预览'"
+            :aria-label="store.advancedMode ? '收起 SQL 预览' : '展开 SQL 预览'"
+            :aria-expanded="String(store.advancedMode)"
+            @click="store.advancedMode = !store.advancedMode"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              :class="{ 'is-expanded': store.advancedMode }"
+            >
+              <path
+                d="M7 10l5 5 5-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.2"
+              />
+            </svg>
+          </button>
+        </div>
         <div
           v-if="store.advancedMode"
           class="sql-box"
@@ -656,7 +670,9 @@ h3 {
 .muted--embed-target {
   color: var(--sqb-text-muted);
   font-size: 13px;
-  font-style: italic;
+  font-style: normal;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .alert {
@@ -676,18 +692,12 @@ h3 {
   overflow: hidden;
 }
 
-.advanced-panel__toggle {
-  width: 100%;
+.advanced-panel__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 16px 18px;
-  border: none;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
 }
 
 .advanced-panel__copy {
@@ -712,14 +722,30 @@ h3 {
   font: 13px/1.45 var(--sqb-sans);
 }
 
-.advanced-panel__chevron {
-  flex: 0 0 auto;
+.section-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sqb-border);
+  border-radius: 8px;
+  background: var(--sqb-surface);
   color: var(--sqb-text-muted);
-  font: 600 18px/1 var(--sqb-sans);
+  cursor: pointer;
+}
+
+.section-toggle:hover {
+  background: var(--sqb-bg-strong);
+}
+
+.section-toggle svg {
+  width: 16px;
+  height: 16px;
   transition: transform 140ms ease;
 }
 
-.advanced-panel__chevron--open {
+.section-toggle svg.is-expanded {
   transform: rotate(180deg);
 }
 

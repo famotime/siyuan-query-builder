@@ -155,14 +155,18 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-soft);
+  background: var(--sqb-surface);
   color: var(--sqb-text);
   cursor: pointer;
   text-align: left;
   font: 600 13px/1.35 var(--sqb-sans);
+}
+
+.field-picker__toggle:hover {
+  background: var(--sqb-bg-strong);
 }
 
 .field-picker__summary {
@@ -187,7 +191,7 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
   padding: 8px;
   border-radius: 12px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+  background: var(--sqb-surface);
 }
 
 .field-picker__option {

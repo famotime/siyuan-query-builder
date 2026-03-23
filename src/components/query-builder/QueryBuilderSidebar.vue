@@ -19,9 +19,15 @@
 
     <div class="card">
       <div class="section-head">
-        <div class="section-head-main section-head-main--block">
-          <span class="section-kicker">Scene Presets</span>
-          <h2>预设场景</h2>
+        <div class="section-head-main">
+          <div class="section-head-copy">
+            <span class="section-kicker">Scene Presets</span>
+            <h2>预设场景</h2>
+          </div>
+          <span
+            data-presets-count
+            class="pill"
+          >{{ store.presets.length }}</span>
         </div>
         <button
           data-section-toggle="presets"
@@ -75,13 +81,26 @@
         </div>
         <div class="section-head-actions">
           <button
+            data-template-import-trigger
             class="section-action"
             type="button"
             title="导入模板"
             aria-label="导入模板"
             @click="triggerTemplateImport"
           >
-            导入
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+            </svg>
           </button>
           <input
             ref="templateImportInput"
@@ -147,7 +166,19 @@
             aria-label="导出模板"
             @click.stop="exportTemplate(summary.templateId)"
           >
-            导出
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 20V10m0 0 4 4m-4-4-4 4M5 6h14"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+            </svg>
           </button>
           <DeleteIconButton
             :data-template-delete="summary.templateId"
@@ -334,8 +365,10 @@ async function exportTemplate(templateId: string) {
 
 .card--hero {
   background:
-    linear-gradient(160deg, rgba(240, 232, 219, 0.98), rgba(255, 255, 255, 0.92)),
+    radial-gradient(circle at top right, rgba(120, 168, 134, 0.18), transparent 42%),
+    linear-gradient(160deg, rgba(241, 236, 228, 0.98), rgba(232, 239, 231, 0.94)),
     var(--sqb-surface);
+  border-color: var(--sqb-border-strong);
 }
 
 .card--history {
@@ -448,7 +481,8 @@ h2 {
 .section-action,
 .item-action {
   height: 28px;
-  padding: 0 10px;
+  width: 28px;
+  padding: 0;
   border-radius: 8px;
 }
 
@@ -459,6 +493,8 @@ h2 {
   border-radius: 8px;
 }
 
+.section-action svg,
+.item-action svg,
 .section-toggle svg {
   width: 16px;
   height: 16px;

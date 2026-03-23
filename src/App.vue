@@ -104,6 +104,9 @@ onErrorCaptured((error, instance, info) => {
   min-height: 0;
   overflow: auto;
   padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
 .workspace--boot-error {

@@ -287,6 +287,9 @@ onBeforeUnmount(() => {
 
 .muted--embed-target {
   color: var(--sqb-text-muted);
+  font-style: normal;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .control {

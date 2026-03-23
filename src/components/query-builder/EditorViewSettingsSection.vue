@@ -1,28 +1,40 @@
 <template>
   <article class="card card--full">
     <div class="section-head">
+      <div class="section-heading">
+        <span class="section-kicker">View Settings</span>
+        <h3>排序、分组与字段</h3>
+      </div>
       <button
         class="section-toggle"
         type="button"
         data-section-toggle="view"
+        :title="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
+        :aria-label="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
         :aria-expanded="String(!collapsed)"
         @click="emit('toggle')"
       >
-        <div class="section-heading">
-          <span class="section-kicker">View Settings</span>
-          <h3>排序、分组与字段</h3>
-        </div>
-        <span
-          class="section-toggle__chevron"
-          :class="{ 'section-toggle__chevron--collapsed': collapsed }"
-        >⌄</span>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          :class="{ 'is-expanded': !collapsed }"
+        >
+          <path
+            d="M7 10l5 5 5-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.2"
+          />
+        </svg>
       </button>
     </div>
     <p class="section-copy">
       控制结果如何分组展示、如何排序，以及最终输出哪些字段。
     </p>
     <template v-if="!collapsed">
-      <div class="form-grid">
+      <div class="form-grid form-grid--top">
         <label class="field">
           <span>分组字段</span>
           <select
@@ -42,37 +54,15 @@
           </select>
         </label>
         <label class="field">
-          <span>结果上限</span>
-          <input
-            v-model="store.limitProxy"
-            class="control"
-            type="number"
-            min="1"
-            max="1000"
-          >
-        </label>
-      </div>
-
-      <div class="form-grid">
-        <label class="chip chip--toggle">
-          <input
-            v-model="store.aggregationEnabled"
-            type="checkbox"
-          >
-          <span>启用统计函数</span>
-        </label>
-      </div>
-
-      <div
-        v-if="store.aggregationEnabled"
-        class="form-grid form-grid--aggregation"
-      >
-        <label class="field">
           <span>统计函数</span>
           <select
-            v-model="store.aggregationFunctionProxy"
+            v-model="aggregationModeProxy"
+            data-aggregation-function
             class="control"
           >
+            <option value="">
+              不使用
+            </option>
             <option value="count">
               计数 Count
             </option>
@@ -90,8 +80,25 @@
             </option>
           </select>
         </label>
+        <label class="field">
+          <span>结果上限</span>
+          <input
+            v-model="store.limitProxy"
+            class="control"
+            type="number"
+            min="1"
+            max="1000"
+          >
+        </label>
+      </div>
+
+      <div
+        v-if="aggregationModeProxy"
+        class="form-grid form-grid--aggregation"
+      >
         <label
-          v-if="store.aggregationFunctionProxy !== 'count'"
+          v-if="aggregationModeProxy !== 'count'"
+          data-aggregation-field
           class="field"
         >
           <span>统计字段</span>
@@ -118,8 +125,11 @@
           class="view-config-panel"
           data-sort-panel
         >
-          <div class="section-head section-head--top section-head--compact">
-            <span class="muted">排序规则</span>
+          <div class="view-config-panel__head">
+            <div class="view-config-panel__copy">
+              <span class="section-kicker">Sort Rules</span>
+              <h4>排序规则</h4>
+            </div>
             <button
               class="btn btn--ghost btn--small"
               @click="store.addSort"
@@ -171,8 +181,11 @@
           class="view-config-panel"
           data-field-panel
         >
-          <div class="section-head section-head--top section-head--compact">
-            <span class="muted">输出字段</span>
+          <div class="view-config-panel__head">
+            <div class="view-config-panel__copy">
+              <span class="section-kicker">Output Fields</span>
+              <h4>输出字段</h4>
+            </div>
           </div>
           <EditorFieldPicker />
         </section>
@@ -182,6 +195,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
+
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorFieldPicker from "@/components/query-builder/EditorFieldPicker.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
@@ -195,6 +210,18 @@ const emit = defineEmits<{
 }>()
 
 const store = useQueryBuilderStore()
+const aggregationModeProxy = computed({
+  get: () => (store.aggregationEnabled ? store.aggregationFunctionProxy : ""),
+  set: (value: string) => {
+    if (!value) {
+      store.aggregationEnabled = false
+      return
+    }
+
+    store.aggregationEnabled = true
+    store.aggregationFunctionProxy = value as "count" | "sum" | "avg" | "min" | "max"
+  },
+})
 </script>
 
 <style lang="scss" scoped>
@@ -225,16 +252,31 @@ h3 {
 }
 
 .section-toggle {
-  width: 100%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
+  border-radius: 8px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text-muted);
   cursor: pointer;
+}
+
+.section-toggle:hover {
+  background: var(--sqb-bg-strong);
+}
+
+.section-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 140ms ease;
+}
+
+.section-toggle svg.is-expanded {
+  transform: rotate(180deg);
 }
 
 .section-heading {
@@ -254,17 +296,6 @@ h3 {
   margin: 10px 0 0;
   color: var(--sqb-text-muted);
   font: 13px/1.55 var(--sqb-sans);
-}
-
-.section-toggle__chevron {
-  display: inline-block;
-  color: var(--sqb-text-muted);
-  font: 600 18px/1 var(--sqb-sans);
-  transition: transform 0.2s ease;
-}
-
-.section-toggle__chevron--collapsed {
-  transform: rotate(180deg);
 }
 
 .control {
@@ -328,37 +359,19 @@ h3 {
   color: var(--sqb-text);
 }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--sqb-surface-soft);
-  border: 1px solid var(--sqb-border);
-  color: var(--sqb-secondary);
-  font: 600 13px/1.2 var(--sqb-sans);
-}
-
-.chip--toggle {
-  justify-content: center;
-}
-
-.muted {
-  margin: 0;
-  color: var(--sqb-text-muted);
-  font: 13px/1.5 var(--sqb-sans);
-}
-
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
 }
 
+.form-grid--top {
+  align-items: end;
+}
+
 .form-grid--aggregation {
-  margin-top: 0;
+  margin-top: 14px;
 }
 
 .field {
@@ -387,24 +400,40 @@ h3 {
   justify-self: end;
 }
 
-.section-head--top {
-  margin-top: 20px;
-}
-
-.section-head--compact {
-  margin-top: 0;
-}
-
 .view-config-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+  margin-top: 18px;
 }
 
 .view-config-panel {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--sqb-border);
+  background: var(--sqb-surface-soft);
+}
+
+.view-config-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--sqb-border);
+}
+
+.view-config-panel__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.view-config-panel__copy h4 {
+  margin: 0;
+  font: 700 16px/1.2 var(--sqb-serif);
 }
 
 .stack {
@@ -418,18 +447,16 @@ h3 {
 
 @media (max-width: 1100px) {
   .card--full,
-  .form-grid,
-  .view-config-row {
-    grid-template-columns: 1fr;
-    grid-column: auto;
+  .view-config-panel {
+    grid-column: 1 / -1;
   }
 }
 
-@media (max-width: 720px) {
-  .filter-row,
-  .filter-row--sort {
+@media (max-width: 900px) {
+  .form-grid,
+  .form-grid--aggregation,
+  .view-config-row {
     grid-template-columns: 1fr;
-    align-items: stretch;
   }
 }
 </style>

@@ -63,6 +63,7 @@ describe("QueryBuilderSidebar", () => {
     const wrapper = mount(QueryBuilderSidebar)
     expect(wrapper.get('[data-section-toggle="presets"]').get("svg").exists()).toBe(true)
     expect(wrapper.get('[data-section-toggle="saved-templates"]').get("svg").exists()).toBe(true)
+    expect(wrapper.get('[data-presets-count]').text()).toBe("1")
 
     expect(wrapper.text()).toContain("任务面板")
     expect(wrapper.text()).toContain("任务清单")
@@ -159,8 +160,12 @@ describe("QueryBuilderSidebar", () => {
   it("exports a saved template bundle from the sidebar action", async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderSidebar)
+    const exportButton = wrapper.get('[data-template-export="template-1"]')
 
-    await wrapper.get('[data-template-export="template-1"]').trigger("click")
+    expect(exportButton.text()).toBe("")
+    expect(exportButton.get("svg").exists()).toBe(true)
+
+    await exportButton.trigger("click")
 
     expect(currentStore.exportTemplateBundle).toHaveBeenCalledWith("template-1")
   })
@@ -168,10 +173,14 @@ describe("QueryBuilderSidebar", () => {
   it("imports a template bundle from the sidebar file input", async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderSidebar)
+    const importButton = wrapper.get('[data-template-import-trigger]')
     const file = {
       text: vi.fn(async () => '{"schema":"siyuan-query-builder/template-bundle"}'),
     }
     const input = wrapper.get('[data-template-import-input]').element as HTMLInputElement
+
+    expect(importButton.text()).toBe("")
+    expect(importButton.get("svg").exists()).toBe(true)
 
     Object.defineProperty(input, "files", {
       configurable: true,
