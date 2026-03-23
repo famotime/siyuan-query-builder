@@ -88,74 +88,13 @@
         {{ store.boardDragCapability.reason }}
       </div>
 
-      <section class="advanced-panel">
-        <div class="advanced-panel__head">
-          <div class="advanced-panel__copy">
-            <span class="advanced-panel__eyebrow">SQL</span>
-            <strong>SQL 预览</strong>
-            <span>查看当前查询生成的 SQL 表达。</span>
-          </div>
-          <button
-            class="section-toggle"
-            data-advanced-mode-toggle
-            type="button"
-            :title="store.advancedMode ? '收起 SQL 预览' : '展开 SQL 预览'"
-            :aria-label="store.advancedMode ? '收起 SQL 预览' : '展开 SQL 预览'"
-            :aria-expanded="String(store.advancedMode)"
-            @click="store.advancedMode = !store.advancedMode"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              :class="{ 'is-expanded': store.advancedMode }"
-            >
-              <path
-                d="M7 10l5 5 5-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2.2"
-              />
-            </svg>
-          </button>
-        </div>
-        <div
-          v-if="store.advancedMode"
-          class="sql-box"
-          data-sql-preview
-        >
-          <div class="sql-box__surface">
-            <div class="sql-box__toolbar">
-              <span class="sql-box__language">SQL</span>
-              <button
-                class="sql-box__copy"
-                data-sql-copy
-                type="button"
-                title="复制 SQL"
-                aria-label="复制 SQL"
-                :disabled="!hasAdvancedSql"
-                @click="copyAdvancedSql"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M9 9.75V7.5A2.25 2.25 0 0 1 11.25 5.25h7.5A2.25 2.25 0 0 1 21 7.5V15a2.25 2.25 0 0 1-2.25 2.25H16.5M9 9.75H6.75A2.25 2.25 0 0 0 4.5 12v6a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 16.5 18v-.75M9 9.75h7.5v7.5H9z"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.8"
-                  />
-                </svg>
-              </button>
-            </div>
-            <pre class="sql-box__code"><code>{{ store.advancedSql || "运行查询后会显示生成后的 SQL 表达。" }}</code></pre>
-          </div>
-        </div>
-      </section>
+      <ResultsSqlPreview
+        :advanced-mode="store.advancedMode"
+        :advanced-sql="store.advancedSql"
+        :has-advanced-sql="hasAdvancedSql"
+        @copy="copyAdvancedSql"
+        @toggle="store.advancedMode = !store.advancedMode"
+      />
 
       <div
         v-if="!store.resultSet?.rows.length"
@@ -167,171 +106,38 @@
         <p>运行查询后，可切换表格、看板、列表或统计视图，并继续编辑状态、日期和优先级。</p>
       </div>
 
-      <div
+      <ResultsTableView
         v-else-if="store.draft.view.type === 'table'"
-        class="table-wrap"
-      >
-        <table class="table">
-          <thead>
-            <tr>
-              <th
-                v-for="field in store.resultFields"
-                :key="field"
-              >
-                {{ store.fieldLabel(field) }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in store.resultSet.rows"
-              :key="row.id"
-            >
-              <td
-                v-for="field in store.resultFields"
-                :key="`${row.id}-${field}`"
-              >
-                <button
-                  v-if="field === 'content' && store.canOpenRow(row)"
-                  class="link"
-                  @click="store.openBlock(row.id)"
-                >
-                  {{ store.displayValue(row, field) || "打开原始块" }}
-                </button>
-                <span v-else-if="field === 'content'">{{ store.displayValue(row, field) || "—" }}</span>
-                <select
-                  v-else-if="store.editableField(field) === 'status'"
-                  class="control control--compact"
-                  :value="store.displayValue(row, field)"
-                  @change="store.quickEdit(row.id, 'status', ($event.target as HTMLSelectElement).value)"
-                >
-                  <option value="">
-                    未设置
-                  </option>
-                  <option value="Todo">
-                    Todo
-                  </option>
-                  <option value="Doing">
-                    Doing
-                  </option>
-                  <option value="Done">
-                    Done
-                  </option>
-                </select>
-                <select
-                  v-else-if="store.editableField(field) === 'priority'"
-                  class="control control--compact"
-                  :value="store.displayValue(row, field)"
-                  @change="store.quickEdit(row.id, 'priority', ($event.target as HTMLSelectElement).value)"
-                >
-                  <option value="">
-                    未设置
-                  </option>
-                  <option value="P0">
-                    P0
-                  </option>
-                  <option value="P1">
-                    P1
-                  </option>
-                  <option value="P2">
-                    P2
-                  </option>
-                  <option value="P3">
-                    P3
-                  </option>
-                </select>
-                <input
-                  v-else-if="store.editableField(field) === 'dueDate'"
-                  class="control control--compact"
-                  type="date"
-                  :value="store.displayValue(row, field)"
-                  @change="store.quickEdit(row.id, 'dueDate', ($event.target as HTMLInputElement).value)"
-                >
-                <span v-else>{{ store.displayValue(row, field) || "—" }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        :result-fields="store.resultFields"
+        :rows="store.resultSet.rows"
+        :field-label="store.fieldLabel"
+        :can-open-row="store.canOpenRow"
+        :display-value="store.displayValue"
+        :editable-field="store.editableField"
+        :quick-edit="store.quickEdit"
+        :open-block="store.openBlock"
+      />
 
-      <div
+      <ResultsBoardView
         v-else-if="store.draft.view.type === 'board'"
-        class="board"
-      >
-        <section
-          v-for="column in store.boardColumns"
-          :key="column.id"
-          class="board__column"
-          @dragover.prevent
-          @drop="store.dropToColumn(column.id)"
-        >
-          <header class="board__head">
-            <h4>{{ column.title }}</h4>
-            <span class="pill">{{ column.rows.length }}</span>
-          </header>
-          <article
-            v-for="row in column.rows"
-            :key="row.id"
-            class="board__card"
-            draggable="true"
-            @dragstart="store.draggingRowId = row.id"
-          >
-            <button
-              class="link link--block"
-              @click="store.openBlock(row.id)"
-            >
-              {{ row.content || "未命名块" }}
-            </button>
-            <p class="muted">
-              {{ store.displayValue(row, `attr:${store.draft.view.fieldMappings.project}`) || "未绑定项目" }}
-            </p>
-            <div class="tokens">
-              <span>{{ store.displayValue(row, `attr:${store.draft.view.fieldMappings.priority}`) || "无优先级" }}</span>
-              <span>{{ store.displayValue(row, `attr:${store.draft.view.fieldMappings.dueDate}`) || "无日期" }}</span>
-            </div>
-          </article>
-        </section>
-      </div>
+        :board-columns="store.boardColumns"
+        :field-mappings="store.draft.view.fieldMappings"
+        :display-value="store.displayValue"
+        :open-block="store.openBlock"
+        :set-dragging-row-id="value => store.draggingRowId = value"
+        :drop-to-column="store.dropToColumn"
+      />
 
-      <ul
+      <ResultsListView
         v-else-if="store.draft.view.type === 'list'"
-        class="list"
-      >
-        <li
-          v-for="item in store.listItems"
-          :key="item.id"
-          class="list__item"
-          data-list-item
-        >
-          <div class="list__main">
-            <button
-              class="link"
-              @click="store.openBlock(item.id)"
-            >
-              {{ item.title || "未命名块" }}
-            </button>
-            <small
-              v-if="item.meta.length"
-              class="list__meta"
-              data-list-item-meta
-            >{{ item.meta.join(" · ") }}</small>
-          </div>
-        </li>
-      </ul>
+        :items="store.listItems"
+        :open-block="store.openBlock"
+      />
 
-      <div
+      <ResultsCardsView
         v-else
-        class="cards"
-      >
-        <article
-          v-for="card in store.cardsSummary"
-          :key="card.label"
-          class="cards__item"
-        >
-          <strong>{{ card.value }}</strong>
-          <span>{{ card.label }}</span>
-        </article>
-      </div>
+        :cards="store.cardsSummary"
+      />
 
       <ResultsEmbedPanel
         v-model="store.embedParentId"
@@ -351,8 +157,13 @@
 <script setup lang="ts">
 import { computed } from "vue"
 
+import ResultsBoardView from "@/components/query-builder/ResultsBoardView.vue"
+import ResultsCardsView from "@/components/query-builder/ResultsCardsView.vue"
 import ResultsEmbedPanel from "@/components/query-builder/ResultsEmbedPanel.vue"
+import ResultsListView from "@/components/query-builder/ResultsListView.vue"
 import ResultsSavedViewsPanel from "@/components/query-builder/ResultsSavedViewsPanel.vue"
+import ResultsSqlPreview from "@/components/query-builder/ResultsSqlPreview.vue"
+import ResultsTableView from "@/components/query-builder/ResultsTableView.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import { showMessage } from "@/external/siyuan"
 
@@ -771,7 +582,7 @@ h3 {
   font: 13px/1.45 var(--sqb-sans);
 }
 
-.advanced-panel {
+:deep(.advanced-panel) {
   margin-top: 14px;
   border-radius: 16px;
   border: 1px solid var(--sqb-border);
@@ -779,7 +590,7 @@ h3 {
   overflow: hidden;
 }
 
-.advanced-panel__head {
+:deep(.advanced-panel__head) {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -787,29 +598,29 @@ h3 {
   padding: 16px 18px;
 }
 
-.advanced-panel__copy {
+:deep(.advanced-panel__copy) {
   display: grid;
   gap: 3px;
 }
 
-.advanced-panel__eyebrow {
+:deep(.advanced-panel__eyebrow) {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--sqb-primary);
   font: 700 11px/1.2 var(--sqb-sans);
 }
 
-.advanced-panel__copy strong {
+:deep(.advanced-panel__copy strong) {
   font: 700 15px/1.25 var(--sqb-sans);
   color: var(--sqb-text);
 }
 
-.advanced-panel__copy span:last-child {
+:deep(.advanced-panel__copy span:last-child) {
   color: var(--sqb-text-muted);
   font: 13px/1.45 var(--sqb-sans);
 }
 
-.section-toggle {
+:deep(.section-toggle) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -822,25 +633,25 @@ h3 {
   cursor: pointer;
 }
 
-.section-toggle:hover {
+:deep(.section-toggle:hover) {
   background: var(--sqb-bg-strong);
 }
 
-.section-toggle svg {
+:deep(.section-toggle svg) {
   width: 16px;
   height: 16px;
   transition: transform 140ms ease;
 }
 
-.section-toggle svg.is-expanded {
+:deep(.section-toggle svg.is-expanded) {
   transform: rotate(180deg);
 }
 
-.sql-box {
+:deep(.sql-box) {
   padding: 0 18px 18px;
 }
 
-.sql-box__surface {
+:deep(.sql-box__surface) {
   overflow: hidden;
   border-radius: 14px;
   border: 1px solid var(--sqb-border-strong);
@@ -850,7 +661,7 @@ h3 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.sql-box__toolbar {
+:deep(.sql-box__toolbar) {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -860,14 +671,14 @@ h3 {
   background: rgba(255, 255, 255, 0.22);
 }
 
-.sql-box__language {
+:deep(.sql-box__language) {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--sqb-text-muted);
   font: 700 11px/1.2 var(--sqb-mono);
 }
 
-.sql-box__copy {
+:deep(.sql-box__copy) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -882,28 +693,28 @@ h3 {
   transition: background 80ms ease, border-color 80ms ease, color 80ms ease, opacity 80ms ease;
 }
 
-.sql-box__copy:hover:not(:disabled) {
+:deep(.sql-box__copy:hover:not(:disabled)) {
   border-color: var(--sqb-border);
   background: var(--sqb-surface);
   color: var(--sqb-text);
 }
 
-.sql-box__copy:focus-visible {
+:deep(.sql-box__copy:focus-visible) {
   outline: 2px solid var(--sqb-primary);
   outline-offset: 2px;
 }
 
-.sql-box__copy:disabled {
+:deep(.sql-box__copy:disabled) {
   cursor: default;
   opacity: 0.4;
 }
 
-.sql-box__copy svg {
+:deep(.sql-box__copy svg) {
   width: 16px;
   height: 16px;
 }
 
-.sql-box__code {
+:deep(.sql-box__code) {
   margin: 0;
   padding: 14px 16px 16px;
   color: var(--sqb-text);
@@ -912,7 +723,7 @@ h3 {
   font: 12px/1.55 var(--sqb-mono);
 }
 
-.sql-box__code code {
+:deep(.sql-box__code code) {
   font: inherit;
 }
 
@@ -971,7 +782,7 @@ h3 {
   max-width: 420px;
 }
 
-.table-wrap {
+:deep(.table-wrap) {
   margin-top: 12px;
   overflow: auto;
   border-radius: 12px;
@@ -979,13 +790,13 @@ h3 {
   background: var(--sqb-surface-strong);
 }
 
-.table {
+:deep(.table) {
   width: 100%;
   border-collapse: collapse;
 }
 
-.table th,
-.table td {
+:deep(.table th),
+:deep(.table td) {
   padding: 10px 12px;
   border-bottom: 1px solid var(--sqb-border);
   text-align: left;
@@ -993,7 +804,7 @@ h3 {
   font: 13px/1.45 var(--sqb-sans);
 }
 
-.table th {
+:deep(.table th) {
   position: sticky;
   top: 0;
   background: var(--sqb-bg-strong);
@@ -1003,7 +814,7 @@ h3 {
   font: 600 11px/1.3 var(--sqb-sans);
 }
 
-.link {
+:deep(.link) {
   padding: 0;
   border: none;
   background: transparent;
@@ -1013,12 +824,12 @@ h3 {
   font: 600 13px/1.45 var(--sqb-sans);
 }
 
-.link--block {
+:deep(.link--block) {
   display: block;
   margin-bottom: 10px;
 }
 
-.board {
+:deep(.board) {
   margin-top: 14px;
   display: grid;
   grid-auto-flow: column;
@@ -1027,7 +838,7 @@ h3 {
   overflow-x: auto;
 }
 
-.board__column {
+:deep(.board__column) {
   min-height: 280px;
   padding: 14px;
   border-radius: 16px;
@@ -1035,14 +846,14 @@ h3 {
   border: 1px solid var(--sqb-border);
 }
 
-.board__head {
+:deep(.board__head) {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
 }
 
-.board__card {
+:deep(.board__card) {
   margin-bottom: 8px;
   padding: 12px;
   border-radius: 12px;
@@ -1051,14 +862,14 @@ h3 {
   cursor: grab;
 }
 
-.tokens {
+:deep(.tokens) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.tokens span,
-.pill {
+:deep(.tokens span),
+:deep(.board__count) {
   padding: 2px 8px;
   border-radius: 4px;
   background: var(--sqb-accent-soft);
@@ -1066,7 +877,7 @@ h3 {
   font: 600 12px/1.2 var(--sqb-sans);
 }
 
-.list {
+:deep(.list) {
   margin: 14px 0 0;
   padding: 0;
   list-style: none;
@@ -1075,39 +886,39 @@ h3 {
   gap: 10px;
 }
 
-.list__item,
-.cards__item {
+:deep(.list__item),
+:deep(.cards__item) {
   padding: 12px;
   border-radius: 12px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
 }
 
-.list__meta,
-.cards__item span {
+:deep(.list__meta),
+:deep(.cards__item span) {
   color: var(--sqb-text-muted);
   font: 13px/1.4 var(--sqb-sans);
 }
 
-.list__main {
+:deep(.list__main) {
   display: grid;
   gap: 8px;
 }
 
-.list__meta {
+:deep(.list__meta) {
   display: block;
   margin: 0;
   padding-left: 1px;
 }
 
-.cards {
+:deep(.cards) {
   margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
 }
 
-.cards__item strong {
+:deep(.cards__item strong) {
   display: block;
   margin-bottom: 4px;
   font: 700 22px/1.1 var(--sqb-serif);

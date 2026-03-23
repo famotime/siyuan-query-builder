@@ -318,7 +318,13 @@ import { computed, reactive, ref } from "vue"
 import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import type { PresetDefinition } from "@/core/query/catalog"
+import {
+  buildPresetGroups,
+  downloadTemplateBundle,
+  formatSidebarExecutedAt,
+  formatSidebarViewTypeLabel,
+  readTemplateImportPayload,
+} from "@/components/query-builder/sidebar-utils"
 
 const store = useQueryBuilderStore()
 const presetsExpanded = ref(true)
@@ -330,48 +336,15 @@ const presetCategoryExpanded = reactive<Record<string, boolean>>({
   links: true,
   attributes: true,
 })
-const presetCategoryMeta = {
-  daily: "日常管理",
-  links: "链接管理",
-  attributes: "自定义属性",
-} satisfies Record<NonNullable<PresetDefinition["category"]>, string>
 
-const presetGroups = computed(() => {
-  const order: Array<PresetDefinition["category"]> = ["daily", "links", "attributes"]
-  return order
-    .map((category, index) => ({
-      id: category,
-      index,
-      label: presetCategoryMeta[category],
-      items: store.presets.filter((preset: PresetDefinition) => preset.category === category),
-    }))
-    .filter(group => group.items.length)
-})
+const presetGroups = computed(() => buildPresetGroups(store.presets))
 
 function viewTypeLabel(type: string) {
-  switch (type) {
-    case "board":
-      return "看板"
-    case "list":
-      return "列表"
-    case "cards":
-      return "卡片"
-    default:
-      return "表格"
-  }
+  return formatSidebarViewTypeLabel(type)
 }
 
 function formatExecutedAt(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date)
+  return formatSidebarExecutedAt(value)
 }
 
 function triggerTemplateImport() {
@@ -387,39 +360,17 @@ function isPresetCategoryExpanded(category: string) {
 }
 
 async function handleTemplateImport(event: Event) {
-  const input = event.target as HTMLInputElement | null
-  const file = input?.files?.[0]
-  if (!file) {
+  const payload = await readTemplateImportPayload(event)
+  if (!payload) {
     return
   }
 
-  try {
-    const payload = await file.text()
-    await store.importTemplateBundle(payload)
-  } finally {
-    if (input) {
-      input.value = ""
-    }
-  }
+  await store.importTemplateBundle(payload)
 }
 
 async function exportTemplate(templateId: string) {
   const bundle = await store.exportTemplateBundle(templateId)
-  const fileName = `${bundle.template.name || "template"}.json`
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], {
-    type: "application/json;charset=utf-8",
-  })
-
-  if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
-    return
-  }
-
-  const objectUrl = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = objectUrl
-  link.download = fileName
-  link.click()
-  URL.revokeObjectURL(objectUrl)
+  downloadTemplateBundle(bundle)
 }
 </script>
 

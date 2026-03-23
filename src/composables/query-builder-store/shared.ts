@@ -10,6 +10,7 @@ import {
   type FieldOption,
 } from "@/core/query/catalog"
 import type { FieldId, FieldMappings, FilterOperator, QueryBuilderSnapshot, QueryFilter, QueryTemplate, ResultRow, ViewConfig } from "@/core/query/types"
+import { formatResultValue, resolveResultFieldLabel } from "@/core/view/presentation"
 
 export type EditableField = keyof FieldMappings
 
@@ -142,72 +143,21 @@ export function createSnapshot(draft: QueryBuilderSnapshot) {
   })
 }
 
-function formatSiyuanTimestamp(value: unknown) {
-  const text = String(value ?? "").trim()
-  if (/^\d{14}$/.test(text)) {
-    return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)} ${text.slice(8, 10)}:${text.slice(10, 12)}:${text.slice(12, 14)}`
-  }
-  if (/^\d{8}$/.test(text)) {
-    return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`
-  }
-  return text
-}
-
 export function displayValue(row: ResultRow, field: string, options: DisplayValueOptions = {}) {
-  if (field === AGGREGATE_VALUE_FIELD) {
-    return String(row.agg_value ?? "")
-  }
-  if (field.startsWith("attr:")) {
-    return row.attrs[field.slice("attr:".length)] || ""
-  }
-  if (field === "created" || field === "updated") {
-    return formatSiyuanTimestamp(row[field])
-  }
-  if (field === "box") {
-    const boxId = String(row[field] ?? "")
-    return options.notebookNameById?.[boxId] || boxId
-  }
-  if (field === "path") {
-    return String(row.hpath ?? row[field] ?? "")
-  }
-  return String(row[field] ?? "")
+  return formatResultValue(row, field, options)
 }
 
 export function resolveFieldLabel(field: string, options: FieldLabelOptions = {}) {
-  const knownLabel = options.knownLabels instanceof Map
-    ? options.knownLabels.get(field)
-    : options.knownLabels?.[field]
-
-  if (knownLabel) {
-    return knownLabel
-  }
-
-  if (field.startsWith("attr:")) {
-    const attrName = field.slice("attr:".length).trim()
-    if (!attrName) {
-      return "属性"
-    }
-
-    const mappedLabel = Object.entries(options.fieldMappings || {}).find(([, value]) => value === attrName)?.[0]
-    if (mappedLabel) {
-      switch (mappedLabel) {
-        case "status":
-          return "状态"
-        case "dueDate":
-          return "截止日期"
-        case "priority":
-          return "优先级"
-        case "project":
-          return "项目"
-        case "owner":
-          return "负责人"
-      }
-    }
-
-    return `属性：${attrName}`
-  }
-
-  return field
+  return resolveResultFieldLabel(field, {
+    knownLabels: options.knownLabels,
+    fieldMappings: options.fieldMappings || {
+      dueDate: "dueDate",
+      owner: "owner",
+      priority: "priority",
+      project: "project",
+      status: "status",
+    },
+  })
 }
 
 export function resolveEditableField(template: QueryTemplate, view: ViewConfig, field: string): EditableField | null {

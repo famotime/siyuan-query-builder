@@ -370,4 +370,51 @@ describe("QueryBuilderEditor", () => {
 
     expect(currentStore.moveFilter).toHaveBeenCalledWith("filter-1", "filter-2", "before")
   })
+
+  it("drops a dragged filter after the target row when hovering over the lower half", async () => {
+    currentStore = createStore()
+    currentStore.draft.template.filters = [
+      {
+        id: "filter-1",
+        field: "content",
+        operator: "contains",
+        value: "任务",
+      },
+      {
+        id: "filter-2",
+        field: "attr:status",
+        operator: "eq",
+        value: "Doing",
+        condition: "and",
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderEditor)
+    const sourceHandle = wrapper.get('[data-filter-drag-handle="filter-1"]')
+    const target = wrapper.get('[data-filter-row="filter-2"]')
+
+    Object.defineProperty(target.element, "getBoundingClientRect", {
+      configurable: true,
+      value: () => ({
+        top: 100,
+        bottom: 180,
+        left: 0,
+        right: 320,
+        width: 320,
+        height: 80,
+        x: 0,
+        y: 100,
+        toJSON: () => ({}),
+      }),
+    })
+
+    await sourceHandle.trigger("dragstart")
+    await target.trigger("dragover", { clientY: 176 })
+
+    expect(target.classes()).toContain("filter-row--drop-after")
+
+    await target.trigger("drop")
+
+    expect(currentStore.moveFilter).toHaveBeenCalledWith("filter-1", "filter-2", "after")
+  })
 })

@@ -194,6 +194,30 @@ describe("QueryBuilderSidebar", () => {
 
   it("exports a saved template bundle from the sidebar action", async () => {
     currentStore = createStore()
+    const createObjectURL = vi.fn(() => "blob:template")
+    const revokeObjectURL = vi.fn()
+    const click = vi.fn()
+    const originalCreateElement = document.createElement.bind(document)
+
+    Object.defineProperty(window, "URL", {
+      configurable: true,
+      value: {
+        createObjectURL,
+        revokeObjectURL,
+      },
+    })
+
+    vi.spyOn(document, "createElement").mockImplementation(((tagName: string) => {
+      if (tagName === "a") {
+        return {
+          click,
+          download: "",
+          href: "",
+        } as any
+      }
+      return originalCreateElement(tagName)
+    }) as typeof document.createElement)
+
     const wrapper = mount(QueryBuilderSidebar)
     const exportButton = wrapper.get('[data-template-export="template-1"]')
 
@@ -203,6 +227,9 @@ describe("QueryBuilderSidebar", () => {
     await exportButton.trigger("click")
 
     expect(currentStore.exportTemplateBundle).toHaveBeenCalledWith("template-1")
+    expect(createObjectURL).toHaveBeenCalled()
+    expect(click).toHaveBeenCalled()
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:template")
   })
 
   it("imports a template bundle from the sidebar file input", async () => {

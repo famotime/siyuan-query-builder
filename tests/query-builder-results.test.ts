@@ -244,6 +244,62 @@ describe("QueryBuilderResults", () => {
     expect(wrapper.get("[data-results-empty]").text()).toContain("结果会在这里出现")
   })
 
+  it("renders table quick-edit controls and forwards edits with the correct field mapping", async () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "table"
+    currentStore.resultFields = ["content", "attr:status", "attr:priority", "attr:dueDate"]
+    currentStore.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "任务 A",
+          attrs: {
+            status: "Doing",
+            priority: "P1",
+            dueDate: "2026-03-24",
+          },
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    currentStore.canOpenRow = vi.fn(() => true)
+    currentStore.displayValue = vi.fn((row: any, field: string) => {
+      if (field === "content") {
+        return row.content
+      }
+      return row.attrs[field.slice("attr:".length)] || ""
+    })
+    currentStore.editableField = vi.fn((field: string) => {
+      switch (field) {
+        case "attr:status":
+          return "status"
+        case "attr:priority":
+          return "priority"
+        case "attr:dueDate":
+          return "dueDate"
+        default:
+          return null
+      }
+    })
+    currentStore.quickEdit = vi.fn()
+
+    const wrapper = mount(QueryBuilderResults)
+    const selects = wrapper.findAll("select.control--compact")
+    const dateInput = wrapper.get('input[type="date"]')
+
+    expect(selects).toHaveLength(2)
+    expect(dateInput.element).toBeTruthy()
+
+    await selects[0]!.setValue("Done")
+    await selects[1]!.setValue("P2")
+    await dateInput.setValue("2026-03-25")
+
+    expect(currentStore.quickEdit).toHaveBeenCalledWith("block-1", "status", "Done")
+    expect(currentStore.quickEdit).toHaveBeenCalledWith("block-1", "priority", "P2")
+    expect(currentStore.quickEdit).toHaveBeenCalledWith("block-1", "dueDate", "2026-03-25")
+  })
+
   it("hides empty list metadata and renders existing metadata on a separate aligned line", () => {
     currentStore = createStore()
     currentStore.draft.view.type = "list"

@@ -152,14 +152,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
 
-import {
-  displayValue as formatDisplayValue,
-  resolveFieldLabel,
-} from "@/composables/query-builder-store/shared"
-import { createFieldOptions } from "@/core/query/catalog"
-import { buildBoardColumns } from "@/core/view/board"
+import { createResultPresentation } from "@/core/view/presentation"
 import type { FieldMappings, ResultSet, ViewType } from "@/core/query/types"
-import { buildCardsSummary, buildListItems } from "@/inline/view-models"
 
 const props = defineProps<{
   title: string
@@ -171,31 +165,27 @@ const props = defineProps<{
   notebooks?: Array<{ id: string, name: string }>
 }>()
 
-const cards = computed(() => buildCardsSummary(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
-const listItems = computed(() => buildListItems(props.result.rows, [
+const notebookNameById = computed(() => Object.fromEntries(
+  (props.notebooks || []).map(notebook => [notebook.id, notebook.name]),
+))
+const presentation = computed(() => createResultPresentation({
+  fieldMappings: props.fieldMappings,
+  notebookNameById: notebookNameById.value,
+}))
+const cards = computed(() => presentation.value.buildCardsSummary(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
+const listItems = computed(() => presentation.value.buildListItems(props.result.rows, [
   `attr:${props.fieldMappings.priority}`,
   `attr:${props.fieldMappings.status}`,
   `attr:${props.fieldMappings.dueDate}`,
 ]))
-const boardColumns = computed(() => buildBoardColumns(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
-const fieldOptionMap = computed(() => new Map(
-  createFieldOptions(props.fieldMappings).map(option => [option.value, option.label]),
-))
-const notebookNameById = computed(() => Object.fromEntries(
-  (props.notebooks || []).map(notebook => [notebook.id, notebook.name]),
-))
+const boardColumns = computed(() => presentation.value.buildBoardColumns(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
 
 function fieldLabel(field: string) {
-  return resolveFieldLabel(field, {
-    knownLabels: fieldOptionMap.value,
-    fieldMappings: props.fieldMappings,
-  })
+  return presentation.value.fieldLabel(field)
 }
 
 function displayValue(row: ResultSet["rows"][number], field: string) {
-  return formatDisplayValue(row, field, {
-    notebookNameById: notebookNameById.value,
-  })
+  return presentation.value.displayValue(row, field)
 }
 
 function openBlock(blockId: string) {

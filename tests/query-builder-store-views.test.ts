@@ -83,6 +83,7 @@ vi.mock("@/core/runtime/query-runtime", () => ({
 
 import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, renderSprig, setBlockAttrs } from "@/api"
 import { createQueryBuilderStore } from "@/composables/query-builder-store"
+import { QUERY_HISTORY_STORAGE_KEY } from "@/core/storage/query-history-store"
 import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
 import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
 
@@ -898,6 +899,96 @@ describe("createQueryBuilderStore view management", () => {
     expect(store.embedTargetHint).toBe("文档：日报")
   })
 
+  it("initializes query history, template summaries, and saved views together", async () => {
+    currentPlugin.seed(QUERY_HISTORY_STORAGE_KEY, [
+      {
+        id: "history-1",
+        templateName: "最近查询",
+        summary: "全部内容 · 1 个条件 · 表格",
+        executedAt: "2026-03-24T00:00:00.000Z",
+        snapshot: {
+          template: {
+            id: "template-history",
+            version: 1,
+            name: "最近查询",
+            scope: {
+              type: "all_blocks",
+            },
+            filters: [],
+            sorts: [],
+            fields: ["content"],
+            viewType: "table",
+          },
+          view: {
+            id: "view-history",
+            queryTemplateId: "template-history",
+            type: "table",
+            defaultView: true,
+            fieldMappings: {
+              status: "status",
+              dueDate: "dueDate",
+              priority: "priority",
+              project: "project",
+              owner: "owner",
+            },
+          },
+        },
+      },
+    ])
+    const store = createQueryBuilderStore()
+    const initialTemplateId = store.draft.template.id
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: initialTemplateId,
+        version: 1,
+        name: "项目看板",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content"],
+        viewType: "table",
+      },
+    ])
+    currentPlugin.seed(VIEW_CONFIG_STORAGE_KEY, [
+      {
+        id: "view-table",
+        queryTemplateId: initialTemplateId,
+        type: "table",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    await store.initialize()
+
+    expect(store.recentQueryHistory).toEqual([
+      expect.objectContaining({
+        id: "history-1",
+        templateName: "最近查询",
+      }),
+    ])
+    expect(store.savedTemplateSummaries).toEqual([
+      expect.objectContaining({
+        templateId: initialTemplateId,
+        templateName: "项目看板",
+      }),
+    ])
+    expect(store.savedViews).toEqual([
+      expect.objectContaining({
+        id: "view-table",
+        queryTemplateId: initialTemplateId,
+      }),
+    ])
+  })
+
   it("selects the current document as embed target and persists recent ids", async () => {
     window.siyuan = {
       getActiveEditor: () => ({
@@ -1038,6 +1129,95 @@ describe("createQueryBuilderStore view management", () => {
         value: "任务 3",
       }),
     ])
+  })
+
+  it("applies an external snapshot by refreshing the target template views and clearing stale results", async () => {
+    currentPlugin.seed(QUERY_TEMPLATE_STORAGE_KEY, [
+      {
+        id: "template-2",
+        version: 1,
+        name: "项目看板",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content", "attr:status"],
+        viewType: "board",
+      },
+    ])
+    currentPlugin.seed(VIEW_CONFIG_STORAGE_KEY, [
+      {
+        id: "view-board",
+        queryTemplateId: "template-2",
+        type: "board",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    ])
+
+    const store = createQueryBuilderStore()
+    store.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "旧结果",
+          attrs: {},
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    store.advancedSql = "select * from blocks"
+    store.error = "旧错误"
+
+    store.applySnapshot({
+      template: {
+        id: "template-2",
+        version: 1,
+        name: "项目看板",
+        scope: {
+          type: "all_blocks",
+        },
+        filters: [],
+        sorts: [],
+        fields: ["content", "attr:status"],
+        groupBy: "attr:status",
+        viewType: "board",
+      },
+      view: {
+        id: "view-board",
+        queryTemplateId: "template-2",
+        type: "board",
+        defaultView: true,
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    })
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(store.draft.template.id).toBe("template-2")
+    expect(store.draft.view.id).toBe("view-board")
+    expect(store.savedViews).toEqual([
+      expect.objectContaining({
+        id: "view-board",
+        queryTemplateId: "template-2",
+      }),
+    ])
+    expect(store.resultSet).toBe(null)
+    expect(store.advancedSql).toBe("")
+    expect(store.error).toBe("")
   })
 
   it("moves a filter after the target row when dropping into the lower half", () => {

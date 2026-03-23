@@ -18,363 +18,32 @@
       </article>
     </div>
     <div class="grid">
-      <article class="card card--scope">
-        <div class="section-head">
-          <div class="section-heading">
-            <span class="section-kicker">Scope</span>
-            <h3>查询范围</h3>
-          </div>
-          <button
-            class="section-toggle"
-            type="button"
-            data-section-toggle="scope"
-            :title="collapsedSections.scope ? '展开查询范围' : '收起查询范围'"
-            :aria-label="collapsedSections.scope ? '展开查询范围' : '收起查询范围'"
-            :aria-expanded="String(!collapsedSections.scope)"
-            @click="toggleSection('scope')"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              :class="{ 'is-expanded': !collapsedSections.scope }"
-            >
-              <path
-                d="M7 10l5 5 5-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2.2"
-              />
-            </svg>
-          </button>
-        </div>
-        <p class="section-copy">
-          定义这次查询要覆盖哪些笔记内容，再用更精确的值缩小范围。
-        </p>
-        <div
-          v-if="!collapsedSections.scope"
-          class="form-grid form-grid--scope"
-          data-scope-form
-        >
-          <label class="field">
-            <span>范围类型</span>
-            <select
-              v-model="store.draft.template.scope.type"
-              class="control"
-            >
-              <option value="all_blocks">
-                全部块
-              </option>
-              <option value="notebook">
-                笔记本
-              </option>
-              <option value="document">
-                文档 ID
-              </option>
-              <option value="block_type">
-                块类型
-              </option>
-              <option value="tag">
-                标签
-              </option>
-              <option value="attribute">
-                属性键
-              </option>
-            </select>
-          </label>
-          <label
-            v-if="store.draft.template.scope.type !== 'all_blocks'"
-            class="field"
-          >
-            <span>{{ store.scopeLabel }}</span>
-            <select
-              v-if="store.draft.template.scope.type === 'notebook'"
-              v-model="store.draft.template.scope.value"
-              class="control"
-            >
-              <option value="">
-                选择笔记本
-              </option>
-              <option
-                v-for="notebook in store.notebooks"
-                :key="notebook.id"
-                :value="notebook.id"
-              >
-                {{ notebook.name }}
-              </option>
-            </select>
-            <select
-              v-else-if="store.draft.template.scope.type === 'block_type'"
-              v-model="store.draft.template.scope.value"
-              class="control"
-            >
-              <option value="p">
-                段落 p
-              </option>
-              <option value="h">
-                标题 h
-              </option>
-              <option value="i">
-                列表项 i
-              </option>
-              <option value="t">
-                表格 t
-              </option>
-              <option value="d">
-                文档 d
-              </option>
-            </select>
-            <input
-              v-else
-              v-model="store.draft.template.scope.value"
-              class="control"
-              :placeholder="store.scopePlaceholder"
-            >
-          </label>
-        </div>
-      </article>
+      <EditorScopeSection
+        :collapsed="collapsedSections.scope"
+        @toggle="toggleSection('scope')"
+      />
 
-      <article class="card card--mappings">
-        <div class="section-head">
-          <div class="section-heading">
-            <span class="section-kicker">Field Mapping</span>
-            <h3>字段映射</h3>
-          </div>
-          <div class="section-head-actions">
-            <button
-              class="btn btn--outline btn--small"
-              data-generate-examples
-              type="button"
-              @click="store.generateExampleDocument"
-            >
-              生成示例
-            </button>
-            <button
-              class="section-toggle"
-              type="button"
-              data-section-toggle="mappings"
-              :title="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
-              :aria-label="collapsedSections.mappings ? '展开字段映射' : '收起字段映射'"
-              :aria-expanded="String(!collapsedSections.mappings)"
-              @click="toggleSection('mappings')"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                :class="{ 'is-expanded': !collapsedSections.mappings }"
-              >
-                <path
-                  d="M7 10l5 5 5-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2.2"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <p class="section-copy">
-          快速编辑、看板列和统计字段都会依赖这里的属性名称。
-        </p>
-        <div
-          v-if="!collapsedSections.mappings"
-          class="form-grid"
-        >
-          <label
-            v-for="key in store.mappingKeys"
-            :key="key"
-            class="field"
-          >
-            <span>{{ store.mappingLabels[key] }}</span>
-            <input
-              v-model="store.draft.view.fieldMappings[key]"
-              class="control"
-            >
-            <small
-              :data-mapping-hint="key"
-              class="field-hint"
-            >
-              {{ mappingHints[key] }}
-            </small>
-          </label>
-        </div>
-      </article>
+      <EditorMappingsSection
+        :collapsed="collapsedSections.mappings"
+        :mapping-hints="mappingHints"
+        @toggle="toggleSection('mappings')"
+      />
 
-      <article class="card card--full">
-        <div class="section-head">
-          <div class="section-heading">
-            <span class="section-kicker">Filters</span>
-            <h3>条件编辑器</h3>
-          </div>
-          <div class="section-head-actions">
-            <button
-              class="btn btn--solid"
-              data-add-filter
-              @click="store.addFilter"
-            >
-              添加条件
-            </button>
-            <button
-              class="section-toggle"
-              type="button"
-              data-section-toggle="filters"
-              :title="collapsedSections.filters ? '展开条件编辑器' : '收起条件编辑器'"
-              :aria-label="collapsedSections.filters ? '展开条件编辑器' : '收起条件编辑器'"
-              :aria-expanded="String(!collapsedSections.filters)"
-              @click="toggleSection('filters')"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                :class="{ 'is-expanded': !collapsedSections.filters }"
-              >
-                <path
-                  d="M7 10l5 5 5-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2.2"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <p class="section-copy">
-          组合字段、操作符和值来描述真正要筛出的内容。
-        </p>
-        <template v-if="!collapsedSections.filters">
-          <div
-            v-if="store.draft.template.filters.length"
-            class="stack gap-sm"
-          >
-            <div
-              v-for="(filter, index) in store.draft.template.filters"
-              :key="filter.id"
-              class="filter-row"
-              :data-filter-row="filter.id"
-              :class="{
-                'filter-row--dragging': draggingFilterId === filter.id,
-                'filter-row--drop-before': dragOverFilterId === filter.id && dragOverPlacement === 'before',
-                'filter-row--drop-after': dragOverFilterId === filter.id && dragOverPlacement === 'after',
-                'filter-row--range': filter.operator === 'date_between',
-              }"
-              @dragend="clearFilterDrag"
-              @dragover.prevent="onFilterDragOver(filter.id, $event)"
-              @drop.prevent="onFilterDrop(filter.id)"
-            >
-              <div
-                class="filter-row__drag-handle"
-                :data-filter-drag-handle="filter.id"
-                draggable="true"
-                title="拖拽调整条件顺序"
-                aria-label="拖拽调整条件顺序"
-                @dragstart="onFilterDragStart(filter.id)"
-                @dragend="clearFilterDrag"
-              >
-                <svg
-                  viewBox="0 0 16 16"
-                  aria-hidden="true"
-                >
-                  <circle cx="5" cy="4" r="1.1" fill="currentColor" />
-                  <circle cx="11" cy="4" r="1.1" fill="currentColor" />
-                  <circle cx="5" cy="8" r="1.1" fill="currentColor" />
-                  <circle cx="11" cy="8" r="1.1" fill="currentColor" />
-                  <circle cx="5" cy="12" r="1.1" fill="currentColor" />
-                  <circle cx="11" cy="12" r="1.1" fill="currentColor" />
-                </svg>
-              </div>
-              <select
-                v-model="filter.field"
-                :data-filter-field="filter.id"
-                class="control"
-                @change="normalizeFilterOperator(filter)"
-              >
-                <option
-                  v-for="option in store.fieldOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-              <select
-                v-model="filter.operator"
-                :data-filter-operator="filter.id"
-                class="control"
-              >
-                <option
-                  v-for="option in filterOperatorOptions(filter.field)"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-              <template v-if="filter.operator === 'date_between'">
-                <input
-                  class="control"
-                  type="date"
-                  :value="store.dateRangeValue(filter, 0)"
-                  @input="store.updateDateRange(filter, 0, ($event.target as HTMLInputElement).value)"
-                >
-                <input
-                  class="control"
-                  type="date"
-                  :value="store.dateRangeValue(filter, 1)"
-                  @input="store.updateDateRange(filter, 1, ($event.target as HTMLInputElement).value)"
-                >
-              </template>
-              <input
-                v-else-if="store.requiresValue(filter.operator)"
-                class="control"
-                :type="filter.operator.includes('days') ? 'number' : 'text'"
-                :value="String(filter.value || '')"
-                @input="filter.value = ($event.target as HTMLInputElement).value"
-              >
-              <div
-                class="filter-row__actions"
-                :data-filter-actions="filter.id"
-              >
-                <template v-if="index > 0">
-                  <button
-                    :data-filter-condition-toggle="filter.id"
-                    class="filter-row__logic"
-                    :data-state="filter.condition || 'and'"
-                    type="button"
-                    :title="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
-                    :aria-label="`切换条件连接词，当前为 ${displayFilterCondition(filter.condition)}`"
-                    @click="toggleFilterCondition(index)"
-                  >
-                    {{ displayFilterCondition(filter.condition) }}
-                  </button>
-                </template>
-                <span
-                  v-else
-                  class="filter-row__logic-spacer"
-                  aria-hidden="true"
-                />
-                <DeleteIconButton
-                  :data-filter-delete="filter.id"
-                  class="filter-row__delete"
-                  title="删除条件"
-                  aria-label="删除条件"
-                  @click="store.removeFilter(filter.id)"
-                />
-              </div>
-            </div>
-          </div>
-          <p
-            v-else
-            class="muted"
-          >
-            还没有筛选条件，可以先从状态、日期、项目开始。
-          </p>
-        </template>
-      </article>
+      <EditorFiltersSection
+        :collapsed="collapsedSections.filters"
+        :dragging-filter-id="draggingFilterId"
+        :drag-over-filter-id="dragOverFilterId"
+        :drag-over-placement="dragOverPlacement"
+        :filter-operator-options="filterOperatorOptions"
+        :normalize-filter-operator="normalizeFilterOperator"
+        :display-filter-condition="displayFilterCondition"
+        :toggle-filter-condition="toggleFilterCondition"
+        :on-filter-drag-start="onFilterDragStart"
+        :on-filter-drag-over="onFilterDragOver"
+        :on-filter-drop="onFilterDrop"
+        :clear-filter-drag="clearFilterDrag"
+        @toggle="toggleSection('filters')"
+      />
 
       <EditorViewSettingsSection
         :collapsed="collapsedSections.view"
@@ -385,143 +54,29 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from "vue"
-
-import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
+import EditorFiltersSection from "@/components/query-builder/EditorFiltersSection.vue"
+import EditorMappingsSection from "@/components/query-builder/EditorMappingsSection.vue"
+import EditorScopeSection from "@/components/query-builder/EditorScopeSection.vue"
 import EditorViewSettingsSection from "@/components/query-builder/EditorViewSettingsSection.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import type { FilterOperator, QueryFilter } from "@/core/query/types"
+import { mappingHints, useQueryBuilderEditorState } from "@/components/query-builder/editor-state"
 
 const store = useQueryBuilderStore()
-const COMMON_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
-  { value: "eq", label: "等于" },
-  { value: "neq", label: "不等于" },
-  { value: "gt", label: "大于" },
-  { value: "contains", label: "包含" },
-  { value: "not_contains", label: "不包含" },
-  { value: "empty", label: "为空" },
-  { value: "not_empty", label: "非空" },
-]
-const DATE_COMPATIBLE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
-  { value: "eq", label: "等于" },
-  { value: "neq", label: "不等于" },
-  { value: "gt", label: "大于" },
-  { value: "empty", label: "为空" },
-  { value: "not_empty", label: "非空" },
-]
-const DATE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
-  { value: "date_between", label: "日期区间" },
-  { value: "next_days", label: "未来 N 天" },
-  { value: "last_days", label: "最近 N 天" },
-]
-const DATE_ONLY_OPERATORS = new Set<FilterOperator>(DATE_FILTER_OPERATORS.map(option => option.value))
-const DATE_COMPATIBLE_OPERATOR_VALUES = new Set<FilterOperator>([
-  ...DATE_COMPATIBLE_FILTER_OPERATORS.map(option => option.value),
-  ...DATE_FILTER_OPERATORS.map(option => option.value),
-])
-const mappingHints: Record<"status" | "dueDate" | "priority" | "project" | "owner", string> = {
-  status: "预设值：Todo / Doing / Done",
-  dueDate: "预设值：YYYY-MM-DD，例如 2026-03-23",
-  priority: "预设值：P0 / P1 / P2 / P3",
-  project: "示例：项目周报、知识库整理",
-  owner: "示例：张三、Alice",
-}
-const collapsedSections = reactive({
-  filters: false,
-  mappings: false,
-  scope: false,
-  view: false,
-})
-const draggingFilterId = ref("")
-const dragOverFilterId = ref("")
-const dragOverPlacement = ref<"before" | "after" | "">("")
-
-function toggleSection(section: keyof typeof collapsedSections) {
-  collapsedSections[section] = !collapsedSections[section]
-}
-
-function isDateField(field: string) {
-  return field === "created"
-    || field === "updated"
-    || field === `attr:${store.draft.view.fieldMappings.dueDate}`
-}
-
-function filterOperatorOptions(field: string) {
-  return isDateField(field)
-    ? [...DATE_COMPATIBLE_FILTER_OPERATORS, ...DATE_FILTER_OPERATORS]
-    : COMMON_FILTER_OPERATORS
-}
-
-function normalizeFilterOperator(filter: QueryFilter) {
-  if (isDateField(filter.field) && !DATE_COMPATIBLE_OPERATOR_VALUES.has(filter.operator)) {
-    filter.operator = "eq"
-    filter.value = ""
-    return
-  }
-
-  if (DATE_ONLY_OPERATORS.has(filter.operator) && !isDateField(filter.field)) {
-    filter.operator = "contains"
-    filter.value = ""
-  }
-}
-
-function onFilterDragStart(filterId: string) {
-  draggingFilterId.value = filterId
-}
-
-function displayFilterCondition(condition?: "and" | "or") {
-  return condition === "or" ? "OR" : "AND"
-}
-
-function toggleFilterCondition(index: number) {
-  const filter = store.draft.template.filters[index]
-  if (!filter) {
-    return
-  }
-
-  filter.condition = (filter.condition || "and") === "and" ? "or" : "and"
-}
-
-function onFilterDragOver(targetFilterId: string, event: DragEvent) {
-  if (!draggingFilterId.value || draggingFilterId.value === targetFilterId) {
-    dragOverFilterId.value = ""
-    dragOverPlacement.value = ""
-    return
-  }
-
-  const target = event.currentTarget as HTMLElement | null
-  if (!target) {
-    return
-  }
-
-  const rect = target.getBoundingClientRect()
-  const midpoint = rect.top + rect.height / 2
-
-  dragOverFilterId.value = targetFilterId
-  dragOverPlacement.value = event.clientY <= midpoint ? "before" : "after"
-}
-
-function onFilterDrop(targetFilterId: string) {
-  if (!draggingFilterId.value) {
-    return
-  }
-  store.moveFilter(draggingFilterId.value, targetFilterId, dragOverPlacement.value || "before")
-  clearFilterDrag()
-}
-
-function clearFilterDrag() {
-  draggingFilterId.value = ""
-  dragOverFilterId.value = ""
-  dragOverPlacement.value = ""
-}
-
-watch(
-  () => store.draft.template.filters.map(filter => `${filter.id}:${filter.field}:${filter.operator}`),
-  () => {
-    store.draft.template.filters.forEach(normalizeFilterOperator)
-  },
-  { immediate: true },
-)
+const {
+  clearFilterDrag,
+  collapsedSections,
+  displayFilterCondition,
+  draggingFilterId,
+  dragOverFilterId,
+  dragOverPlacement,
+  filterOperatorOptions,
+  normalizeFilterOperator,
+  onFilterDragOver,
+  onFilterDragStart,
+  onFilterDrop,
+  toggleFilterCondition,
+  toggleSection,
+} = useQueryBuilderEditorState(store)
 </script>
 
 <style lang="scss" scoped>
@@ -567,18 +122,18 @@ watch(
   color: var(--sqb-accent);
 }
 
-.section-head,
-.section-head-actions,
-.actions,
-.actions--inline {
+:deep(.section-head),
+:deep(.section-head-actions),
+:deep(.actions),
+:deep(.actions--inline) {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.section-head,
-.actions,
-.actions--inline {
+:deep(.section-head),
+:deep(.actions),
+:deep(.actions--inline) {
   justify-content: space-between;
 }
 
@@ -588,13 +143,13 @@ watch(
   gap: 18px;
 }
 
-.stack {
+:deep(.stack) {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.gap-sm {
+:deep(.gap-sm) {
   gap: 10px;
 }
 
@@ -628,14 +183,14 @@ watch(
   font: 700 11px/1.3 var(--sqb-sans);
 }
 
-h3 {
+:deep(h3) {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
   font-family: var(--sqb-serif);
 }
 
-.section-toggle {
+:deep(.section-toggle) {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -649,41 +204,41 @@ h3 {
   cursor: pointer;
 }
 
-.section-heading {
+:deep(.section-heading) {
   display: grid;
   gap: 4px;
   text-align: left;
 }
 
-.section-kicker {
+:deep(.section-kicker) {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--sqb-primary);
   font: 700 11px/1.2 var(--sqb-sans);
 }
 
-.section-copy {
+:deep(.section-copy) {
   margin: 10px 0 0;
   color: var(--sqb-text-muted);
   font: 13px/1.55 var(--sqb-sans);
 }
 
-.section-toggle:hover {
+:deep(.section-toggle:hover) {
   background: var(--sqb-bg-strong);
 }
 
-.section-toggle svg {
+:deep(.section-toggle svg) {
   width: 16px;
   height: 16px;
   transition: transform 140ms ease;
 }
 
-.section-toggle svg.is-expanded {
+:deep(.section-toggle svg.is-expanded) {
   transform: rotate(180deg);
 }
 
 .title-input,
-.control {
+:deep(.control) {
   width: 100%;
   box-sizing: border-box;
   height: 32px;
@@ -697,24 +252,24 @@ h3 {
 }
 
 .title-input::placeholder,
-.control::placeholder {
+:deep(.control::placeholder) {
   color: var(--sqb-text-muted);
   opacity: 0.6;
 }
 
 .title-input:hover,
-.control:hover {
+:deep(.control:hover) {
   border-color: var(--sqb-border-strong);
 }
 
 .title-input:focus,
-.control:focus {
+:deep(.control:focus) {
   outline: none;
   border-color: var(--sqb-primary);
   box-shadow: 0 0 0 3px var(--sqb-primary-soft);
 }
 
-.btn {
+:deep(.btn) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -730,40 +285,40 @@ h3 {
   border: 1px solid transparent;
 }
 
-.btn--small {
+:deep(.btn--small) {
   height: 26px;
   padding: 0 8px;
   font-size: 12px;
   border-radius: 8px;
 }
 
-.btn--solid {
+:deep(.btn--solid) {
   background: var(--sqb-primary);
   color: #ffffff;
 }
 
-.btn--solid:hover {
+:deep(.btn--solid:hover) {
   background: var(--sqb-primary-strong);
 }
 
-.btn--ghost {
+:deep(.btn--ghost) {
   background: transparent;
   color: var(--sqb-text-muted);
   border-color: transparent;
 }
 
-.btn--ghost:hover {
+:deep(.btn--ghost:hover) {
   background: var(--sqb-bg-strong);
   color: var(--sqb-text);
 }
 
-.btn--outline {
+:deep(.btn--outline) {
   background: transparent;
   color: var(--sqb-text);
   border-color: var(--sqb-border);
 }
 
-.btn--outline:hover {
+:deep(.btn--outline:hover) {
   border-color: var(--sqb-primary);
   color: var(--sqb-primary);
 }
@@ -784,50 +339,50 @@ h3 {
   justify-content: center;
 }
 
-.muted {
+:deep(.muted) {
   margin: 0;
   color: var(--sqb-text-muted);
   font: 14px/1.5 var(--sqb-sans);
 }
 
-.form-grid {
+:deep(.form-grid) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
 }
 
-.form-grid--scope {
+:deep(.form-grid--scope) {
   grid-template-columns: 1fr;
 }
 
-.form-grid--aggregation {
+:deep(.form-grid--aggregation) {
   margin-top: 0;
 }
 
-.field {
+:deep(.field) {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.field span,
+:deep(.field span),
 .check small {
   font: 13px/1.25 var(--sqb-sans);
 }
 
-.field span {
+:deep(.field span) {
   color: var(--sqb-secondary);
   font-weight: 700;
 }
 
-.field-hint {
+:deep(.field-hint) {
   color: var(--sqb-text-muted);
   font: 12px/1.45 var(--sqb-sans);
   letter-spacing: 0.01em;
 }
 
-.filter-row {
+:deep(.filter-row) {
   display: grid;
   grid-template-columns: 36px minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.15fr) auto;
   grid-auto-columns: minmax(0, 1fr);
@@ -842,28 +397,28 @@ h3 {
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
 
-.filter-row:hover {
+:deep(.filter-row:hover) {
   border-color: var(--sqb-border-strong);
   background: linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%), var(--sqb-surface-soft);
 }
 
-.filter-row--range {
+:deep(.filter-row--range) {
   grid-template-columns: 36px minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 
-.filter-row--sort {
+:deep(.filter-row--sort) {
   grid-template-columns: minmax(0, 1fr) 120px auto;
   padding: 0;
   border: none;
   background: transparent;
 }
 
-.filter-row--dragging {
+:deep(.filter-row--dragging) {
   opacity: 0.72;
 }
 
-.filter-row--drop-before::before,
-.filter-row--drop-after::after {
+:deep(.filter-row--drop-before::before),
+:deep(.filter-row--drop-after::after) {
   content: '';
   position: absolute;
   left: 12px;
@@ -874,15 +429,15 @@ h3 {
   box-shadow: 0 0 0 3px var(--sqb-primary-soft);
 }
 
-.filter-row--drop-before::before {
+:deep(.filter-row--drop-before::before) {
   top: -2px;
 }
 
-.filter-row--drop-after::after {
+:deep(.filter-row--drop-after::after) {
   bottom: -2px;
 }
 
-.filter-row__drag-handle {
+:deep(.filter-row__drag-handle) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -900,22 +455,22 @@ h3 {
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
 }
 
-.filter-row__drag-handle:hover {
+:deep(.filter-row__drag-handle:hover) {
   border-color: var(--sqb-border-strong);
   background: var(--sqb-bg-strong);
   color: var(--sqb-text);
 }
 
-.filter-row__drag-handle:active {
+:deep(.filter-row__drag-handle:active) {
   cursor: grabbing;
 }
 
-.filter-row__drag-handle svg {
+:deep(.filter-row__drag-handle svg) {
   width: 10px;
   height: 10px;
 }
 
-.filter-row__actions {
+:deep(.filter-row__actions) {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: max-content;
@@ -924,13 +479,13 @@ h3 {
   gap: 8px;
 }
 
-.filter-row__logic,
-.filter-row__logic-spacer {
+:deep(.filter-row__logic),
+:deep(.filter-row__logic-spacer) {
   width: 74px;
   height: 32px;
 }
 
-.filter-row__logic {
+:deep(.filter-row__logic) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -945,42 +500,42 @@ h3 {
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
-.filter-row__logic[data-state='and'] {
+:deep(.filter-row__logic[data-state='and']) {
   background: var(--sqb-primary-soft);
   color: var(--sqb-primary-strong);
 }
 
-.filter-row__logic:hover {
+:deep(.filter-row__logic:hover) {
   border-color: var(--sqb-primary);
   background: var(--sqb-surface-strong);
   color: var(--sqb-primary);
 }
 
-.filter-row__logic:focus-visible {
+:deep(.filter-row__logic:focus-visible) {
   outline: none;
   border-color: var(--sqb-primary);
   box-shadow: 0 0 0 3px var(--sqb-primary-soft);
 }
 
-.filter-row__logic:active {
+:deep(.filter-row__logic:active) {
   transform: translateY(1px);
 }
 
-.filter-row__logic-spacer {
+:deep(.filter-row__logic-spacer) {
   display: block;
   pointer-events: none;
   visibility: hidden;
 }
 
-.filter-row__delete {
+:deep(.filter-row__delete) {
   justify-self: auto;
 }
 
-.section-head--top {
+:deep(.section-head--top) {
   margin-top: 20px;
 }
 
-.section-head--compact {
+:deep(.section-head--compact) {
   margin-top: 0;
 }
 
