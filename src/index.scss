@@ -2,7 +2,8 @@
   color-scheme: light;
 }
 
-#siyuan-query-builder-root {
+#siyuan-query-builder-root,
+.siyuan-query-builder-tab-root {
   height: 100%;
   overflow: hidden;
   --sqb-bg: #faf6f0;
@@ -39,11 +40,13 @@
   font-family: var(--sqb-sans);
 }
 
-#siyuan-query-builder-root > * {
+#siyuan-query-builder-root > *,
+.siyuan-query-builder-tab-root > * {
   height: 100%;
 }
 
-.b3-theme-light #siyuan-query-builder-root {
+.b3-theme-light #siyuan-query-builder-root,
+.b3-theme-light .siyuan-query-builder-tab-root {
   --sqb-bg: #faf6f0;
   --sqb-bg-strong: #f0ece4;
   --sqb-surface: rgba(255, 255, 255, 0.84);
@@ -74,23 +77,35 @@
 }
 
 #siyuan-query-builder-root,
+.siyuan-query-builder-tab-root,
 #siyuan-query-builder-root *,
+.siyuan-query-builder-tab-root *,
 #siyuan-query-builder-root *::before,
-#siyuan-query-builder-root *::after {
+.siyuan-query-builder-tab-root *::before,
+#siyuan-query-builder-root *::after,
+.siyuan-query-builder-tab-root *::after {
   box-sizing: border-box;
 }
 
 #siyuan-query-builder-root button,
+.siyuan-query-builder-tab-root button,
 #siyuan-query-builder-root input,
+.siyuan-query-builder-tab-root input,
 #siyuan-query-builder-root select,
-#siyuan-query-builder-root textarea {
+.siyuan-query-builder-tab-root select,
+#siyuan-query-builder-root textarea,
+.siyuan-query-builder-tab-root textarea {
   font: inherit;
 }
 
 #siyuan-query-builder-root h1,
+.siyuan-query-builder-tab-root h1,
 #siyuan-query-builder-root h2,
+.siyuan-query-builder-tab-root h2,
 #siyuan-query-builder-root h3,
-#siyuan-query-builder-root h4 {
+.siyuan-query-builder-tab-root h3,
+#siyuan-query-builder-root h4,
+.siyuan-query-builder-tab-root h4 {
   font-family: var(--sqb-serif);
   letter-spacing: -0.02em;
 }
@@ -158,7 +173,8 @@
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
-  #siyuan-query-builder-root {
+  #siyuan-query-builder-root,
+  .siyuan-query-builder-tab-root {
     --sqb-bg: #1e2220;
     --sqb-bg-strong: #252b27;
     --sqb-surface: rgba(38, 44, 40, 0.88);
@@ -210,7 +226,8 @@
   }
 }
 
-.b3-theme-dark #siyuan-query-builder-root {
+.b3-theme-dark #siyuan-query-builder-root,
+.b3-theme-dark .siyuan-query-builder-tab-root {
   --sqb-bg: #1e2220;
   --sqb-bg-strong: #252b27;
   --sqb-surface: rgba(38, 44, 40, 0.88);
@@ -266,8 +283,11 @@
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   #siyuan-query-builder-root *,
+  .siyuan-query-builder-tab-root *,
   #siyuan-query-builder-root *::before,
-  #siyuan-query-builder-root *::after {
+  .siyuan-query-builder-tab-root *::before,
+  #siyuan-query-builder-root *::after,
+  .siyuan-query-builder-tab-root *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

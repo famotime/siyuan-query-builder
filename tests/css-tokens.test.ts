@@ -30,9 +30,16 @@ describe('src/index.scss — token completeness', () => {
 
   it('implements light mode via SiYuan .b3-theme-light class for root and inline embeds', () => {
     expect(scss).toContain('.b3-theme-light #siyuan-query-builder-root')
+    expect(scss).toContain('.b3-theme-light .siyuan-query-builder-tab-root')
     expect(scss).toMatch(/\.b3-theme-light[\s\S]+--sqb-bg/)
     expect(scss).toContain('.b3-theme-light .sqb-inline-host')
     expect(scss).toMatch(/\.b3-theme-light \.sqb-inline-host[\s\S]+--sqb-inline-bg/)
+  })
+
+  it('applies the same host root tokens to custom tab mounts', () => {
+    expect(scss).toContain('.siyuan-query-builder-tab-root')
+    expect(scss).toMatch(/#siyuan-query-builder-root,\s*\.siyuan-query-builder-tab-root[\s\S]+--sqb-bg/)
+    expect(scss).toMatch(/#siyuan-query-builder-root,\s*\.siyuan-query-builder-tab-root[\s\S]+box-sizing: border-box/)
   })
 
   it('defines inline embed theme tokens for host-scoped light and dark themes', () => {
