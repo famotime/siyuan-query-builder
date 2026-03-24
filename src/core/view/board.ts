@@ -6,6 +6,10 @@ export interface BoardColumn {
   rows: ResultRow[]
 }
 
+interface BoardValueFormatter {
+  (row: ResultRow, field: FieldId, rawValue: string): string
+}
+
 function getFieldValue(row: ResultRow, field: FieldId) {
   if (field.startsWith("attr:")) {
     return row.attrs[field.slice("attr:".length)] || ""
@@ -15,17 +19,24 @@ function getFieldValue(row: ResultRow, field: FieldId) {
   return typeof value === "string" ? value : ""
 }
 
-export function buildBoardColumns(rows: ResultRow[], groupBy: FieldId): BoardColumn[] {
+export function buildBoardColumns(
+  rows: ResultRow[],
+  groupBy: FieldId,
+  formatValue?: BoardValueFormatter,
+): BoardColumn[] {
   const columns = new Map<string, BoardColumn>()
   const ungroupedId = "__ungrouped__"
 
   for (const row of rows) {
     const rawValue = getFieldValue(row, groupBy).trim()
     const columnId = rawValue || ungroupedId
+    const displayValue = rawValue
+      ? (formatValue?.(row, groupBy, rawValue) || rawValue)
+      : "未分组"
     if (!columns.has(columnId)) {
       columns.set(columnId, {
         id: columnId,
-        title: rawValue || "未分组",
+        title: displayValue,
         rows: [],
       })
     }

@@ -223,6 +223,7 @@ describe("QueryBuilderSidebar", () => {
 
     expect(exportButton.text()).toBe("")
     expect(exportButton.get("svg").exists()).toBe(true)
+    expect(exportButton.classes()).toContain("item-action--borderless")
 
     await exportButton.trigger("click")
 

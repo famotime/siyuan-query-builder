@@ -41,8 +41,8 @@ export const mappingHints: Record<"status" | "dueDate" | "priority" | "project" 
 export function useQueryBuilderEditorState(store: QueryBuilderStore) {
   const collapsedSections = reactive({
     filters: false,
-    mappings: false,
-    scope: false,
+    mappings: true,
+    scope: true,
     view: false,
   })
   const draggingFilterId = ref("")

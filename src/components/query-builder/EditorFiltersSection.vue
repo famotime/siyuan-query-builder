@@ -52,37 +52,18 @@
           :key="filter.id"
           class="filter-row"
           :data-filter-row="filter.id"
+          draggable="true"
           :class="{
             'filter-row--dragging': props.draggingFilterId === filter.id,
             'filter-row--drop-before': props.dragOverFilterId === filter.id && props.dragOverPlacement === 'before',
             'filter-row--drop-after': props.dragOverFilterId === filter.id && props.dragOverPlacement === 'after',
             'filter-row--range': filter.operator === 'date_between',
           }"
+          @dragstart="onFilterRowDragStart(filter.id, $event)"
           @dragend="props.clearFilterDrag"
           @dragover.prevent="props.onFilterDragOver(filter.id, $event)"
           @drop.prevent="props.onFilterDrop(filter.id)"
         >
-          <div
-            class="filter-row__drag-handle"
-            :data-filter-drag-handle="filter.id"
-            draggable="true"
-            title="拖拽调整条件顺序"
-            aria-label="拖拽调整条件顺序"
-            @dragstart="props.onFilterDragStart(filter.id)"
-            @dragend="props.clearFilterDrag"
-          >
-            <svg
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-            >
-              <circle cx="5" cy="4" r="1.1" fill="currentColor" />
-              <circle cx="11" cy="4" r="1.1" fill="currentColor" />
-              <circle cx="5" cy="8" r="1.1" fill="currentColor" />
-              <circle cx="11" cy="8" r="1.1" fill="currentColor" />
-              <circle cx="5" cy="12" r="1.1" fill="currentColor" />
-              <circle cx="11" cy="12" r="1.1" fill="currentColor" />
-            </svg>
-          </div>
           <select
             :value="filter.field"
             :data-filter-field="filter.id"
@@ -126,7 +107,7 @@
           </template>
           <input
             v-else-if="store.requiresValue(filter.operator)"
-            class="control"
+            class="control filter-row__value"
             :type="filter.operator.includes('days') ? 'number' : 'text'"
             :value="String(filter.value || '')"
             @input="filter.value = ($event.target as HTMLInputElement).value"
@@ -202,5 +183,15 @@ const store = useQueryBuilderStore()
 function onFieldChange(filter: QueryFilter, event: Event) {
   filter.field = (event.target as HTMLSelectElement).value
   props.normalizeFilterOperator(filter)
+}
+
+function onFilterRowDragStart(filterId: string, event: DragEvent) {
+  const target = event.target
+  if (target instanceof HTMLElement && target.closest("button, input, select, textarea, a, [role='button'], [contenteditable='true']")) {
+    event.preventDefault()
+    return
+  }
+
+  props.onFilterDragStart(filterId)
 }
 </script>

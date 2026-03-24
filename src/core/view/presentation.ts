@@ -19,6 +19,25 @@ function formatSiyuanTimestamp(value: unknown) {
   return text
 }
 
+function formatBlockType(value: unknown) {
+  switch (String(value ?? "").trim()) {
+    case "d":
+      return "文档"
+    case "h":
+      return "标题"
+    case "i":
+      return "列表项"
+    case "l":
+      return "列表"
+    case "p":
+      return "段落"
+    case "t":
+      return "表格"
+    default:
+      return String(value ?? "")
+  }
+}
+
 function createKnownLabels(fieldMappings: FieldMappings) {
   return new Map(
     createFieldOptions(fieldMappings).map(option => [option.value, option.label]),
@@ -84,6 +103,9 @@ export function formatResultValue(row: ResultRow, field: string, options: {
   if (field === "path") {
     return String(row.hpath ?? row[field] ?? "")
   }
+  if (field === "type") {
+    return formatBlockType(row[field])
+  }
   return String(row[field] ?? "")
 }
 
@@ -91,9 +113,21 @@ export function createResultPresentation(options: CreateResultPresentationOption
   const knownLabels = createKnownLabels(options.fieldMappings)
 
   return {
-    buildBoardColumns,
-    buildCardsSummary,
-    buildListItems,
+    buildBoardColumns(rows: ResultRow[], groupBy: FieldId) {
+      return buildBoardColumns(rows, groupBy, (row, field) => formatResultValue(row, field, {
+        notebookNameById: options.notebookNameById,
+      }))
+    },
+    buildCardsSummary(rows: ResultRow[], groupField: FieldId) {
+      return buildCardsSummary(rows, groupField, (row, field) => formatResultValue(row, field, {
+        notebookNameById: options.notebookNameById,
+      }))
+    },
+    buildListItems(rows: ResultRow[], metaFields: FieldId[]) {
+      return buildListItems(rows, metaFields, (row, field) => formatResultValue(row, field, {
+        notebookNameById: options.notebookNameById,
+      }))
+    },
     displayValue(row: ResultRow, field: string) {
       return formatResultValue(row, field, {
         notebookNameById: options.notebookNameById,

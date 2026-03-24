@@ -208,7 +208,7 @@
             </span>
           </button>
           <button
-            class="item-action"
+            class="item-action item-action--borderless"
             type="button"
             :data-template-export="summary.templateId"
             title="导出模板"
@@ -547,6 +547,10 @@ h2 {
   width: 28px;
   padding: 0;
   border-radius: 8px;
+}
+
+.item-action--borderless {
+  border-color: transparent;
 }
 
 .section-toggle {

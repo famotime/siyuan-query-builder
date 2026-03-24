@@ -11,6 +11,10 @@ export interface ListItemModel {
   meta: string[]
 }
 
+interface ResultValueFormatter {
+  (row: ResultRow, field: FieldId, rawValue: string): string
+}
+
 function fieldValue(row: ResultRow, field: FieldId) {
   if (field.startsWith("attr:")) {
     return row.attrs[field.slice("attr:".length)] || ""
@@ -18,11 +22,18 @@ function fieldValue(row: ResultRow, field: FieldId) {
   return typeof row[field] === "string" ? String(row[field]) : ""
 }
 
-export function buildCardsSummary(rows: ResultRow[], groupField: FieldId): SummaryCard[] {
+export function buildCardsSummary(
+  rows: ResultRow[],
+  groupField: FieldId,
+  formatValue?: ResultValueFormatter,
+): SummaryCard[] {
   const groups = new Map<string, number>()
 
   for (const row of rows) {
-    const value = fieldValue(row, groupField) || "未设置"
+    const rawValue = fieldValue(row, groupField)
+    const value = rawValue
+      ? (formatValue?.(row, groupField, rawValue) || rawValue)
+      : "未设置"
     groups.set(value, (groups.get(value) || 0) + 1)
   }
 
@@ -35,10 +46,22 @@ export function buildCardsSummary(rows: ResultRow[], groupField: FieldId): Summa
   ]
 }
 
-export function buildListItems(rows: ResultRow[], metaFields: FieldId[]): ListItemModel[] {
+export function buildListItems(
+  rows: ResultRow[],
+  metaFields: FieldId[],
+  formatValue?: ResultValueFormatter,
+): ListItemModel[] {
   return rows.map(row => ({
     id: row.id,
     title: row.content,
-    meta: metaFields.map(field => fieldValue(row, field)).filter(Boolean),
+    meta: metaFields
+      .map((field) => {
+        const rawValue = fieldValue(row, field)
+        if (!rawValue) {
+          return ""
+        }
+        return formatValue?.(row, field, rawValue) || rawValue
+      })
+      .filter(Boolean),
   }))
 }

@@ -66,7 +66,7 @@ function createStore() {
 }
 
 describe('QueryBuilderResults advanced mode placement', () => {
-  it('renders advanced mode as a collapsible section above the results content', async () => {
+  it('renders advanced mode as a collapsible section above the results content and lets the SQL area collapse from its own toolbar', async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderResults)
 
@@ -81,5 +81,10 @@ describe('QueryBuilderResults advanced mode placement', () => {
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(wrapper.find('.sql-box').exists()).toBe(true)
     expect(wrapper.text()).toContain('运行查询后会显示生成后的 SQL 表达。')
+
+    await wrapper.get('[data-sql-preview-collapse]').trigger('click')
+
+    expect(currentStore.advancedMode).toBe(false)
+    expect(wrapper.find('.sql-box').exists()).toBe(false)
   })
 })

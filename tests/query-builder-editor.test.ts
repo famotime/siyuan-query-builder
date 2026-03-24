@@ -101,27 +101,35 @@ function createStore() {
 }
 
 describe("QueryBuilderEditor", () => {
-  it("collapses and expands editor sections from the header toggle", async () => {
+  it("keeps scope and mappings collapsed by default, then expands them from the header toggle", async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderEditor)
 
-    expect(wrapper.text()).toContain("范围类型")
+    expect(wrapper.text()).not.toContain("范围类型")
+    expect(wrapper.text()).not.toContain("状态属性名")
     expect(wrapper.text()).not.toContain("视图类型")
 
-    const toggle = wrapper.get("[data-section-toggle=\"scope\"]")
-    await toggle.trigger("click")
+    const scopeToggle = wrapper.get("[data-section-toggle=\"scope\"]")
+    const mappingsToggle = wrapper.get("[data-section-toggle=\"mappings\"]")
 
-    expect(wrapper.text()).not.toContain("范围类型")
-
-    await toggle.trigger("click")
+    await scopeToggle.trigger("click")
 
     expect(wrapper.text()).toContain("范围类型")
+
+    await mappingsToggle.trigger("click")
+
+    expect(wrapper.text()).toContain("状态属性名")
+
+    await scopeToggle.trigger("click")
+
+    expect(wrapper.text()).not.toContain("范围类型")
   })
 
-  it("lays out scope controls in a single-column form", () => {
+  it("lays out scope controls in a single-column form", async () => {
     currentStore = createStore()
     currentStore.draft.template.scope.type = 'notebook'
     const wrapper = mount(QueryBuilderEditor)
+    await wrapper.get('[data-section-toggle="scope"]').trigger('click')
 
     expect(wrapper.get('[data-scope-form]').classes()).toContain('form-grid--scope')
   })
@@ -151,9 +159,10 @@ describe("QueryBuilderEditor", () => {
     expect(wrapper.find('input[type="number"]').exists()).toBe(true)
   })
 
-  it('shows preset mapping hints below the field mapping inputs', () => {
+  it('shows preset mapping hints below the field mapping inputs', async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderEditor)
+    await wrapper.get('[data-section-toggle="mappings"]').trigger('click')
 
     expect(wrapper.get('[data-mapping-hint="status"]').text()).toContain('Todo / Doing / Done')
     expect(wrapper.get('[data-mapping-hint="dueDate"]').text()).toContain('YYYY-MM-DD')
@@ -216,6 +225,7 @@ describe("QueryBuilderEditor", () => {
   it('renders an outline generate-example button in field mappings and triggers document generation', async () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderEditor)
+    await wrapper.get('[data-section-toggle="mappings"]').trigger('click')
     const button = wrapper.get('[data-generate-examples]')
 
     expect(button.classes()).toEqual(expect.arrayContaining(['btn', 'btn--outline']))
@@ -322,7 +332,7 @@ describe("QueryBuilderEditor", () => {
     expect(operatorSelect.text()).toContain('最近 N 天')
   })
 
-  it("shows a drag handle and a drop indicator before reordering filters", async () => {
+  it("allows dragging a filter from the row instead of rendering a dedicated drag handle", async () => {
     currentStore = createStore()
     currentStore.draft.template.filters = [
       {
@@ -341,7 +351,7 @@ describe("QueryBuilderEditor", () => {
     ]
 
     const wrapper = mount(QueryBuilderEditor)
-    const sourceHandle = wrapper.get('[data-filter-drag-handle="filter-1"]')
+    const sourceRow = wrapper.get('[data-filter-row="filter-1"]')
     const target = wrapper.get('[data-filter-row="filter-2"]')
 
     Object.defineProperty(target.element, "getBoundingClientRect", {
@@ -359,10 +369,10 @@ describe("QueryBuilderEditor", () => {
       }),
     })
 
-    expect(sourceHandle.attributes("draggable")).toBe("true")
-    expect(sourceHandle.attributes("title")).toContain("拖拽")
+    expect(sourceRow.attributes("draggable")).toBe("true")
+    expect(wrapper.find('[data-filter-drag-handle="filter-1"]').exists()).toBe(false)
 
-    await sourceHandle.trigger("dragstart")
+    await sourceRow.trigger("dragstart")
     await target.trigger("dragover", { clientY: 108 })
 
     expect(target.classes()).toContain("filter-row--drop-before")
@@ -390,7 +400,7 @@ describe("QueryBuilderEditor", () => {
     ]
 
     const wrapper = mount(QueryBuilderEditor)
-    const sourceHandle = wrapper.get('[data-filter-drag-handle="filter-1"]')
+    const sourceRow = wrapper.get('[data-filter-row="filter-1"]')
     const target = wrapper.get('[data-filter-row="filter-2"]')
 
     Object.defineProperty(target.element, "getBoundingClientRect", {
@@ -408,7 +418,7 @@ describe("QueryBuilderEditor", () => {
       }),
     })
 
-    await sourceHandle.trigger("dragstart")
+    await sourceRow.trigger("dragstart")
     await target.trigger("dragover", { clientY: 176 })
 
     expect(target.classes()).toContain("filter-row--drop-after")

@@ -384,7 +384,7 @@ const {
 
 :deep(.filter-row) {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.15fr) auto;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.92fr) minmax(0, 1.65fr) auto;
   grid-auto-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: center;
@@ -394,6 +394,7 @@ const {
   background: linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%), var(--sqb-surface);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   position: relative;
+  cursor: grab;
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
 
@@ -403,7 +404,7 @@ const {
 }
 
 :deep(.filter-row--range) {
-  grid-template-columns: 36px minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 1.15fr) auto;
 }
 
 :deep(.filter-row--sort) {
@@ -415,6 +416,7 @@ const {
 
 :deep(.filter-row--dragging) {
   opacity: 0.72;
+  cursor: grabbing;
 }
 
 :deep(.filter-row--drop-before::before),
@@ -437,37 +439,8 @@ const {
   bottom: -2px;
 }
 
-:deep(.filter-row__drag-handle) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  width: 28px;
-  min-width: 28px;
-  height: 32px;
-  padding: 0;
-  border-radius: 10px;
-  border: 1px dashed var(--sqb-border);
-  background: var(--sqb-surface-soft);
-  color: var(--sqb-text-muted);
-  cursor: grab;
-  user-select: none;
-  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
-}
-
-:deep(.filter-row__drag-handle:hover) {
-  border-color: var(--sqb-border-strong);
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text);
-}
-
-:deep(.filter-row__drag-handle:active) {
-  cursor: grabbing;
-}
-
-:deep(.filter-row__drag-handle svg) {
-  width: 10px;
-  height: 10px;
+:deep(.filter-row__value) {
+  min-width: 0;
 }
 
 :deep(.filter-row__actions) {
@@ -641,7 +614,6 @@ const {
     align-items: stretch;
   }
 
-  .filter-row__drag-handle,
   .filter-row__actions {
     width: 100%;
   }

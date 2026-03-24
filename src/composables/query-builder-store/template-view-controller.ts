@@ -285,7 +285,9 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
 
       if (draft.view.id === viewId) {
         if (replacement) {
-          applyTemplateAndView(draft.template, replacement)
+          applyTemplateAndView(draft.template, replacement, {
+            preserveResultState: true,
+          })
           draft.template.viewType = replacement.type
         }
       } else if (deletedView?.defaultView && replacement) {

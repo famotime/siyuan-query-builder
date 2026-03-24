@@ -407,6 +407,19 @@ describe("createQueryBuilderStore view management", () => {
 
     await store.loadTemplate("template-1")
     await store.refreshSavedViews("template-1")
+    store.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "任务 A",
+          attrs: {
+            status: "Doing",
+          },
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-22T00:00:00.000Z",
+    }
     await store.deleteSavedView("view-table")
 
     expect(store.savedViews).toEqual([
@@ -426,6 +439,15 @@ describe("createQueryBuilderStore view management", () => {
     ])
     expect(store.draft.view.id).toBe("view-board")
     expect(store.draft.view.defaultView).toBe(true)
+    expect(store.resultSet?.rows).toEqual([
+      {
+        id: "block-1",
+        content: "任务 A",
+        attrs: {
+          status: "Doing",
+        },
+      },
+    ])
   })
 
   it("imports a template bundle as a new saved template with remapped ids", async () => {

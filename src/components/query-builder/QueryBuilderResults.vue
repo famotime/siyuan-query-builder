@@ -671,11 +671,43 @@ h3 {
   background: rgba(255, 255, 255, 0.22);
 }
 
+:deep(.sql-box__actions) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 :deep(.sql-box__language) {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--sqb-text-muted);
   font: 700 11px/1.2 var(--sqb-mono);
+}
+
+:deep(.sql-box__collapse) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--sqb-text-muted);
+  cursor: pointer;
+  font: 600 12px/1 var(--sqb-sans);
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+}
+
+:deep(.sql-box__collapse:hover) {
+  border-color: var(--sqb-border);
+  background: var(--sqb-surface);
+  color: var(--sqb-text);
+}
+
+:deep(.sql-box__collapse:focus-visible) {
+  outline: 2px solid var(--sqb-primary);
+  outline-offset: 2px;
 }
 
 :deep(.sql-box__copy) {

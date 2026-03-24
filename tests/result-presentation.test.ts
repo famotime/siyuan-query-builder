@@ -17,6 +17,7 @@ describe("createResultPresentation", () => {
         updated: "20260324120000",
         box: "box-1",
         hpath: "/工作台/Design dashboard",
+        type: "d",
       },
       {
         id: "block-2",
@@ -27,6 +28,7 @@ describe("createResultPresentation", () => {
         updated: "20260325153000",
         box: "box-1",
         hpath: "/工作台/Ship package",
+        type: "l",
       },
     ]
 
@@ -47,11 +49,16 @@ describe("createResultPresentation", () => {
     expect(presentation.displayValue(rows[0]!, "updated")).toBe("2026-03-24 12:00:00")
     expect(presentation.displayValue(rows[0]!, "box")).toBe("工作笔记")
     expect(presentation.displayValue(rows[0]!, "path")).toBe("/工作台/Design dashboard")
+    expect(presentation.displayValue(rows[0]!, "type")).toBe("文档")
 
     expect(presentation.buildCardsSummary(rows, "attr:status")).toEqual([
       { label: "总结果", value: "2" },
       { label: "Todo", value: "1" },
       { label: "Doing", value: "1" },
+    ])
+    expect(presentation.buildCardsSummary(rows, "box")).toEqual([
+      { label: "总结果", value: "2" },
+      { label: "工作笔记", value: "2" },
     ])
     expect(presentation.buildListItems(rows, ["attr:priority", "attr:status"])).toEqual([
       {
@@ -65,6 +72,24 @@ describe("createResultPresentation", () => {
         meta: ["Doing"],
       },
     ])
-    expect(presentation.buildBoardColumns(rows, "attr:status").map(column => column.id)).toEqual(["Todo", "Doing"])
+    expect(presentation.buildListItems(rows, ["box", "type"])).toEqual([
+      {
+        id: "block-1",
+        title: "Design dashboard",
+        meta: ["工作笔记", "文档"],
+      },
+      {
+        id: "block-2",
+        title: "Ship package",
+        meta: ["工作笔记", "列表"],
+      },
+    ])
+    expect(presentation.buildBoardColumns(rows, "attr:status").map(column => column.title)).toEqual(["Todo", "Doing"])
+    expect(presentation.buildBoardColumns(rows, "box")).toEqual([
+      expect.objectContaining({
+        id: "box-1",
+        title: "工作笔记",
+      }),
+    ])
   })
 })
