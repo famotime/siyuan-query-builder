@@ -1,7 +1,14 @@
 <template>
   <section class="results">
-    <article class="card">
-      <div class="section-head">
+    <article
+      class="card"
+      :class="{ 'card--collapsed': resultsCollapsed }"
+      data-results-preview-card
+    >
+      <div
+        class="section-head"
+        :class="{ 'section-head--collapsed': resultsCollapsed }"
+      >
         <div class="summary">
           <div class="summary__header">
             <div class="summary__icon" aria-hidden="true">
@@ -23,139 +30,171 @@
             </div>
           </div>
         </div>
-        <div class="view-switcher">
-          <div class="tabs">
-            <button
-              class="tabs__item"
-              :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
-              data-view-type="table"
-              type="button"
-              @click="selectResultViewType('table')"
-            >
-              表格
-            </button>
-            <button
-              class="tabs__item"
-              :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
-              data-view-type="board"
-              type="button"
-              @click="selectResultViewType('board')"
-            >
-              看板
-            </button>
-            <button
-              class="tabs__item"
-              :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
-              data-view-type="list"
-              type="button"
-              @click="selectResultViewType('list')"
-            >
-              列表
-            </button>
-            <button
-              class="tabs__item"
-              :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
-              data-view-type="cards"
-              type="button"
-              @click="selectResultViewType('cards')"
-            >
-              卡片
-            </button>
+        <div class="section-head-actions">
+          <div class="view-switcher">
+            <div class="tabs">
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
+                data-view-type="table"
+                type="button"
+                @click="selectResultViewType('table')"
+              >
+                表格
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
+                data-view-type="board"
+                type="button"
+                @click="selectResultViewType('board')"
+              >
+                看板
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
+                data-view-type="list"
+                type="button"
+                @click="selectResultViewType('list')"
+              >
+                列表
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
+                data-view-type="cards"
+                type="button"
+                @click="selectResultViewType('cards')"
+              >
+                卡片
+              </button>
+            </div>
           </div>
+          <button
+            class="section-toggle"
+            data-results-preview-toggle
+            type="button"
+            :title="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
+            :aria-label="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
+            :aria-expanded="String(!resultsCollapsed)"
+            @click="resultsCollapsed = !resultsCollapsed"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              :class="{ 'is-expanded': !resultsCollapsed }"
+            >
+              <path
+                d="M7 10l5 5 5-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.2"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
       <div
-        v-if="store.error"
-        class="alert"
+        v-if="!resultsCollapsed"
+        class="results__body"
+        data-results-preview-body
       >
-        {{ store.error }}
+        <div
+          v-if="store.error"
+          class="alert"
+        >
+          {{ store.error }}
+        </div>
+
+        <ResultsSavedViewsPanel
+          :active-view-id="store.draft.view.id"
+          :views="store.savedViews || []"
+          @delete="store.deleteSavedView"
+          @load="store.loadSavedView"
+          @save-as="store.saveViewAs"
+          @set-default="store.setDefaultSavedView"
+        />
+
+        <div
+          v-if="store.draft.view.type === 'board' && store.boardDragCapability && !store.boardDragCapability.enabled && store.boardDragCapability.reason"
+          class="alert alert--warning"
+        >
+          {{ store.boardDragCapability.reason }}
+        </div>
+
+        <ResultsSqlPreview
+          :advanced-mode="store.advancedMode"
+          :advanced-sql="store.advancedSql"
+          :has-advanced-sql="hasAdvancedSql"
+          @copy="copyAdvancedSql"
+          @toggle="store.advancedMode = !store.advancedMode"
+        />
+
+        <div
+          v-if="!hasResultRows"
+          class="empty"
+          data-results-empty
+        >
+          <div class="empty__icon" />
+          <h4>结果会在这里出现</h4>
+          <p>运行查询后，可切换表格、看板、列表或统计视图，并继续编辑状态、日期和优先级。</p>
+        </div>
+
+        <ResultsTableView
+          v-else-if="store.draft.view.type === 'table'"
+          :result-fields="store.resultFields"
+          :rows="store.resultSet.rows"
+          :field-label="store.fieldLabel"
+          :can-open-row="store.canOpenRow"
+          :display-value="store.displayValue"
+          :editable-field="store.editableField"
+          :quick-edit="store.quickEdit"
+          :open-block="store.openBlock"
+        />
+
+        <ResultsBoardView
+          v-else-if="store.draft.view.type === 'board'"
+          :board-columns="store.boardColumns"
+          :field-mappings="store.draft.view.fieldMappings"
+          :display-value="store.displayValue"
+          :open-block="store.openBlock"
+          :set-dragging-row-id="value => store.draggingRowId = value"
+          :drop-to-column="store.dropToColumn"
+        />
+
+        <ResultsListView
+          v-else-if="store.draft.view.type === 'list'"
+          :items="store.listItems"
+          :open-block="store.openBlock"
+        />
+
+        <ResultsCardsView
+          v-else
+          :cards="store.cardsSummary"
+        />
       </div>
-
-      <ResultsSavedViewsPanel
-        :active-view-id="store.draft.view.id"
-        :views="store.savedViews || []"
-        @delete="store.deleteSavedView"
-        @load="store.loadSavedView"
-        @save-as="store.saveViewAs"
-        @set-default="store.setDefaultSavedView"
-      />
-
-      <div
-        v-if="store.draft.view.type === 'board' && store.boardDragCapability && !store.boardDragCapability.enabled && store.boardDragCapability.reason"
-        class="alert alert--warning"
-      >
-        {{ store.boardDragCapability.reason }}
-      </div>
-
-      <ResultsSqlPreview
-        :advanced-mode="store.advancedMode"
-        :advanced-sql="store.advancedSql"
-        :has-advanced-sql="hasAdvancedSql"
-        @copy="copyAdvancedSql"
-        @toggle="store.advancedMode = !store.advancedMode"
-      />
-
-      <div
-        v-if="!store.resultSet?.rows.length"
-        class="empty"
-        data-results-empty
-      >
-        <div class="empty__icon" />
-        <h4>结果会在这里出现</h4>
-        <p>运行查询后，可切换表格、看板、列表或统计视图，并继续编辑状态、日期和优先级。</p>
-      </div>
-
-      <ResultsTableView
-        v-else-if="store.draft.view.type === 'table'"
-        :result-fields="store.resultFields"
-        :rows="store.resultSet.rows"
-        :field-label="store.fieldLabel"
-        :can-open-row="store.canOpenRow"
-        :display-value="store.displayValue"
-        :editable-field="store.editableField"
-        :quick-edit="store.quickEdit"
-        :open-block="store.openBlock"
-      />
-
-      <ResultsBoardView
-        v-else-if="store.draft.view.type === 'board'"
-        :board-columns="store.boardColumns"
-        :field-mappings="store.draft.view.fieldMappings"
-        :display-value="store.displayValue"
-        :open-block="store.openBlock"
-        :set-dragging-row-id="value => store.draggingRowId = value"
-        :drop-to-column="store.dropToColumn"
-      />
-
-      <ResultsListView
-        v-else-if="store.draft.view.type === 'list'"
-        :items="store.listItems"
-        :open-block="store.openBlock"
-      />
-
-      <ResultsCardsView
-        v-else
-        :cards="store.cardsSummary"
-      />
-
-      <ResultsEmbedPanel
-        v-model="store.embedParentId"
-        :current-document-target="store.currentDocumentTarget"
-        :hint="store.embedTargetHint"
-        :open-document-targets="store.openDocumentTargets"
-        :recent-targets="store.recentEmbedTargets"
-        @insert="store.insertEmbed"
-        @refresh="store.refreshCurrentDocumentTarget"
-        @select-current="store.selectCurrentDocumentTarget"
-        @select-target="store.selectEmbedTarget"
-      />
     </article>
+
+    <ResultsEmbedPanel
+      v-model="store.embedParentId"
+      :current-document-target="store.currentDocumentTarget"
+      :hint="store.embedTargetHint"
+      :open-document-targets="store.openDocumentTargets"
+      :recent-targets="store.recentEmbedTargets"
+      @insert="store.insertEmbed"
+      @refresh="store.refreshCurrentDocumentTarget"
+      @select-current="store.selectCurrentDocumentTarget"
+      @select-target="store.selectEmbedTarget"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 
 import ResultsBoardView from "@/components/query-builder/ResultsBoardView.vue"
 import ResultsCardsView from "@/components/query-builder/ResultsCardsView.vue"
@@ -170,6 +209,8 @@ import { showMessage } from "@/external/siyuan"
 const store = useQueryBuilderStore()
 
 const hasAdvancedSql = computed(() => Boolean(store.advancedSql?.trim()))
+const hasResultRows = computed(() => Boolean(store.resultSet?.rows.length))
+const resultsCollapsed = ref(false)
 
 async function writeClipboardText(text: string) {
   if (navigator.clipboard?.writeText) {
@@ -220,7 +261,8 @@ async function selectResultViewType(type: "table" | "board" | "list" | "cards") 
 
 <style lang="scss" scoped>
 .results {
-  margin-top: 0;
+  display: grid;
+  gap: 20px;
 }
 
 .card {
@@ -231,6 +273,10 @@ async function selectResultViewType(type: "table" | "board" | "list" | "cards") 
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-soft);
   backdrop-filter: blur(16px);
+}
+
+.card--collapsed {
+  min-height: 0;
 }
 
 .section-head,
@@ -246,6 +292,18 @@ async function selectResultViewType(type: "table" | "board" | "list" | "cards") 
   border-bottom: 1px solid var(--sqb-border);
 }
 
+.section-head--collapsed {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .summary {
   min-width: 0;
 }
@@ -253,6 +311,11 @@ async function selectResultViewType(type: "table" | "board" | "list" | "cards") 
 .view-switcher {
   display: flex;
   align-items: center;
+}
+
+.results__body {
+  display: grid;
+  gap: 0;
 }
 
 .summary__header {
@@ -319,11 +382,6 @@ h3 {
   outline: none;
   border-color: var(--sqb-primary);
   box-shadow: 0 0 0 3px var(--sqb-primary-soft);
-}
-
-.control--embed-merged {
-  min-width: 320px;
-  padding-right: 50px;
 }
 
 .btn {
@@ -466,111 +524,6 @@ h3 {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
-}
-
-.embed-targets {
-  display: grid;
-  gap: 8px;
-}
-
-.embed-targets__label {
-  color: var(--sqb-primary);
-  font: 700 11px/1.2 var(--sqb-sans);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-}
-
-.embed-target-picker {
-  position: relative;
-}
-
-.embed-target-picker__toggle {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  bottom: 4px;
-  width: 28px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--sqb-text-muted);
-  cursor: pointer;
-  font: 600 18px/1 var(--sqb-sans);
-}
-
-.embed-target-picker__chevron {
-  display: inline-block;
-  transition: transform 0.2s ease;
-}
-
-.embed-target-picker__chevron.is-open {
-  transform: rotate(180deg);
-}
-
-.embed-target-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: grid;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
-  box-shadow: var(--sqb-shadow-strong);
-}
-
-.embed-target-menu__section {
-  padding: 4px 6px 0;
-  color: var(--sqb-text-muted);
-  font: 600 12px/1.4 var(--sqb-sans);
-}
-
-.embed-target-menu__item {
-  display: grid;
-  gap: 2px;
-  width: 100%;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--sqb-text);
-  cursor: pointer;
-  text-align: left;
-}
-
-.embed-target-menu__item:hover {
-  background: var(--sqb-primary-soft);
-}
-
-.embed-target-menu__item strong {
-  font: 600 13px/1.4 var(--sqb-sans);
-}
-
-.embed-target-menu__item small,
-.embed-target-menu__eyebrow,
-.embed-target-menu__empty {
-  color: var(--sqb-text-muted);
-  font: 12px/1.4 var(--sqb-sans);
-}
-
-.embed-target-menu__eyebrow {
-  color: var(--sqb-primary);
-}
-
-.embed-target-menu__empty {
-  margin: 0;
-  padding: 8px 10px;
-}
-
-.muted--embed-target {
-  color: var(--sqb-text-muted);
-  font-size: 13px;
-  font-style: normal;
-  white-space: normal;
-  word-break: break-word;
 }
 
 .alert {
@@ -957,51 +910,19 @@ h3 {
   color: var(--sqb-primary-strong);
 }
 
-.embed-panel {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 20px;
-  border-radius: 20px;
-  background: var(--sqb-surface-soft);
-  border: 1px solid var(--sqb-border);
-}
-
-.embed-panel .control {
-  border-radius: 8px;
-  height: 32px;
-  padding: 0 10px;
-  background: var(--sqb-surface-strong);
-  border-color: var(--sqb-border);
-}
-
-.btn--embed {
-  flex: 0 0 auto;
-  height: 32px;
-  padding: 0 16px;
-  border-radius: 8px;
-  background: var(--sqb-primary);
-  color: #ffffff;
-  font: 600 13px/1.2 var(--sqb-sans);
-  border: none;
-  cursor: pointer;
-  transition: background 80ms ease;
-}
-
-.btn--embed:hover {
-  background: var(--sqb-primary-strong);
-}
-
 @media (max-width: 720px) {
   .section-head,
-  .embed-panel {
+  .section-head-actions {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .control--embed-merged {
-    min-width: 100%;
+  .view-switcher {
+    width: 100%;
+  }
+
+  .section-toggle {
+    align-self: flex-end;
   }
 
   .tabs__item {

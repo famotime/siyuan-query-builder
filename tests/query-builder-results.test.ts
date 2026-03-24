@@ -244,6 +244,28 @@ describe("QueryBuilderResults", () => {
     expect(wrapper.get("[data-results-empty]").text()).toContain("结果会在这里出现")
   })
 
+  it("renders the embed panel outside the results preview card and keeps it visible when the preview body is collapsed", async () => {
+    currentStore = createStore()
+
+    const wrapper = mount(QueryBuilderResults)
+    const previewCard = wrapper.get("[data-results-preview-card]")
+    const previewToggle = wrapper.get("[data-results-preview-toggle]")
+
+    expect(previewCard.find("[data-results-embed-panel]").exists()).toBe(false)
+    expect(wrapper.get("[data-results-preview-body]").exists()).toBe(true)
+    expect(wrapper.get("[data-results-embed-panel]").exists()).toBe(true)
+    expect(wrapper.get("[data-results-empty]").exists()).toBe(true)
+    expect(previewToggle.attributes("aria-expanded")).toBe("true")
+
+    await previewToggle.trigger("click")
+
+    expect(wrapper.find("[data-results-preview-body]").exists()).toBe(false)
+    expect(wrapper.find("[data-results-empty]").exists()).toBe(false)
+    expect(wrapper.get("[data-results-embed-panel]").exists()).toBe(true)
+    expect(previewToggle.attributes("aria-expanded")).toBe("false")
+    expect(previewToggle.attributes("aria-label")).toBe("展开查询结果预览")
+  })
+
   it("renders table quick-edit controls and forwards edits with the correct field mapping", async () => {
     currentStore = createStore()
     currentStore.draft.view.type = "table"

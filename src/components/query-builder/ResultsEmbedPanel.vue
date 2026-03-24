@@ -1,109 +1,125 @@
 <template>
-  <section class="embed-panel">
-    <div class="embed-targets">
-      <span class="embed-targets__label">嵌入到文档</span>
-      <div
-        ref="embedTargetPickerRef"
-        class="embed-target-picker"
-      >
-        <input
-          :value="modelValue"
-          class="control control--embed-merged"
-          placeholder="选择或输入目标文档 ID / 父块 ID"
-          @focus="emit('refresh')"
-          @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        >
-        <button
-          class="embed-target-picker__toggle"
-          data-embed-target-toggle
-          type="button"
-          aria-label="选择当前文档或历史 ID"
-          :aria-expanded="embedTargetMenuOpen"
-          @click="toggleEmbedTargetMenu"
-        >
-          <span
-            class="embed-target-picker__chevron"
-            :class="{ 'is-open': embedTargetMenuOpen }"
-          >⌄</span>
-        </button>
-        <div
-          v-if="embedTargetMenuOpen"
-          class="embed-target-menu"
-          data-embed-target-menu
-        >
-          <button
-            v-if="currentDocumentTarget"
-            class="embed-target-menu__item"
-            data-embed-target-current
-            type="button"
-            @click="selectCurrentDocumentTarget"
-          >
-            <span class="embed-target-menu__eyebrow">当前文档</span>
-            <strong>{{ currentDocumentTarget.title }}</strong>
-            <small>{{ currentDocumentTarget.id }}</small>
-          </button>
-          <template v-if="otherOpenDocumentOptions.length">
-            <div class="embed-target-menu__section">
-              已打开文档
-            </div>
-            <button
-              v-for="target in otherOpenDocumentOptions"
-              :key="target.id"
-              class="embed-target-menu__item"
-              :data-embed-target-item="target.id"
-              type="button"
-              @click="selectTarget(target.id)"
-            >
-              <strong>{{ target.title || target.id }}</strong>
-              <small>文档 · {{ target.id }}</small>
-            </button>
-          </template>
-          <template v-if="recentTargetOptions.length">
-            <div class="embed-target-menu__section">
-              历史 ID
-            </div>
-            <button
-              v-for="target in recentTargetOptions"
-              :key="target.id"
-              class="embed-target-menu__item"
-              :data-embed-target-item="target.id"
-              type="button"
-              @click="selectTarget(target.id)"
-            >
-              <strong>{{ target.title || target.id }}</strong>
-              <small>{{ target.type === 'document' ? '文档' : '块' }} · {{ target.id }}</small>
-              <small v-if="target.content && target.content !== target.title">{{ target.content }}</small>
-            </button>
-          </template>
-          <p
-            v-if="!currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
-            class="embed-target-menu__empty"
-          >
-            暂无当前文档、已打开文档或历史 ID，可直接输入。
-          </p>
-        </div>
+  <article
+    class="embed-card"
+    data-results-embed-panel
+  >
+    <div class="embed-card__head">
+      <div class="embed-card__copy">
+        <span class="embed-card__eyebrow">Embed</span>
+        <h4>嵌入到文档</h4>
+        <p class="muted">
+          选择目标文档或父块 ID，生成可插入到当前内容流中的查询嵌入块。
+        </p>
       </div>
-      <p class="muted muted--embed-target">
-        {{ hint }}
-      </p>
     </div>
-    <button
-      class="btn btn--embed"
-      @click="emit('insert')"
-    >
-      <svg
-        class="btn__icon"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
+
+    <div class="embed-card__body">
+      <div class="embed-targets">
+        <span class="embed-targets__label">目标位置</span>
+        <div
+          ref="embedTargetPickerRef"
+          class="embed-target-picker"
+        >
+          <input
+            :value="modelValue"
+            class="control control--embed-merged"
+            placeholder="选择或输入目标文档 ID / 父块 ID"
+            @focus="emit('refresh')"
+            @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+          >
+          <button
+            class="embed-target-picker__toggle"
+            data-embed-target-toggle
+            type="button"
+            aria-label="选择当前文档或历史 ID"
+            :aria-expanded="embedTargetMenuOpen"
+            @click="toggleEmbedTargetMenu"
+          >
+            <span
+              class="embed-target-picker__chevron"
+              :class="{ 'is-open': embedTargetMenuOpen }"
+            >⌄</span>
+          </button>
+          <div
+            v-if="embedTargetMenuOpen"
+            class="embed-target-menu"
+            data-embed-target-menu
+          >
+            <button
+              v-if="currentDocumentTarget"
+              class="embed-target-menu__item"
+              data-embed-target-current
+              type="button"
+              @click="selectCurrentDocumentTarget"
+            >
+              <span class="embed-target-menu__eyebrow">当前文档</span>
+              <strong>{{ currentDocumentTarget.title }}</strong>
+              <small>{{ currentDocumentTarget.id }}</small>
+            </button>
+            <template v-if="otherOpenDocumentOptions.length">
+              <div class="embed-target-menu__section">
+                已打开文档
+              </div>
+              <button
+                v-for="target in otherOpenDocumentOptions"
+                :key="target.id"
+                class="embed-target-menu__item"
+                :data-embed-target-item="target.id"
+                type="button"
+                @click="selectTarget(target.id)"
+              >
+                <strong>{{ target.title || target.id }}</strong>
+                <small>文档 · {{ target.id }}</small>
+              </button>
+            </template>
+            <template v-if="recentTargetOptions.length">
+              <div class="embed-target-menu__section">
+                历史 ID
+              </div>
+              <button
+                v-for="target in recentTargetOptions"
+                :key="target.id"
+                class="embed-target-menu__item"
+                :data-embed-target-item="target.id"
+                type="button"
+                @click="selectTarget(target.id)"
+              >
+                <strong>{{ target.title || target.id }}</strong>
+                <small>{{ target.type === 'document' ? '文档' : '块' }} · {{ target.id }}</small>
+                <small v-if="target.content && target.content !== target.title">{{ target.content }}</small>
+              </button>
+            </template>
+            <p
+              v-if="!currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
+              class="embed-target-menu__empty"
+            >
+              暂无当前文档、已打开文档或历史 ID，可直接输入。
+            </p>
+          </div>
+        </div>
+        <p class="muted muted--embed-target">
+          {{ hint }}
+        </p>
+      </div>
+
+      <button
+        class="btn btn--embed"
+        @click="emit('insert')"
       >
-        <path
-          d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3zm7 10l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8L19 13zM6 14l1.1 2.9L10 18l-2.9 1.1L6 22l-1.1-2.9L2 18l2.9-1.1L6 14z"
-          fill="currentColor"
-        />
-      </svg>
-      生成嵌入块
-    </button>
-  </section>
+        <svg
+          class="btn__icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3zm7 10l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8L19 13zM6 14l1.1 2.9L10 18l-2.9 1.1L6 22l-1.1-2.9L2 18l2.9-1.1L6 14z"
+            fill="currentColor"
+          />
+        </svg>
+        生成嵌入块
+      </button>
+    </div>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -171,20 +187,50 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.embed-panel {
-  margin-top: 28px;
+.embed-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--sqb-surface);
+  border: 1px solid var(--sqb-border);
+  box-shadow: var(--sqb-shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.embed-card__head {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--sqb-border);
+}
+
+.embed-card__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.embed-card__eyebrow {
+  color: var(--sqb-primary);
+  font: 700 11px/1.2 var(--sqb-sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.embed-card__copy h4 {
+  margin: 0;
+  font: 700 18px/1.2 var(--sqb-serif);
+  color: var(--sqb-text);
+}
+
+.embed-card__body {
+  margin-top: 18px;
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 18px 20px;
-  border-radius: 20px;
-  background: var(--sqb-surface-soft);
-  border: 1px solid var(--sqb-border);
 }
 
 .embed-targets {
   display: grid;
   gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .embed-targets__label {
@@ -349,12 +395,16 @@ onBeforeUnmount(() => {
 
 .btn--embed {
   flex: 0 0 auto;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
   background: var(--sqb-primary);
   color: #ffffff;
+  border: none;
 }
 
 @media (max-width: 720px) {
-  .embed-panel {
+  .embed-card__body {
     flex-direction: column;
     align-items: stretch;
   }
