@@ -94,4 +94,16 @@ describe('validateSnapshot', () => {
       }),
     ])
   })
+
+  it('does not require a scope value when attribute scope means any custom attribute', () => {
+    const issues = validateSnapshot(createSnapshot({
+      template: {
+        scope: {
+          type: 'attribute',
+        },
+      },
+    }))
+
+    expect(issues.some(issue => issue.code === 'scope-value-required')).toBe(false)
+  })
 })

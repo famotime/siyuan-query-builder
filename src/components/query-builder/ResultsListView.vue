@@ -11,7 +11,7 @@
           class="link"
           @click="openBlock(item.id)"
         >
-          {{ item.title || "未命名块" }}
+          {{ previewTitle(item.title || "") || "未命名块" }}
         </button>
         <small
           v-if="item.meta.length"
@@ -25,9 +25,14 @@
 
 <script setup lang="ts">
 import type { ListItemModel } from "@/inline/view-models"
+import { truncatePreviewText } from "@/core/view/preview-text"
 
 defineProps<{
   items: ListItemModel[]
   openBlock: (blockId: string) => void
 }>()
+
+function previewTitle(title: string) {
+  return truncatePreviewText(title)
+}
 </script>

@@ -322,6 +322,67 @@ describe("QueryBuilderResults", () => {
     expect(currentStore.quickEdit).toHaveBeenCalledWith("block-1", "dueDate", "2026-03-25")
   })
 
+  it("truncates long content in the table preview after 10 characters", () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "table"
+    currentStore.resultFields = ["content"]
+    currentStore.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "这是一个超过十个字的标题内容",
+          attrs: {},
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    currentStore.canOpenRow = vi.fn(() => true)
+    currentStore.displayValue = vi.fn((row: any, field: string) => field === "content" ? row.content : "")
+
+    const wrapper = mount(QueryBuilderResults)
+
+    expect(wrapper.text()).toContain("这是一个超过十个字的...")
+    expect(wrapper.text()).not.toContain("这是一个超过十个字的标题内容")
+  })
+
+  it("renders text inputs for arbitrary custom attribute columns and forwards inline edits", async () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "table"
+    currentStore.resultFields = ["content", "attr:source_url"]
+    currentStore.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "任务 A",
+          attrs: {
+            source_url: "https://old.example.com",
+          },
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    currentStore.canOpenRow = vi.fn(() => true)
+    currentStore.displayValue = vi.fn((row: any, field: string) => {
+      if (field === "content") {
+        return row.content
+      }
+      return row.attrs[field.slice("attr:".length)] || ""
+    })
+    currentStore.editableField = vi.fn((field: string) => field === "attr:source_url" ? "attr:source_url" : null)
+    currentStore.quickEdit = vi.fn()
+
+    const wrapper = mount(QueryBuilderResults)
+    const attrInput = wrapper.get('.table-wrap input.control--compact[type="text"]')
+
+    expect((attrInput.element as HTMLInputElement).value).toBe("https://old.example.com")
+
+    await attrInput.setValue("https://new.example.com")
+
+    expect(currentStore.quickEdit).toHaveBeenCalledWith("block-1", "attr:source_url", "https://new.example.com")
+  })
+
   it("hides empty list metadata and renders existing metadata on a separate aligned line", () => {
     currentStore = createStore()
     currentStore.draft.view.type = "list"
@@ -353,6 +414,78 @@ describe("QueryBuilderResults", () => {
     expect(wrapper.text()).not.toContain("无附加信息")
     expect(listItems[0]!.find("[data-list-item-meta]").exists()).toBe(false)
     expect(listItems[1]!.get("[data-list-item-meta]").text()).toBe("项目周报 · P1")
+  })
+
+  it("truncates long titles in the list preview after 10 characters", () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "list"
+    currentStore.resultSet = {
+      rows: [
+        { id: "block-1" },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    currentStore.listItems = [
+      {
+        id: "block-1",
+        title: "这是一个超过十个字的标题内容",
+        meta: [],
+      },
+    ]
+
+    const wrapper = mount(QueryBuilderResults)
+
+    expect(wrapper.text()).toContain("这是一个超过十个字的...")
+    expect(wrapper.text()).not.toContain("这是一个超过十个字的标题内容")
+  })
+
+  it("truncates long card titles in the board preview after 10 characters", () => {
+    currentStore = createStore()
+    currentStore.draft.view.type = "board"
+    currentStore.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "这是一个超过十个字的标题内容",
+          attrs: {
+            project: "项目 A",
+            priority: "P1",
+            dueDate: "2026-03-24",
+          },
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-24T00:00:00.000Z",
+    }
+    currentStore.boardColumns = [
+      {
+        id: "Todo",
+        title: "Todo",
+        rows: [
+          {
+            id: "block-1",
+            content: "这是一个超过十个字的标题内容",
+            attrs: {
+              project: "项目 A",
+              priority: "P1",
+              dueDate: "2026-03-24",
+            },
+          },
+        ],
+      },
+    ]
+    currentStore.displayValue = vi.fn((row: any, field: string) => {
+      if (field.startsWith("attr:")) {
+        return row.attrs[field.slice("attr:".length)] || ""
+      }
+      return row.content || ""
+    })
+
+    const wrapper = mount(QueryBuilderResults)
+
+    expect(wrapper.text()).toContain("这是一个超过十个字的...")
+    expect(wrapper.text()).not.toContain("这是一个超过十个字的标题内容")
   })
 
   it("opens the embed target menu, refreshes document targets, and wires target selection", async () => {

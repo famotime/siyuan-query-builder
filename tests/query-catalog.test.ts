@@ -35,6 +35,7 @@ describe("createPresets", () => {
     const presets = createPresets(DEFAULT_FIELD_MAPPINGS)
 
     expect(presets.map(item => item.id)).toEqual(expect.arrayContaining([
+      "preset-recent-custom-attribute-blocks-7d",
       "preset-core-documents-by-backlinks",
       "preset-index-documents-by-outlinks",
       "preset-bidirectional-core-documents",
@@ -71,6 +72,36 @@ describe("createPresets", () => {
         field: "tagCount",
         direction: "desc",
       },
+    ])
+
+    const recentCustomAttributeBlocks = presets.find(item => item.id === "preset-recent-custom-attribute-blocks-7d")
+    expect(recentCustomAttributeBlocks).toBeDefined()
+    expect(recentCustomAttributeBlocks?.title).toBe("近7天自定义属性块")
+    expect(recentCustomAttributeBlocks?.category).toBe("attributes")
+    expect(recentCustomAttributeBlocks?.snapshot.template.scope).toEqual({
+      type: "attribute",
+    })
+    expect(recentCustomAttributeBlocks?.snapshot.template.filters).toEqual([
+      expect.objectContaining({
+        field: "created",
+        operator: "last_days",
+        value: "7",
+      }),
+    ])
+    expect(recentCustomAttributeBlocks?.snapshot.template.sorts).toEqual([
+      {
+        field: "created",
+        direction: "desc",
+      },
+    ])
+    expect(recentCustomAttributeBlocks?.snapshot.template.fields).toEqual([
+      "content",
+      "created",
+      "attr:status",
+      "attr:priority",
+      "attr:dueDate",
+      "attr:project",
+      "attr:owner",
     ])
   })
 

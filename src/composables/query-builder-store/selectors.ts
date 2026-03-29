@@ -178,7 +178,7 @@ export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOption
       case "tag":
         return "例如 #project#"
       case "attribute":
-        return "例如 status"
+        return "留空表示任意自定义属性，例如 status"
       default:
         return "输入范围值"
     }

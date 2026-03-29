@@ -94,6 +94,39 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     viewType: "table",
   }
 
+  const recentCustomAttributeBlocksTemplate: QueryTemplate = {
+    id: createId("preset"),
+    version: 1,
+    name: "近7天自定义属性块",
+    scope: {
+      type: "attribute",
+    },
+    filters: [
+      {
+        id: createId("filter"),
+        field: "created",
+        operator: "last_days",
+        value: "7",
+      },
+    ],
+    sorts: [
+      {
+        field: "created",
+        direction: "desc",
+      },
+    ],
+    fields: [
+      "content",
+      "created",
+      `attr:${mappings.status}`,
+      `attr:${mappings.priority}`,
+      `attr:${mappings.dueDate}`,
+      `attr:${mappings.project}`,
+      `attr:${mappings.owner}`,
+    ],
+    viewType: "table",
+  }
+
   const meetingTemplate: QueryTemplate = {
     id: createId("preset"),
     version: 1,
@@ -376,6 +409,13 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
       title: "阅读清单",
       description: "未读内容按优先级排序",
       snapshot: createPresetSnapshot(readingTemplate, "table"),
+    },
+    {
+      id: "preset-recent-custom-attribute-blocks-7d",
+      category: "attributes",
+      title: "近7天自定义属性块",
+      description: "最近 7 天创建且带有自定义属性的块，可直接在结果中修改属性值。",
+      snapshot: createPresetSnapshot(recentCustomAttributeBlocksTemplate, "table"),
     },
     {
       id: "preset-recent-meetings",

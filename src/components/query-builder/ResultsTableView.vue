@@ -25,11 +25,11 @@
               class="link"
               @click="openBlock(row.id)"
             >
-              {{ displayValue(row, field) || "打开原始块" }}
+              {{ previewContent(row, field) || "打开原始块" }}
             </button>
-            <span v-else-if="field === 'content'">{{ displayValue(row, field) || "—" }}</span>
+            <span v-else-if="field === 'content'">{{ previewContent(row, field) || "—" }}</span>
             <select
-              v-else-if="editableField(field) === 'status'"
+              v-else-if="resolveEditableField(field) === 'status'"
               class="control control--compact"
               :value="displayValue(row, field)"
               @change="quickEdit(row.id, 'status', ($event.target as HTMLSelectElement).value)"
@@ -48,7 +48,7 @@
               </option>
             </select>
             <select
-              v-else-if="editableField(field) === 'priority'"
+              v-else-if="resolveEditableField(field) === 'priority'"
               class="control control--compact"
               :value="displayValue(row, field)"
               @change="quickEdit(row.id, 'priority', ($event.target as HTMLSelectElement).value)"
@@ -70,11 +70,18 @@
               </option>
             </select>
             <input
-              v-else-if="editableField(field) === 'dueDate'"
+              v-else-if="resolveEditableField(field) === 'dueDate'"
               class="control control--compact"
               type="date"
               :value="displayValue(row, field)"
               @change="quickEdit(row.id, 'dueDate', ($event.target as HTMLInputElement).value)"
+            >
+            <input
+              v-else-if="isCustomAttributeTextField(field)"
+              class="control control--compact"
+              type="text"
+              :value="displayValue(row, field)"
+              @change="onTextFieldChange(row.id, field, ($event.target as HTMLInputElement).value)"
             >
             <span v-else>{{ displayValue(row, field) || "—" }}</span>
           </td>
@@ -85,16 +92,40 @@
 </template>
 
 <script setup lang="ts">
+import type { EditableField } from "@/composables/query-builder-store/shared"
 import type { ResultRow } from "@/core/query/types"
+import { truncatePreviewText } from "@/core/view/preview-text"
 
-defineProps<{
+const props = defineProps<{
   resultFields: string[]
   rows: ResultRow[]
   fieldLabel: (field: string) => string
   canOpenRow: (row: ResultRow) => boolean
   displayValue: (row: ResultRow, field: string) => string
-  editableField: (field: string) => string | null
-  quickEdit: (rowId: string, field: "status" | "priority" | "dueDate", value: string) => void | Promise<void>
+  editableField: (field: string) => EditableField | null
+  quickEdit: (rowId: string, field: EditableField, value: string) => void | Promise<void>
   openBlock: (blockId: string) => void
 }>()
+
+function resolveEditableField(field: string) {
+  return props.editableField(field)
+}
+
+function isCustomAttributeTextField(field: string) {
+  const editable = resolveEditableField(field)
+  return Boolean(editable?.startsWith("attr:"))
+}
+
+function onTextFieldChange(rowId: string, field: string, value: string) {
+  const editable = resolveEditableField(field)
+  if (!editable) {
+    return
+  }
+
+  void props.quickEdit(rowId, editable, value)
+}
+
+function previewContent(row: ResultRow, field: string) {
+  return truncatePreviewText(props.displayValue(row, field))
+}
 </script>

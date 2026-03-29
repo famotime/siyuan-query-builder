@@ -16,7 +16,7 @@ export function validateSnapshot(snapshot: QueryBuilderSnapshot): ValidationIssu
   const { template, view } = snapshot
   const statusField = `attr:${view.fieldMappings.status}`
 
-  if (template.scope.type !== "all_blocks" && !hasText(template.scope.value)) {
+  if (!["all_blocks", "attribute"].includes(template.scope.type) && !hasText(template.scope.value)) {
     issues.push({
       level: "error",
       code: "scope-value-required",

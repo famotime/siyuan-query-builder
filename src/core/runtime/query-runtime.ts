@@ -14,6 +14,8 @@ interface KernelAdapter {
   appendBlock(dataType: "markdown" | "dom", data: string, parentID: string): Promise<unknown>
 }
 
+type EditableField = keyof FieldMappings | `attr:${string}`
+
 function normalizeResultRow(row: Record<string, unknown>): ResultRow {
   const attrs: Record<string, string> = {}
   const result: ResultRow = {
@@ -43,8 +45,10 @@ export function createQueryRuntime(adapter: KernelAdapter) {
         executedAt: new Date().toISOString(),
       }
     },
-    async updateField(blockId: string, field: keyof FieldMappings, value: string, mappings: FieldMappings) {
-      const attrKey = mappings[field]
+    async updateField(blockId: string, field: EditableField, value: string, mappings: FieldMappings) {
+      const attrKey = field.startsWith("attr:")
+        ? field.slice("attr:".length).trim()
+        : mappings[field]
       await adapter.setBlockAttrs(blockId, {
         [toStorageAttrName(attrKey)]: value,
       })

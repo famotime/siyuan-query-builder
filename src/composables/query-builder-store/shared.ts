@@ -12,7 +12,7 @@ import {
 import type { FieldId, FieldMappings, FilterOperator, QueryBuilderSnapshot, QueryFilter, QueryTemplate, ResultRow, ViewConfig } from "@/core/query/types"
 import { formatResultValue, resolveResultFieldLabel } from "@/core/view/presentation"
 
-export type EditableField = keyof FieldMappings
+export type EditableField = keyof FieldMappings | `attr:${string}`
 
 export const EMBED_TARGET_PREFS_KEY = "query-builder.embed-target.v1"
 export const mappingKeys: EditableField[] = ["status", "dueDate", "priority", "project", "owner"]
@@ -172,6 +172,9 @@ export function resolveEditableField(template: QueryTemplate, view: ViewConfig, 
   }
   if (field === `attr:${view.fieldMappings.priority}`) {
     return "priority"
+  }
+  if (field.startsWith("attr:") && field.slice("attr:".length).trim()) {
+    return field as EditableField
   }
   return null
 }

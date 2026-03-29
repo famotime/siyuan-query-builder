@@ -331,4 +331,36 @@ describe("buildQuery", () => {
     expect(statusIndex).toBeGreaterThan(priorityIndex)
     expect(contentIndex).toBeGreaterThan(statusIndex)
   })
+
+  it("treats empty attribute scope as any custom attribute", () => {
+    const template: QueryTemplate = {
+      id: "template-any-attribute",
+      version: 1,
+      name: "Recent Custom Attribute Blocks",
+      scope: {
+        type: "attribute",
+      },
+      filters: [
+        {
+          id: "filter-created",
+          field: "created",
+          operator: "last_days",
+          value: "7",
+        },
+      ],
+      sorts: [
+        {
+          field: "created",
+          direction: "desc",
+        },
+      ],
+      fields: ["content", "created", "attr:status"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("EXISTS (SELECT 1 FROM attributes WHERE attributes.block_id = blocks.id AND attributes.name LIKE 'custom-%')")
+    expect(compiled.sql).toContain("substr(blocks.created, 1, 8) BETWEEN strftime('%Y%m%d', 'now', '-7 day') AND strftime('%Y%m%d', 'now')")
+  })
 })

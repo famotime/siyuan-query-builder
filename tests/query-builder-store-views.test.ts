@@ -1077,6 +1077,37 @@ describe("createQueryBuilderStore view management", () => {
     }))
   })
 
+  it("updates arbitrary custom attribute cells after a successful inline edit", async () => {
+    const store = createQueryBuilderStore()
+    store.resultSet = {
+      rows: [
+        {
+          id: "block-1",
+          content: "Task",
+          attrs: {
+            source_url: "https://old.example.com",
+          },
+        },
+      ],
+      total: 1,
+      executedAt: "2026-03-22T00:00:00.000Z",
+    }
+
+    await store.quickEdit("block-1", "attr:source_url", "https://new.example.com")
+    await flushMetricsWrites()
+
+    expect(runtime.updateField).toHaveBeenCalledWith(
+      "block-1",
+      "attr:source_url",
+      "https://new.example.com",
+      store.draft.view.fieldMappings,
+    )
+    expect(store.resultSet.rows[0]?.attrs.source_url).toBe("https://new.example.com")
+    expect(currentPlugin.read("query-builder.metrics.v1")).toEqual(expect.objectContaining({
+      quickEdits: 1,
+    }))
+  })
+
   it("blocks board drag writeback when the grouping field is not the mapped status field", async () => {
     const store = createQueryBuilderStore()
     store.draggingRowId = "block-1"

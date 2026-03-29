@@ -92,7 +92,10 @@ export function createQueryExecutionController(options: QueryExecutionController
       await runtime.updateField(rowId, field, value, draft.view.fieldMappings)
       const row = resultSet.value?.rows.find(item => item.id === rowId)
       if (row) {
-        row.attrs[draft.view.fieldMappings[field]] = value
+        const attrName = field.startsWith("attr:")
+          ? field.slice("attr:".length).trim()
+          : draft.view.fieldMappings[field]
+        row.attrs[attrName] = value
       }
       recordMetric("quickEdits")
       showMessage("已回写原始块属性", 2500, "info")

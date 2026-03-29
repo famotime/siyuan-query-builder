@@ -8,7 +8,7 @@ import type {
   QueryTemplate,
 } from "./types"
 import { AGGREGATE_VALUE_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD } from "./catalog"
-import { toStorageAttrName } from "./attributes"
+import { CUSTOM_ATTR_PREFIX, toStorageAttrName } from "./attributes"
 
 const BASE_FIELD_MAP: Record<string, string> = {
   id: "blocks.id",
@@ -132,8 +132,13 @@ function buildScopeClause(scope: QueryScope) {
       return `blocks.type = '${escapeSqlLiteral(scope.value || "")}'`
     case "tag":
       return `instr(blocks.tag, '${escapeSqlLiteral(scope.value || "")}') > 0`
-    case "attribute":
-      return `EXISTS (SELECT 1 FROM attributes WHERE attributes.block_id = blocks.id AND attributes.name = '${escapeSqlLiteral(toStorageAttrName(scope.value || ""))}')`
+    case "attribute": {
+      const attrName = String(scope.value || "").trim()
+      if (!attrName) {
+        return `EXISTS (SELECT 1 FROM attributes WHERE attributes.block_id = blocks.id AND attributes.name LIKE '${escapeSqlLiteral(CUSTOM_ATTR_PREFIX)}%')`
+      }
+      return `EXISTS (SELECT 1 FROM attributes WHERE attributes.block_id = blocks.id AND attributes.name = '${escapeSqlLiteral(toStorageAttrName(attrName))}')`
+    }
     default:
       return ""
   }

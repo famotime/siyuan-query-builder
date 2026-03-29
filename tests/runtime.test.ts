@@ -71,6 +71,22 @@ describe("createQueryRuntime", () => {
     ])
   })
 
+  it("updates arbitrary custom attributes for result-level inline editing", async () => {
+    const adapter = new FakeKernelAdapter()
+    const runtime = createQueryRuntime(adapter)
+
+    await runtime.updateField("block-1", "attr:source_url", "https://example.com", mappings)
+
+    expect(adapter.attrUpdates).toEqual([
+      {
+        id: "block-1",
+        attrs: {
+          "custom-source_url": "https://example.com",
+        },
+      },
+    ])
+  })
+
   it("creates a SiYuan JS embed block in markdown mode", async () => {
     const adapter = new FakeKernelAdapter()
     const runtime = createQueryRuntime(adapter)

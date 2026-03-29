@@ -22,7 +22,7 @@
           class="link link--block"
           @click="openBlock(row.id)"
         >
-          {{ row.content || "未命名块" }}
+          {{ previewContent(row) || "未命名块" }}
         </button>
         <p class="muted">
           {{ displayValue(row, `attr:${fieldMappings.project}`) || "未绑定项目" }}
@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import type { FieldMappings, ResultRow } from "@/core/query/types"
 import type { BoardColumn } from "@/core/view/board"
+import { truncatePreviewText } from "@/core/view/preview-text"
 
 defineProps<{
   boardColumns: BoardColumn[]
@@ -48,4 +49,8 @@ defineProps<{
   setDraggingRowId: (rowId: string) => void
   dropToColumn: (columnId: string) => void | Promise<void>
 }>()
+
+function previewContent(row: ResultRow) {
+  return truncatePreviewText(row.content || "")
+}
 </script>
