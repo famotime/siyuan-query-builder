@@ -117,6 +117,7 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     ],
     fields: [
       "content",
+      "type",
       "created",
       `attr:${mappings.status}`,
       `attr:${mappings.priority}`,

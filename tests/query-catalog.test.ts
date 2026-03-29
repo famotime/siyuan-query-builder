@@ -96,6 +96,7 @@ describe("createPresets", () => {
     ])
     expect(recentCustomAttributeBlocks?.snapshot.template.fields).toEqual([
       "content",
+      "type",
       "created",
       "attr:status",
       "attr:priority",
