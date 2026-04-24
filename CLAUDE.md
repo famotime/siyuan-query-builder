@@ -10,18 +10,27 @@ npm run dev                       # watch-mode build (deploys to SiYuan if VITE_
 npm run build                     # production build → dist/
 npm run test:run                  # run full test suite once
 npm run test                      # Vitest in watch mode
+npx vitest run tests/foo.test.ts  # run a single test file
 npm run release:patch             # bump patch version and package plugin.zip
 ```
 
 ## Architecture
 
-This is a SiYuan Notes plugin (Vue 3 + TypeScript + Vite). The entry point is `src/index.ts`, which extends the SiYuan `Plugin` class. It registers a topbar icon and a keyboard shortcut (`⌘⇧Q`), both of which open a SiYuan `Dialog` that hosts the Vue app.
+This is a SiYuan Notes plugin (Vue 3 + TypeScript + Vite). The entry point is `src/index.ts`, which extends the SiYuan `Plugin` class. It registers a topbar icon and a keyboard shortcut (`⌘⇧Q`), both of which open a SiYuan `Dialog` that hosts the Vue app. Build output is CommonJS (`index.js` + `index.css` in `dist/`); the `siyuan` package is externalized.
 
 ### Module layout
 
 - `src/index.ts` — Plugin class, lifecycle hooks (`onload`/`onunload`), topbar and command registration
 - `src/main.ts` — Vue app mount/unmount, Dialog management, error logging via `plugin.saveData`
-- `src/composables/query-builder-store.ts` — The single reactive store (`createQueryBuilderStore`), provided to the component tree via Vue injection key. All query state, template CRUD, run/save actions, and embed logic live here.
+- `src/composables/query-builder-store.ts` — Assembly entry that wires up the sub-controllers below and exposes the store via Vue injection key.
+- `src/composables/query-builder-store/` — Store split into focused controllers:
+  - `session-controller.ts` — Session state (active tab, view mode, UI flags)
+  - `template-view-controller.ts` — Template/view CRUD and persistence
+  - `query-execution-controller.ts` — Query run, attribute write-back, embed insertion
+  - `embed-target-controller.ts` — Current document and embed target management
+  - `draft-actions.ts` — Draft template mutations
+  - `selectors.ts` — Reactive computed selectors
+  - `shared.ts` — Pure helpers and constants
 - `src/core/query/types.ts` — All shared types: `QueryTemplate`, `QueryBuilderSnapshot`, `ResultSet`, etc.
 - `src/core/query/compiler.ts` — Compiles a `QueryTemplate` to a `CompiledQuery` (SQL string). Fields prefixed `attr:` are resolved via SQLite subquery against the `attributes` table.
 - `src/core/query/catalog.ts` — Factory functions (`createEmptyTemplate`, `createPresets`) and field option lists.
@@ -30,6 +39,7 @@ This is a SiYuan Notes plugin (Vue 3 + TypeScript + Vite). The entry point is `s
 - `src/core/storage/template-store.ts` — Persists `QueryBuilderSnapshot` objects using `plugin.loadData`/`plugin.saveData`.
 - `src/core/embed.ts` — Encodes/decodes `InlineEmbedPayload` and generates the `//!js` embed block markdown that SiYuan evaluates.
 - `src/inline/service.ts` — `createInlineBlockRenderer`: scans DOM for `data-sqb-inline` elements on `loaded-protyle-static/dynamic` events and mounts `InlineQueryWidget` Vue components into them.
+- `src/i18n/` — Locale JSON files; a custom ESLint rule (`src/utils/eslint/i18n-validate-keys.mjs`) validates key consistency.
 - `src/components/query-builder/` — Main UI: `QueryBuilderSidebar.vue`, `QueryBuilderEditor.vue`, `QueryBuilderResults.vue`.
 - `src/components/SiyuanTheme/` — Primitive wrapper components (`SyButton`, `SyInput`, `SySelect`, etc.) styled to match SiYuan's theme.
 - `src/ui/` — Host root styles and shell layer helpers.
@@ -47,14 +57,16 @@ This is a SiYuan Notes plugin (Vue 3 + TypeScript + Vite). The entry point is `s
 
 ## Dev environment
 
-Copy `.env.example` to `.env` and set `VITE_SIYUAN_WORKSPACE_PATH` to your SiYuan workspace root. `npm run dev` will then build directly into `<workspace>/data/plugins/siyuan-query-builder` for live testing inside SiYuan.
+Copy `.env.example` to `.env` and set `VITE_SIYUAN_WORKSPACE_PATH` to your SiYuan workspace root. `npm run dev` will then build directly into `<workspace>/data/plugins/siyuan-query-builder` for live testing inside SiYuan. Optionally set `VITE_DEV_DIST_DIR` to override the dev output directory (useful for symlink setups).
 
 ## Coding conventions
 
 - 2-space indentation, single quotes, trailing commas in multiline structures (enforced by ESLint with `@antfu/eslint-config`).
 - Import from `src/` using the `@/` alias.
 - PascalCase for Vue SFCs, camelCase for composables and utilities.
-- Tests live in `tests/`, mirror feature names (e.g. `tests/query-compiler.test.ts`), use Vitest + jsdom with shared setup from `tests/setup.ts`.
+- Vue templates: one attribute per line, block order `<template>`, `<script>`, `<style>`.
+- Tests live in `tests/`, mirror feature names (e.g. `tests/query-compiler.test.ts`), use Vitest + jsdom with shared setup from `tests/setup.ts`. Run `npm run test:run` before opening a PR.
+- Commit messages: short imperative subject starting with a verb (e.g. `Fix workspace tab host styles`, `Add custom attribute preset`).
 
 ## Design System
 

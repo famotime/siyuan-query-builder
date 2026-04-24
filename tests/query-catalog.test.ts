@@ -43,6 +43,7 @@ describe("createPresets", () => {
       "preset-recent-linked-documents",
       "preset-recently-updated-documents-7d",
       "preset-recently-created-documents-30d",
+      "preset-top-documents-by-assets",
       "preset-today-edited-documents",
     ]))
 
@@ -70,6 +71,32 @@ describe("createPresets", () => {
     expect(topTags?.snapshot.template.sorts).toEqual([
       {
         field: "tagCount",
+        direction: "desc",
+      },
+    ])
+
+    const topAssets = presets.find(item => item.id === "preset-top-documents-by-assets")
+    expect(topAssets).toBeDefined()
+    expect(topAssets?.title).toBe("内嵌资源最多文档(Top10)")
+    expect(topAssets?.category).toBe("daily")
+    expect(topAssets?.snapshot.template.limit).toBe(10)
+    expect(topAssets?.snapshot.template.fields).toEqual([
+      "content",
+      "assetCount",
+      "box",
+      "updated",
+      "path",
+    ])
+    expect(topAssets?.snapshot.template.filters).toEqual([
+      expect.objectContaining({
+        field: "assetCount",
+        operator: "gt",
+        value: "0",
+      }),
+    ])
+    expect(topAssets?.snapshot.template.sorts).toEqual([
+      {
+        field: "assetCount",
         direction: "desc",
       },
     ])
@@ -223,6 +250,10 @@ describe("createPresets", () => {
         value: "attr:assignee",
         label: "负责人",
         hint: "assignee",
+      }),
+      expect.objectContaining({
+        value: "assetCount",
+        label: "内嵌资源数量",
       }),
     ]))
   })

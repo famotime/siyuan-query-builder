@@ -1,6 +1,7 @@
 import type { FieldMappings, QueryBuilderSnapshot, QueryTemplate, ViewType } from "../types"
 
 import {
+  ASSET_COUNT_FIELD,
   BACKLINK_COUNT_FIELD,
   LINK_COUNT_FIELD,
   OUT_LINK_COUNT_FIELD,
@@ -363,6 +364,33 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     viewType: "table",
   }
 
+  const topAssetDocumentsTemplate: QueryTemplate = {
+    id: createId("preset"),
+    version: 1,
+    name: "内嵌资源最多文档(Top10)",
+    scope: {
+      type: "block_type",
+      value: "d",
+    },
+    filters: [
+      {
+        id: createId("filter"),
+        field: ASSET_COUNT_FIELD,
+        operator: "gt",
+        value: "0",
+      },
+    ],
+    sorts: [
+      {
+        field: ASSET_COUNT_FIELD,
+        direction: "desc",
+      },
+    ],
+    fields: ["content", ASSET_COUNT_FIELD, "box", "updated", "path"],
+    limit: 10,
+    viewType: "table",
+  }
+
   const todayEditedDocumentsTemplate: QueryTemplate = {
     id: createId("preset"),
     version: 1,
@@ -480,6 +508,13 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
       title: "包含最多标签的文档(Top10)",
       description: "快速找出标签数量最多的文档，适合梳理高密度主题页面。",
       snapshot: createPresetSnapshot(topTaggedDocumentsByTagCountTemplate, "table"),
+    },
+    {
+      id: "preset-top-documents-by-assets",
+      category: "daily",
+      title: "内嵌资源最多文档(Top10)",
+      description: "按文档内嵌资源数量排序，快速定位图片、视频等资源密集文档。",
+      snapshot: createPresetSnapshot(topAssetDocumentsTemplate, "table"),
     },
     {
       id: "preset-today-edited-documents",

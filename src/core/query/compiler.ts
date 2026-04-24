@@ -7,7 +7,7 @@ import type {
   QuerySort,
   QueryTemplate,
 } from "./types"
-import { AGGREGATE_VALUE_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD } from "./catalog"
+import { AGGREGATE_VALUE_FIELD, ASSET_COUNT_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD } from "./catalog"
 import { CUSTOM_ATTR_PREFIX, toStorageAttrName } from "./attributes"
 
 const BASE_FIELD_MAP: Record<string, string> = {
@@ -59,6 +59,10 @@ function getFieldExpression(field: FieldId) {
 
   if (field === BACKLINK_COUNT_FIELD) {
     return `(SELECT COUNT(DISTINCT refs.root_id) FROM refs WHERE refs.def_block_root_id = blocks.id AND refs.root_id <> '' AND refs.root_id <> blocks.id)`
+  }
+
+  if (field === ASSET_COUNT_FIELD) {
+    return "(SELECT COUNT(DISTINCT assets.path) FROM assets WHERE assets.root_id = blocks.id)"
   }
 
   if (field === OUT_LINK_COUNT_FIELD) {
@@ -270,7 +274,7 @@ function buildAggregateSelectFields(template: QueryTemplate, aggregation: QueryA
 }
 
 function getOrderExpression(field: FieldId) {
-  if (isAggregateValueField(field) || field === TAG_COUNT_FIELD) {
+  if (isAggregateValueField(field) || field === TAG_COUNT_FIELD || field === ASSET_COUNT_FIELD) {
     return getFieldAlias(field)
   }
 

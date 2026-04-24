@@ -188,6 +188,36 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("ORDER BY")
   })
 
+  it("builds document asset count fields from assets and supports numeric sorting", () => {
+    const template: QueryTemplate = {
+      id: "template-asset-count",
+      version: 1,
+      name: "Documents By Asset Count",
+      scope: {
+        type: "block_type",
+        value: "d",
+      },
+      filters: [],
+      sorts: [
+        {
+          field: "assetCount",
+          direction: "desc",
+        },
+      ],
+      fields: ["content", "assetCount", "updated", "path"],
+      limit: 10,
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("FROM assets")
+    expect(compiled.sql).toContain("assets.root_id = blocks.id")
+    expect(compiled.sql).toContain("COUNT(DISTINCT assets.path)")
+    expect(compiled.sql).toContain("AS assetCount")
+    expect(compiled.sql).toContain("assetCount DESC")
+  })
+
   it("builds relative date filters for SiYuan timestamp strings", () => {
     const template: QueryTemplate = {
       id: "template-7",

@@ -2,6 +2,7 @@ import type { FieldId, FieldMappings } from "../types"
 
 import {
   AGGREGATE_VALUE_FIELD,
+  ASSET_COUNT_FIELD,
   BACKLINK_COUNT_FIELD,
   LINK_COUNT_FIELD,
   OUT_LINK_COUNT_FIELD,
@@ -21,6 +22,7 @@ export function createFieldOptions(mappings: FieldMappings): FieldOption[] {
     { value: "created", label: "创建时间" },
     { value: "tag", label: "标签" },
     { value: TAG_COUNT_FIELD, label: "标签数量" },
+    { value: ASSET_COUNT_FIELD, label: "内嵌资源数量" },
     { value: BACKLINK_COUNT_FIELD, label: "反向链接数" },
     { value: OUT_LINK_COUNT_FIELD, label: "正向链接数" },
     { value: LINK_COUNT_FIELD, label: "总链接数" },

@@ -46,7 +46,7 @@ describe("InlineQueryWidget", () => {
           total: 1,
           executedAt: "2026-03-23T00:00:00.000Z",
         },
-        fields: ["content", "updated", "tagCount", "attr:status", "box"],
+        fields: ["content", "updated", "assetCount", "tagCount", "attr:status", "box"],
         fieldMappings: {
           status: "status",
           dueDate: "dueDate",
@@ -59,7 +59,7 @@ describe("InlineQueryWidget", () => {
 
     const headers = wrapper.findAll("th").map(cell => cell.text())
 
-    expect(headers).toEqual(["标题 / 内容", "更新时间", "标签数量", "状态", "笔记本"])
+    expect(headers).toEqual(["标题 / 内容", "更新时间", "内嵌资源数量", "标签数量", "状态", "笔记本"])
   })
 
   it("falls back to Chinese attribute labels for unmapped custom fields", () => {
