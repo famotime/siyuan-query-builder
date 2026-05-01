@@ -391,6 +391,26 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     viewType: "table",
   }
 
+  const randomDocumentsTemplate: QueryTemplate = {
+    id: createId("preset"),
+    version: 1,
+    name: "往日笔记随机漫游",
+    scope: {
+      type: "block_type",
+      value: "d",
+    },
+    filters: [],
+    sorts: [
+      {
+        field: "random",
+        direction: "asc",
+      },
+    ],
+    fields: ["content", "updated", "created", "box", "tag"],
+    limit: 10,
+    viewType: "table",
+  }
+
   const todayEditedDocumentsTemplate: QueryTemplate = {
     id: createId("preset"),
     version: 1,
@@ -522,6 +542,13 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
       title: "今日编辑速览",
       description: "聚焦今天更新过的文档，快速回看当前工作痕迹。",
       snapshot: createPresetSnapshot(todayEditedDocumentsTemplate, "table"),
+    },
+    {
+      id: "preset-random-documents",
+      category: "daily",
+      title: "往日笔记随机漫游",
+      description: "随机展示 10 篇文档，重新发现沉睡在知识库中的旧笔记。",
+      snapshot: createPresetSnapshot(randomDocumentsTemplate, "table"),
     },
   ]
 }

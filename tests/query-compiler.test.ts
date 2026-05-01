@@ -362,6 +362,34 @@ describe("buildQuery", () => {
     expect(contentIndex).toBeGreaterThan(statusIndex)
   })
 
+  it("uses RANDOM() for the random sort field and includes tag in select", () => {
+    const template: QueryTemplate = {
+      id: "template-random",
+      version: 1,
+      name: "Random Documents",
+      scope: {
+        type: "block_type",
+        value: "d",
+      },
+      filters: [],
+      sorts: [
+        {
+          field: "random",
+          direction: "asc",
+        },
+      ],
+      fields: ["content", "updated", "created", "box", "tag"],
+      limit: 10,
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("ORDER BY RANDOM() ASC")
+    expect(compiled.sql).toContain("blocks.tag AS tag")
+    expect(compiled.sql).toContain("LIMIT 10")
+  })
+
   it("treats empty attribute scope as any custom attribute", () => {
     const template: QueryTemplate = {
       id: "template-any-attribute",

@@ -273,7 +273,13 @@ function buildAggregateSelectFields(template: QueryTemplate, aggregation: QueryA
   return selected
 }
 
+const RANDOM_FIELD = "random"
+
 function getOrderExpression(field: FieldId) {
+  if (field === RANDOM_FIELD) {
+    return "RANDOM()"
+  }
+
   if (isAggregateValueField(field) || field === TAG_COUNT_FIELD || field === ASSET_COUNT_FIELD) {
     return getFieldAlias(field)
   }
