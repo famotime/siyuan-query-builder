@@ -468,7 +468,7 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     },
     {
       id: "preset-recent-meetings",
-      category: "daily",
+      category: "attributes",
       title: "会议回顾",
       description: "最近 30 天会议记录按项目查看",
       snapshot: createPresetSnapshot(meetingTemplate, "table"),
