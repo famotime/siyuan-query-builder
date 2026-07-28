@@ -36,6 +36,15 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
 
   async onload() {
     try {
+      this.addIcons(`
+<symbol id="iconQueryBuilder" viewBox="0 0 48 48">
+  <path d="M20 6H6V20H20V6Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 28H6V42H20V28Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M42 6H28V20H42V6Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 28L42 42M28 28H42H28ZM28 28V42V28Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+`)
+
       const frontend = getFrontend()
       this.platform = frontend as SyFrontendTypes
       this.isMobile = frontend === "mobile" || frontend === "browser-mobile"
@@ -55,7 +64,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       inlineRenderer.start()
 
       this.addTopBar({
-        icon: '<svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6H6V20H20V6Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 28H6V42H20V28Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 6H28V20H42V6Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 28L42 42M28 28H42H28ZM28 28V42V28Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        icon: "iconQueryBuilder",
         title: "易搭",
         callback: () => {
           void this.showWorkspace()
@@ -73,7 +82,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       this.settingsState = await loadPluginSettings(this)
     } catch (error) {
       console.error("[siyuan-query-builder] onload failed", error)
-      showMessage(`Query Builder 启动失败：${toErrorMessage(error)}`, 7000, "error")
+      showMessage(`${this.i18n.initFailed || "Query Builder 启动失败："}${toErrorMessage(error)}`, 7000, "error")
     }
   }
 
@@ -81,6 +90,19 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
     inlineRenderer?.destroy()
     inlineRenderer = null
     destroy()
+  }
+
+  async uninstall() {
+    try {
+      await this.removeData("query-builder.settings.v1")
+      await this.removeData("query-builder.metrics.v1")
+      await this.removeData("query-builder.history.v1")
+      await this.removeData("query-builder.templates.v2")
+      await this.removeData("query-builder.views.v2")
+      await this.removeData("query-builder.templates.v1")
+    } catch (error) {
+      console.error("[siyuan-query-builder] uninstall removeData failed", error)
+    }
   }
 
   openSetting() {
@@ -97,8 +119,8 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
     this.openModeSelect = document.createElement("select")
     this.openModeSelect.className = "b3-select"
     this.openModeSelect.innerHTML = [
-      '<option value="dialog">弹窗</option>',
-      '<option value="tab">页签</option>',
+      `<option value="dialog">${this.i18n.openModeDialog || "弹窗"}</option>`,
+      `<option value="tab">${this.i18n.openModeTab || "页签"}</option>`,
     ].join("")
     this.openModeSelect.addEventListener("change", () => {
       void this.updateOpenMode(this.openModeSelect?.value as WorkspaceOpenMode)
@@ -108,8 +130,8 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       width: "520px",
     })
     this.setting.addItem({
-      title: "打开方式",
-      description: "选择点击查询构建器时使用弹窗，还是在当前笔记窗口新增一个页签打开。",
+      title: this.i18n.openModeTitle || "打开方式",
+      description: this.i18n.openModeDesc || "选择点击查询构建器时使用弹窗，还是在当前笔记窗口新增一个页签打开。",
       actionElement: this.openModeSelect,
     })
   }
@@ -131,7 +153,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       await openPanel(forceVisible, this.settingsState.openMode)
     } catch (error) {
       console.error("[siyuan-query-builder] showWorkspace failed", error)
-      showMessage(`Query Builder 打开失败：${toErrorMessage(error)}`, 7000, "error")
+      showMessage(`${this.i18n.openFailed || "Query Builder 打开失败："}${toErrorMessage(error)}`, 7000, "error")
     }
   }
 }

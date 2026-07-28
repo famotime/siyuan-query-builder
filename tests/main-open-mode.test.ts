@@ -111,8 +111,8 @@ describe("main open mode", () => {
     expect(openTab).toHaveBeenCalledWith(expect.objectContaining({
       app: plugin.app,
       custom: expect.objectContaining({
-        title: "思源易搭 Query Builder",
-        icon: "iconSearch",
+        title: "易搭 Query Builder",
+        icon: "iconQueryBuilder",
       }),
     }))
 

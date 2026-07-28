@@ -78,7 +78,6 @@ export function createQueryExecutionController(options: QueryExecutionController
       resultSet.value = await runtime.execute(compiled)
       await rememberQueryHistory(resultSet.value.executedAt)
       recordMetric("queryRuns")
-      showMessage(`查询完成：${resultSet.value.total} 条结果`, 3500, "info")
     } catch (runtimeError) {
       error.value = runtimeError instanceof Error ? runtimeError.message : "查询失败"
       showMessage(error.value, 5000, "error")
@@ -98,7 +97,6 @@ export function createQueryExecutionController(options: QueryExecutionController
         row.attrs[attrName] = value
       }
       recordMetric("quickEdits")
-      showMessage("已回写原始块属性", 2500, "info")
     } catch (editError) {
       showMessage(editError instanceof Error ? editError.message : "写回失败", 5000, "error")
     }
@@ -121,7 +119,6 @@ export function createQueryExecutionController(options: QueryExecutionController
       })
       await rememberEmbedTarget(embedParentId.value)
       recordMetric("embedInsertions")
-      showMessage("已插入嵌入描述块", 3500, "info")
     } catch (insertError) {
       showMessage(insertError instanceof Error ? insertError.message : "插入嵌入块失败", 5000, "error")
     }

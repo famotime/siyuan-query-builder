@@ -117,7 +117,6 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       }
       await refreshSavedTemplateSummaries()
       await refreshSavedViews(importedTemplate.id)
-      showMessage(`已导入模板：${importedTemplate.name}`, 3500, "info")
       return importedTemplate.id
     } catch (importError) {
       const message = importError instanceof Error ? importError.message : "导入模板失败"
@@ -144,7 +143,6 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       await refreshSavedTemplateSummaries()
       await refreshSavedViews(draft.template.id)
       recordMetric("templateSaves")
-      showMessage(`已保存模板：${draft.template.name}`, 3500, "info")
     } catch (saveError) {
       showMessage(saveError instanceof Error ? saveError.message : "保存失败", 5000, "error")
     } finally {
@@ -173,7 +171,6 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       } else {
         await refreshSavedViews(draft.template.id)
       }
-      showMessage("已删除模板", 3000, "info")
       return true
     } catch (deleteError) {
       showMessage(deleteError instanceof Error ? deleteError.message : "删除模板失败", 5000, "error")
@@ -207,7 +204,6 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       await refreshSavedViews(draft.template.id)
       await refreshSavedTemplateSummaries()
       recordMetric("viewSaves")
-      showMessage("已添加为新视图", 3000, "info")
       return true
     } catch (saveError) {
       showMessage(saveError instanceof Error ? saveError.message : "另存视图失败", 5000, "error")
@@ -248,7 +244,6 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       }
       await refreshSavedViews(draft.template.id)
       await refreshSavedTemplateSummaries()
-      showMessage("已更新默认视图", 3000, "info")
       return true
     } catch (saveError) {
       showMessage(saveError instanceof Error ? saveError.message : "设置默认视图失败", 5000, "error")
@@ -300,7 +295,6 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       }
 
       await refreshSavedTemplateSummaries()
-      showMessage("已删除视图配置", 3000, "info")
       return true
     } catch (deleteError) {
       showMessage(deleteError instanceof Error ? deleteError.message : "删除视图配置失败", 5000, "error")

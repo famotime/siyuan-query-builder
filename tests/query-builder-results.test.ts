@@ -556,6 +556,5 @@ describe("QueryBuilderResults", () => {
     await copyButton.trigger("click")
 
     expect(writeText).toHaveBeenCalledWith("select * from blocks where type = 'd'")
-    expect(showMessage).toHaveBeenCalledWith("已复制 SQL", 2500, "info")
   })
 })

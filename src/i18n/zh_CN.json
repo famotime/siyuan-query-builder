@@ -1,3 +1,9 @@
 {
-  "addTopBarIcon": "打开查询构建器"
+  "addTopBarIcon": "打开易搭 Query Builder",
+  "openModeTitle": "打开方式",
+  "openModeDesc": "选择点击查询构建器时使用弹窗，还是在当前笔记窗口新增一个页签打开。",
+  "openModeDialog": "弹窗",
+  "openModeTab": "页签",
+  "initFailed": "Query Builder 启动失败：",
+  "openFailed": "Query Builder 打开失败："
 }

@@ -1360,11 +1360,6 @@ describe("createQueryBuilderStore view management", () => {
       "custom-status": "Unread",
       "custom-priority": "P1",
     }))
-    expect(showMessage).toHaveBeenCalledWith(
-      "已生成预设示例文档：2026-03-23 Query Builder 示例（路径：/日记/2026/03/2026-03-23 Query Builder 示例）",
-      3500,
-      "info",
-    )
 
     vi.useRealTimers()
   })

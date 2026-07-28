@@ -55,6 +55,8 @@ export class Plugin {
     return current
   }
 
+  addIcons(_svg: string) {}
+
   addTopBar(options: any) {
     this.topBarItems.push(options)
     return document.createElement("button")

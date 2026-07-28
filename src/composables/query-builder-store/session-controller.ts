@@ -171,7 +171,6 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
         }
         return setBlockAttrs(block.id, attrs)
       }))
-      showMessage(`已生成预设示例文档：${title}（路径：${path}）`, 3500, "info")
       return true
     } catch (generationError) {
       showMessage(generationError instanceof Error ? generationError.message : "生成示例文档失败", 5000, "error")

@@ -18,8 +18,8 @@ let workspaceTabRegistered = false
 const tabApps = new WeakMap<Element, VueApp>()
 
 const WORKSPACE_TAB_TYPE = "workspace"
-const WORKSPACE_TAB_TITLE = "思源易搭 Query Builder"
-const WORKSPACE_TAB_ICON = "iconSearch"
+const WORKSPACE_TAB_TITLE = "易搭 Query Builder"
+const WORKSPACE_TAB_ICON = "iconQueryBuilder"
 
 export function usePlugin() {
   if (!pluginInstance) {

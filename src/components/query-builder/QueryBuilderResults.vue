@@ -241,7 +241,6 @@ async function copyAdvancedSql() {
 
   try {
     await writeClipboardText(store.advancedSql)
-    showMessage("已复制 SQL", 2500, "info")
   } catch (error) {
     console.error("[siyuan-query-builder] failed to copy SQL preview", error)
     showMessage("复制 SQL 失败", 3500, "error")

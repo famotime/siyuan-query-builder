@@ -1,3 +1,9 @@
 {
-  "addTopBarIcon": "Open Query Builder"
+  "addTopBarIcon": "Open Query Builder",
+  "openModeTitle": "Open Mode",
+  "openModeDesc": "Choose whether to open Query Builder in a dialog or a workspace tab.",
+  "openModeDialog": "Dialog",
+  "openModeTab": "Tab",
+  "initFailed": "Failed to start Query Builder: ",
+  "openFailed": "Failed to open Query Builder: "
 }
