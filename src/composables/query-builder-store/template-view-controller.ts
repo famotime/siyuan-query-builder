@@ -3,6 +3,7 @@ import type { Ref } from "vue"
 import { applyViewConfigToTemplate, createId } from "@/core/query/catalog"
 import type { QueryBuilderSnapshot, QueryTemplate, QueryTemplateBundle, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { showMessage } from "@/external/siyuan"
+import type { I18nHelper } from "@/utils/i18n"
 
 import { createSnapshot } from "./shared"
 import { createExportedTemplateBundle, createImportedTemplateBundle, isTemplateBundle } from "./template-view-controller/bundle"
@@ -23,6 +24,8 @@ interface TemplateViewControllerOptions {
   saving: Ref<boolean>
   resetResultState: () => void
   recordMetric: (metric: "templateSaves" | "viewSaves", amount?: number) => void
+  markClean: () => void
+  t: I18nHelper
 }
 
 export function createTemplateViewController(options: TemplateViewControllerOptions) {
@@ -34,6 +37,8 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     saving,
     resetResultState,
     recordMetric,
+    markClean,
+    t,
   } = options
 
   const storage = createTemplateViewStorage({
@@ -51,10 +56,14 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     } = {},
   ) {
     applyTemplateAndViewState(draft, template, view, resetResultState, options)
+    if (!options.preserveResultState) {
+      markClean()
+    }
   }
 
   function resetDraft() {
     resetDraftState(draft, savedViews, resetResultState)
+    markClean()
   }
 
   async function savePersistedTemplate(template: QueryTemplate) {
@@ -119,7 +128,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       await refreshSavedViews(importedTemplate.id)
       return importedTemplate.id
     } catch (importError) {
-      const message = importError instanceof Error ? importError.message : "导入模板失败"
+      const message = t("importTemplateFailed", { error: importError instanceof Error ? importError.message : t("errorUnknown") })
       showMessage(message, 5000, "error")
       throw importError
     }
@@ -142,9 +151,10 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       await persistCurrentTemplateAndView()
       await refreshSavedTemplateSummaries()
       await refreshSavedViews(draft.template.id)
+      markClean()
       recordMetric("templateSaves")
     } catch (saveError) {
-      showMessage(saveError instanceof Error ? saveError.message : "保存失败", 5000, "error")
+      showMessage(t("saveTemplateFailed", { error: saveError instanceof Error ? saveError.message : t("errorUnknown") }), 5000, "error")
     } finally {
       saving.value = false
     }
@@ -173,7 +183,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       }
       return true
     } catch (deleteError) {
-      showMessage(deleteError instanceof Error ? deleteError.message : "删除模板失败", 5000, "error")
+      showMessage(t("deleteTemplateFailed", { error: deleteError instanceof Error ? deleteError.message : t("errorUnknown") }), 5000, "error")
       return false
     }
   }
@@ -187,7 +197,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
         && view.type === snapshot.view.type,
       )
       if (duplicateTypeView) {
-        showMessage("该视图类型已存在，无需重复添加", 3500, "error")
+        showMessage(t("duplicateViewType"), 3500, "error")
         return false
       }
       await savePersistedTemplate(snapshot.template)
@@ -203,10 +213,11 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       draft.template.viewType = nextView.type
       await refreshSavedViews(draft.template.id)
       await refreshSavedTemplateSummaries()
+      markClean()
       recordMetric("viewSaves")
       return true
     } catch (saveError) {
-      showMessage(saveError instanceof Error ? saveError.message : "另存视图失败", 5000, "error")
+      showMessage(t("saveViewAsFailed", { error: saveError instanceof Error ? saveError.message : t("errorUnknown") }), 5000, "error")
       return false
     }
   }
@@ -246,14 +257,14 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       await refreshSavedTemplateSummaries()
       return true
     } catch (saveError) {
-      showMessage(saveError instanceof Error ? saveError.message : "设置默认视图失败", 5000, "error")
+      showMessage(t("setDefaultViewFailed", { error: saveError instanceof Error ? saveError.message : t("errorUnknown") }), 5000, "error")
       return false
     }
   }
 
   async function deleteSavedView(viewId: string) {
     if (savedViews.value.length <= 1) {
-      showMessage("至少保留一个视图配置", 3500, "error")
+      showMessage(t("keepAtLeastOneView"), 3500, "error")
       return false
     }
     try {
@@ -297,7 +308,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       await refreshSavedTemplateSummaries()
       return true
     } catch (deleteError) {
-      showMessage(deleteError instanceof Error ? deleteError.message : "删除视图配置失败", 5000, "error")
+      showMessage(t("deleteViewFailed", { error: deleteError instanceof Error ? deleteError.message : t("errorUnknown") }), 5000, "error")
       return false
     }
   }

@@ -86,9 +86,11 @@ vi.mock("@/inline/render-controller", () => ({
 }))
 
 import { createInlineBlockRenderer } from "@/inline/service"
+import zhCN from "@/i18n/zh_CN.json"
 
 function createPlugin() {
   return {
+    i18n: zhCN,
     eventBus: {
       on: vi.fn(),
       off: vi.fn(),

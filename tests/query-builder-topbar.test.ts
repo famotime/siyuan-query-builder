@@ -15,6 +15,8 @@ function createStore() {
     advancedMode: false,
     saving: false,
     loading: false,
+    isDirty: false,
+    t: (key: string) => key,
     draft: {
       template: {
         name: '未命名查询',

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import zhCN from "@/i18n/zh_CN.json"
+
 class FakePluginStorage {
+  i18n: Record<string, string> = zhCN
   private data = new Map<string, unknown>()
 
   async loadData(key: string) {
@@ -845,7 +848,7 @@ describe("createQueryBuilderStore view management", () => {
 
     expect(store.savedViews).toHaveLength(1)
     expect(store.savedViews[0]?.id).toBe(originalViewId)
-    expect(showMessage).toHaveBeenCalledWith("该视图类型已存在，无需重复添加", 3500, "error")
+    expect(showMessage).toHaveBeenCalledWith(zhCN.duplicateViewType, 3500, "error")
   })
 
   it("initializes notebooks and embed target state from persisted preferences", async () => {
@@ -1043,7 +1046,7 @@ describe("createQueryBuilderStore view management", () => {
 
     expect(store.loading).toBe(false)
     expect(store.error).toBe("SQL broken")
-    expect(showMessage).toHaveBeenCalledWith("SQL broken", 5000, "error")
+    expect(showMessage).toHaveBeenCalledWith(`查询失败：SQL broken`, 5000, "error")
   })
 
   it("updates the current result row after a successful quick edit", async () => {
@@ -1118,7 +1121,7 @@ describe("createQueryBuilderStore view management", () => {
 
     expect(runtime.updateField).not.toHaveBeenCalled()
     expect(store.draggingRowId).toBe("")
-    expect(showMessage).toHaveBeenCalledWith("只有按状态分组时才支持拖拽回写", 3500, "error")
+    expect(showMessage).toHaveBeenCalledWith(zhCN.boardDragWritebackUnsupported, 3500, "error")
   })
 
   it("inserts embed blocks and remembers the selected parent target", async () => {
@@ -1422,5 +1425,45 @@ describe("createQueryBuilderStore view management", () => {
     )
 
     vi.useRealTimers()
+  })
+
+  it("tracks isDirty in real time as the draft is edited and clears it on save", async () => {
+    const store = createQueryBuilderStore()
+    await store.initialize()
+    const originalName = store.draft.template.name
+
+    expect(store.isDirty).toBe(false)
+
+    store.draft.template.name = "未保存的修改"
+    await flushMetricsWrites()
+    expect(store.isDirty).toBe(true)
+
+    store.draft.template.name = originalName
+    await flushMetricsWrites()
+    expect(store.isDirty).toBe(false)
+  })
+
+  it("clears isDirty after saving the template", async () => {
+    const store = createQueryBuilderStore()
+    await store.initialize()
+
+    store.draft.template.name = "要保存的模板"
+    await flushMetricsWrites()
+    expect(store.isDirty).toBe(true)
+
+    await store.saveTemplate()
+    expect(store.isDirty).toBe(false)
+  })
+
+  it("resets isDirty when the draft is reset", async () => {
+    const store = createQueryBuilderStore()
+    await store.initialize()
+
+    store.draft.template.name = "临时修改"
+    await flushMetricsWrites()
+    expect(store.isDirty).toBe(true)
+
+    store.resetDraft()
+    expect(store.isDirty).toBe(false)
   })
 })

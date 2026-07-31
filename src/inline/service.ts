@@ -16,6 +16,7 @@ import InlineQueryWidget from "@/inline/InlineQueryWidget.vue"
 import { createInlineRenderController } from "@/inline/render-controller"
 import { createInlineScanLifecycle } from "@/inline/scan-lifecycle"
 import { syncSiyuanThemeMarkers } from "@/ui/theme"
+import { createI18nHelper } from "@/utils/i18n"
 
 const EVENTS_TO_STOP = [
   "compositionstart",
@@ -43,6 +44,7 @@ function renderInlineError(element: HTMLElement, message: string) {
 }
 
 export function createInlineBlockRenderer(plugin: Plugin) {
+  const t = createI18nHelper(plugin)
   const templateStore = createTemplateStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
   const notebooksPromise = lsNotebooks()
@@ -59,7 +61,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
     element.appendChild(host)
 
     if (!snapshot) {
-      renderInlineError(host, `未找到模板：${payload.templateId}`)
+      renderInlineError(host, t("inlineTemplateNotFound", { id: payload.templateId }))
       return
     }
 
@@ -97,7 +99,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
       controller.cleanup()
     } catch (error) {
       console.error("[siyuan-query-builder] inline scan failed", error)
-      showMessage(`块内渲染失败：${error instanceof Error ? error.message : "未知错误"}`, 5000, "error")
+      showMessage(t("inlineRenderFailed", { error: error instanceof Error ? error.message : t("errorUnknown") }), 5000, "error")
     }
   }
 
@@ -105,7 +107,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
     mount: mountPayload,
     onError: (element, error) => {
       console.error("[siyuan-query-builder] inline bridge render failed", error)
-      renderInlineError(element, `块内渲染失败：${error instanceof Error ? error.message : "未知错误"}`)
+      renderInlineError(element, t("inlineRenderFailed", { error: error instanceof Error ? error.message : t("errorUnknown") }))
     },
   })
   const scanLifecycle = createInlineScanLifecycle({

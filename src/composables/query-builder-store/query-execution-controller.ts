@@ -3,6 +3,7 @@ import type { ComputedRef, Ref } from "vue"
 import { buildQuery } from "@/core/query/compiler"
 import type { QueryBuilderSnapshot, ResultRow, ResultSet } from "@/core/query/types"
 import { showMessage } from "@/external/siyuan"
+import type { I18nHelper } from "@/utils/i18n"
 
 import { type EditableField } from "./shared"
 
@@ -38,6 +39,7 @@ interface QueryExecutionControllerOptions {
   refreshSavedTemplateSummaries: () => Promise<void>
   rememberEmbedTarget: (value: string) => Promise<void>
   rememberQueryHistory: (executedAt: string) => Promise<void>
+  t: I18nHelper
 }
 
 export function createQueryExecutionController(options: QueryExecutionControllerOptions) {
@@ -56,6 +58,7 @@ export function createQueryExecutionController(options: QueryExecutionController
     refreshSavedTemplateSummaries,
     rememberEmbedTarget,
     rememberQueryHistory,
+    t,
   } = options
 
   function resetResultState() {
@@ -67,8 +70,9 @@ export function createQueryExecutionController(options: QueryExecutionController
   async function runQuery() {
     error.value = ""
     if (blockingValidationIssues.value.length) {
-      error.value = blockingValidationIssues.value.map(issue => issue.message).join("；")
-      showMessage(error.value, 5000, "error")
+      const message = blockingValidationIssues.value.map(issue => issue.message).join("；")
+      error.value = message
+      showMessage(t("queryValidationBlocked", { message }), 5000, "error")
       return
     }
     loading.value = true
@@ -79,8 +83,8 @@ export function createQueryExecutionController(options: QueryExecutionController
       await rememberQueryHistory(resultSet.value.executedAt)
       recordMetric("queryRuns")
     } catch (runtimeError) {
-      error.value = runtimeError instanceof Error ? runtimeError.message : "查询失败"
-      showMessage(error.value, 5000, "error")
+      error.value = runtimeError instanceof Error ? runtimeError.message : t("errorUnknown")
+      showMessage(t("queryFailed", { error: error.value }), 5000, "error")
     } finally {
       loading.value = false
     }
@@ -98,13 +102,13 @@ export function createQueryExecutionController(options: QueryExecutionController
       }
       recordMetric("quickEdits")
     } catch (editError) {
-      showMessage(editError instanceof Error ? editError.message : "写回失败", 5000, "error")
+      showMessage(t("quickEditFailed", { error: editError instanceof Error ? editError.message : t("errorUnknown") }), 5000, "error")
     }
   }
 
   async function insertEmbed() {
     if (!embedParentId.value.trim()) {
-      showMessage("请输入父块或文档 ID", 4000, "error")
+      showMessage(t("embedParentIdRequired"), 4000, "error")
       return
     }
     try {
@@ -120,7 +124,7 @@ export function createQueryExecutionController(options: QueryExecutionController
       await rememberEmbedTarget(embedParentId.value)
       recordMetric("embedInsertions")
     } catch (insertError) {
-      showMessage(insertError instanceof Error ? insertError.message : "插入嵌入块失败", 5000, "error")
+      showMessage(t("insertEmbedBlockFailed", { error: insertError instanceof Error ? insertError.message : t("errorUnknown") }), 5000, "error")
     }
   }
 
@@ -137,7 +141,7 @@ export function createQueryExecutionController(options: QueryExecutionController
       return
     }
     if (draft.template.groupBy !== `attr:${draft.view.fieldMappings.status}`) {
-      showMessage("只有按状态分组时才支持拖拽回写", 3500, "error")
+      showMessage(t("boardDragWritebackUnsupported"), 3500, "error")
       draggingRowId.value = ""
       return
     }

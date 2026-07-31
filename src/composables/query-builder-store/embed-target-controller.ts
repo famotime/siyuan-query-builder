@@ -12,6 +12,7 @@ import {
   type EmbedTargetPreview,
 } from "@/core/embed-target"
 import { showMessage } from "@/external/siyuan"
+import type { I18nHelper } from "@/utils/i18n"
 
 import { EMBED_TARGET_PREFS_KEY, type EmbedTargetPrefs } from "./shared"
 
@@ -28,6 +29,7 @@ interface EmbedTargetControllerOptions {
   currentDocumentTarget: Ref<ActiveDocumentTarget | null>
   openDocumentTargets: Ref<ActiveDocumentTarget[]>
   recentEmbedTargets: Ref<EmbedTargetPreview[]>
+  t: I18nHelper
 }
 
 export function createEmbedTargetController(options: EmbedTargetControllerOptions) {
@@ -39,6 +41,7 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
     currentDocumentTarget,
     openDocumentTargets,
     recentEmbedTargets,
+    t,
   } = options
 
   const recentEmbedTargetIds = { value: [] as string[] }
@@ -85,7 +88,7 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
         id,
         type: "block",
         title: id,
-        content: "未找到对应块或文档",
+        content: t("embedRecentNotFound"),
       } satisfies EmbedTargetPreview
     }))
   }
@@ -121,13 +124,13 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
 
     if (!id) {
       embedTargetHint.value = currentDocumentTarget.value
-        ? `当前文档：${currentDocumentTarget.value.title}`
-        : "可输入父块或文档 ID，或下拉选择当前打开文档"
+        ? t("embedHintCurrentDoc", { title: currentDocumentTarget.value.title })
+        : t("embedHintDefault")
       return
     }
 
     if (!isLikelyBlockId(id)) {
-      embedTargetHint.value = "输入完整 ID 后显示文档标题或块内容"
+      embedTargetHint.value = t("embedHintEnterId")
       return
     }
 
@@ -138,7 +141,7 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
       }
 
       if (!preview) {
-        embedTargetHint.value = "未找到该 ID 对应的块或文档"
+        embedTargetHint.value = t("embedHintNotFound")
         return
       }
 
@@ -148,7 +151,7 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
       if (token !== embedTargetResolveToken || embedParentId.value.trim() !== id) {
         return
       }
-      embedTargetHint.value = "未找到该 ID 对应的块或文档"
+      embedTargetHint.value = t("embedHintNotFound")
     }
   }
 
@@ -174,7 +177,7 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
   async function selectCurrentDocumentTarget() {
     await refreshCurrentDocumentTarget()
     if (!currentDocumentTarget.value) {
-      showMessage("未找到当前打开的文档", 3500, "error")
+      showMessage(t("currentDocumentNotFound"), 3500, "error")
       return false
     }
     await selectEmbedTarget(currentDocumentTarget.value.id)

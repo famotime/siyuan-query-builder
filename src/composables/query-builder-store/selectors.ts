@@ -4,6 +4,7 @@ import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, TAG_COUNT_FIELD, createFieldO
 import type { QueryBuilderSnapshot, ResultSet } from "@/core/query/types"
 import { validateSnapshot } from "@/core/query/validation"
 import { createResultPresentation } from "@/core/view/presentation"
+import type { I18nHelper } from "@/utils/i18n"
 
 import {
   createSnapshot,
@@ -18,18 +19,16 @@ interface QueryBuilderSelectorsOptions {
   draft: QueryBuilderSnapshot
   notebooks: Ref<Notebook[]>
   resultSet: Ref<ResultSet | null>
+  t: I18nHelper
 }
 
 export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOptions) {
-  const { draft, notebooks, resultSet } = options
+  const { draft, notebooks, resultSet, t } = options
 
   const presets = computed(() => createPresets(draft.view.fieldMappings))
   const fieldOptions = computed(() => mergeFieldOptions(
     createFieldOptions(draft.view.fieldMappings),
     draft.template,
-  ))
-  const fieldOptionMap = computed(() => new Map(
-    fieldOptions.value.map(option => [option.value, option.label]),
   ))
   const notebookNameById = computed(() => Object.fromEntries(
     notebooks.value.map(notebook => [notebook.id, notebook.name]),
@@ -59,14 +58,14 @@ export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOption
     if (!draft.template.groupBy) {
       return {
         enabled: false,
-        reason: "看板视图需要先设置分组字段。",
+        reason: t("validation.board-group-by-required"),
       }
     }
 
     if (draft.template.groupBy !== `attr:${draft.view.fieldMappings.status}`) {
       return {
         enabled: false,
-        reason: "当前分组不支持拖拽回写，只有按状态分组时才能拖拽改状态。",
+        reason: t("validation.board-drag-writeback-disabled"),
       }
     }
 
@@ -151,7 +150,10 @@ export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOption
     }
     return `返回 ${resultSet.value.total} 条结果`
   })
-  const validationIssues = computed(() => validateSnapshot(createSnapshot(draft)))
+  const validationIssues = computed(() => validateSnapshot(createSnapshot(draft)).map(issue => ({
+    ...issue,
+    message: t(`validation.${issue.code}`),
+  })))
   const blockingValidationIssues = computed(() => validationIssues.value.filter(issue => issue.level === "error"))
   const currentTemplateId = computed(() => draft.template.id)
   const currentViewId = computed(() => draft.view.id)

@@ -1,13 +1,15 @@
-import { inject, proxyRefs, reactive, ref } from "vue"
+import { inject, proxyRefs, reactive, ref, watch } from "vue"
 import type { InjectionKey } from "vue"
 
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
+import { cloneSnapshot } from "@/core/query/catalog"
 import type { QueryBuilderSnapshot, QueryHistoryEntry, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createMetricsStore } from "@/core/storage/metrics-store"
 import { createQueryHistoryStore } from "@/core/storage/query-history-store"
 import { usePlugin } from "@/main"
+import { createI18nHelper } from "@/utils/i18n"
 
 import { createQueryBuilderDraftActions } from "./query-builder-store/draft-actions"
 import { createEmbedTargetController } from "./query-builder-store/embed-target-controller"
@@ -38,11 +40,27 @@ export function useQueryBuilderStore() {
 
 export function createQueryBuilderStore() {
   const plugin = usePlugin()
+  const t = createI18nHelper(plugin)
   const metricsStore = createMetricsStore(plugin)
   const queryHistoryStore = createQueryHistoryStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
 
   const draft = reactive<QueryBuilderSnapshot>(createDraft())
+  const isDirty = ref(false)
+  let cleanSnapshot = cloneSnapshot(draft)
+
+  function markClean() {
+    cleanSnapshot = cloneSnapshot(draft)
+    isDirty.value = false
+  }
+
+  watch(
+    draft,
+    () => {
+      isDirty.value = JSON.stringify(draft) !== JSON.stringify(cleanSnapshot)
+    },
+    { deep: true, flush: "sync" },
+  )
   const notebooks = ref<Notebook[]>([])
   const recentQueryHistory = ref<QueryHistoryEntry[]>([])
   const savedTemplateSummaries = ref<SavedTemplateSummary[]>([])
@@ -84,6 +102,8 @@ export function createQueryBuilderStore() {
     saving,
     resetResultState,
     recordMetric,
+    markClean,
+    t,
   })
 
   const embedTargets = createEmbedTargetController({
@@ -94,12 +114,14 @@ export function createQueryBuilderStore() {
     currentDocumentTarget,
     openDocumentTargets,
     recentEmbedTargets,
+    t,
   })
 
   const selectors = createQueryBuilderSelectors({
     draft,
     notebooks,
     resultSet,
+    t,
   })
   const session = createQueryBuilderSessionController({
     draft,
@@ -109,6 +131,7 @@ export function createQueryBuilderStore() {
     templateViews,
     embedTargets,
     resetResultState,
+    t,
   })
 
   const queryExecution = createQueryExecutionController({
@@ -126,6 +149,7 @@ export function createQueryBuilderStore() {
     refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
     rememberEmbedTarget: embedTargets.rememberEmbedTarget,
     rememberQueryHistory: session.rememberQueryHistory,
+    t,
   })
   const draftActions = createQueryBuilderDraftActions({
     draft,
@@ -173,11 +197,13 @@ export function createQueryBuilderStore() {
     importTemplateBundle: templateViews.importTemplateBundle,
     initialize: session.initialize,
     insertEmbed: queryExecution.insertEmbed,
+    isDirty,
     limitProxy: selectors.limitProxy,
     listItems: selectors.listItems,
     loading,
     loadSavedView: templateViews.loadSavedView,
     loadTemplate: templateViews.loadTemplate,
+    markClean,
     mappingKeys,
     mappingLabels,
     moveFilter: draftActions.moveFilter,
@@ -217,5 +243,6 @@ export function createQueryBuilderStore() {
     toggleField: draftActions.toggleField,
     updateDateRange,
     validationIssues: selectors.validationIssues,
+    t,
   })
 }

@@ -21,6 +21,8 @@ const WORKSPACE_TAB_TYPE = "workspace"
 const WORKSPACE_TAB_TITLE = "易搭 Query Builder"
 const WORKSPACE_TAB_ICON = "iconQueryBuilder"
 
+export const DEBUG_LOG_STORAGE_KEY = "query-builder.debug-runtime-errors.v1"
+
 export function usePlugin() {
   if (!pluginInstance) {
     throw new Error("Plugin instance has not been initialized")
@@ -49,9 +51,9 @@ async function appendDebugLog(source: string, error: unknown, info?: string) {
   }
 
   try {
-    const current = await pluginInstance.loadData("debug.runtime-errors.v1")
+    const current = await pluginInstance.loadData(DEBUG_LOG_STORAGE_KEY)
     const next = Array.isArray(current) ? [...current, entry].slice(-20) : [entry]
-    await pluginInstance.saveData("debug.runtime-errors.v1", next)
+    await pluginInstance.saveData(DEBUG_LOG_STORAGE_KEY, next)
   } catch (persistError) {
     console.error("[siyuan-query-builder] failed to persist debug log", persistError)
   }
@@ -70,7 +72,10 @@ function createVueApp(rootElement: HTMLDivElement) {
         <pre style="white-space: pre-wrap; word-break: break-word;">${detail}</pre>
       </section>
     `
-    showMessage("Query Builder 渲染失败，已记录调试日志", 7000, "error")
+    const message = pluginInstance?.i18n?.vueRenderError
+      ? String(pluginInstance.i18n.vueRenderError)
+      : "Query Builder 渲染失败，已记录调试日志"
+    showMessage(message, 7000, "error")
   }
   app.mount(rootElement)
   return app

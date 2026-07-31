@@ -18,11 +18,11 @@
   ],
   "displayName": {
     "default": "Query Builder",
-    "zh_CN": "易搭 Query Builder"
+    "zh_CN": "易搭"
   },
   "description": {
     "default": "Visual query builder with table and board views for SiYuan",
-    "zh_CN": "面向思源笔记的可视化查询构建器与多视图结果面板"
+    "zh_CN": "别让 SQL 成为你探索笔记的阻碍"
   },
   "readme": {
     "default": "README.md"

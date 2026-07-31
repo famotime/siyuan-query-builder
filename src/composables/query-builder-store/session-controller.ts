@@ -4,12 +4,12 @@ import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNoteb
 import {
   buildDailyNoteExamplePath,
   buildPresetExampleDocument,
-  formatExampleDocumentTitle,
   pickExampleNotebookId,
 } from "@/core/example-document"
-import { getActiveDocumentTarget, type ActiveDocumentTarget } from "@/core/embed-target"
+import { getActiveDocumentTarget } from "@/core/embed-target"
 import { showMessage } from "@/external/siyuan"
 import type { QueryBuilderSnapshot, QueryHistoryEntry, ViewConfig } from "@/core/query/types"
+import type { I18nHelper } from "@/utils/i18n"
 
 import { createSnapshot } from "./shared"
 
@@ -36,6 +36,7 @@ interface QueryBuilderSessionControllerOptions {
   templateViews: TemplateViewsController
   embedTargets: EmbedTargetsController
   resetResultState: () => void
+  t: I18nHelper
 }
 
 function historyScopeLabel(snapshot: QueryBuilderSnapshot) {
@@ -81,6 +82,7 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
     templateViews,
     embedTargets,
     resetResultState,
+    t,
   } = options
 
   async function refreshQueryHistory() {
@@ -146,13 +148,12 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
         notebookId = pickExampleNotebookId(notebooks.value, draft.template.scope)
       }
       if (!notebookId) {
-        showMessage("未找到可用笔记本", 4000, "error")
+        showMessage(t("noAvailableNotebook"), 4000, "error")
         return false
       }
 
       const notebookConf = await getNotebookConf(notebookId)
       const now = new Date()
-      const title = formatExampleDocumentTitle(now)
       const dailyNotePathTemplate = notebookConf?.conf?.dailyNoteSavePath
       const resolvedDailyNotePath = dailyNotePathTemplate
         ? await renderSprig(dailyNotePathTemplate)
@@ -173,7 +174,7 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
       }))
       return true
     } catch (generationError) {
-      showMessage(generationError instanceof Error ? generationError.message : "生成示例文档失败", 5000, "error")
+      showMessage(t("generateExampleDocumentFailed", { error: generationError instanceof Error ? generationError.message : t("errorUnknown") }), 5000, "error")
       return false
     }
   }

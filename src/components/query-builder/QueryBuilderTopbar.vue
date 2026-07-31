@@ -11,6 +11,10 @@
       >
     </div>
     <div class="actions">
+      <span
+        class="dirty-indicator"
+        :class="{ 'dirty-indicator--saved': !store.isDirty }"
+      >{{ store.isDirty ? store.t("dirtyUnsaved") : store.t("dirtySaved") }}</span>
       <button
         class="btn btn--ghost"
         data-topbar-reset
@@ -127,6 +131,18 @@ const store = useQueryBuilderStore()
   outline: none;
   border-color: var(--sqb-primary);
   box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+}
+
+.dirty-indicator {
+  flex: 0 0 auto;
+  font: 600 11px/1.2 var(--sqb-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sqb-primary);
+}
+
+.dirty-indicator--saved {
+  color: var(--sqb-text-muted);
 }
 
 .btn {

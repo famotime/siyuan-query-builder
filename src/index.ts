@@ -9,12 +9,20 @@ import pluginInfoJson from "@/../plugin.json"
 import "@/index.scss"
 import {
   DEFAULT_PLUGIN_SETTINGS,
+  PLUGIN_SETTINGS_STORAGE_KEY,
   loadPluginSettings,
   savePluginSettings,
   type WorkspaceOpenMode,
 } from "@/core/plugin-settings"
+import { QUERY_HISTORY_STORAGE_KEY } from "@/core/storage/query-history-store"
+import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
+import { METRICS_STORAGE_KEY } from "@/core/storage/metrics-store"
+import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
+import { LEGACY_TEMPLATE_STORAGE_KEY } from "@/core/storage/migrations"
+import { EMBED_TARGET_PREFS_KEY } from "@/composables/query-builder-store/shared"
 import { createInlineBlockRenderer } from "@/inline/service"
-import { destroy, init, openPanel } from "@/main"
+import { DEBUG_LOG_STORAGE_KEY, destroy, init, openPanel } from "@/main"
+import { createI18nHelper } from "@/utils/i18n"
 
 const pluginInfo = pluginInfoJson as { version?: string }
 let inlineRenderer: ReturnType<typeof createInlineBlockRenderer> | null = null
@@ -33,6 +41,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
   public readonly version = pluginInfo.version || "0.0.1"
   private settingsState = { ...DEFAULT_PLUGIN_SETTINGS }
   private openModeSelect: HTMLSelectElement | null = null
+  private readonly t = createI18nHelper(this)
 
   async onload() {
     try {
@@ -82,7 +91,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       this.settingsState = await loadPluginSettings(this)
     } catch (error) {
       console.error("[siyuan-query-builder] onload failed", error)
-      showMessage(`${this.i18n.initFailed || "Query Builder 启动失败："}${toErrorMessage(error)}`, 7000, "error")
+      showMessage(`${this.t("initFailed")}${toErrorMessage(error)}`, 7000, "error")
     }
   }
 
@@ -93,13 +102,18 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
   }
 
   async uninstall() {
+    const storageKeys = [
+      PLUGIN_SETTINGS_STORAGE_KEY,
+      METRICS_STORAGE_KEY,
+      QUERY_HISTORY_STORAGE_KEY,
+      QUERY_TEMPLATE_STORAGE_KEY,
+      VIEW_CONFIG_STORAGE_KEY,
+      LEGACY_TEMPLATE_STORAGE_KEY,
+      EMBED_TARGET_PREFS_KEY,
+      DEBUG_LOG_STORAGE_KEY,
+    ]
     try {
-      await this.removeData("query-builder.settings.v1")
-      await this.removeData("query-builder.metrics.v1")
-      await this.removeData("query-builder.history.v1")
-      await this.removeData("query-builder.templates.v2")
-      await this.removeData("query-builder.views.v2")
-      await this.removeData("query-builder.templates.v1")
+      await Promise.all(storageKeys.map(key => this.removeData(key)))
     } catch (error) {
       console.error("[siyuan-query-builder] uninstall removeData failed", error)
     }
@@ -153,7 +167,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       await openPanel(forceVisible, this.settingsState.openMode)
     } catch (error) {
       console.error("[siyuan-query-builder] showWorkspace failed", error)
-      showMessage(`${this.i18n.openFailed || "Query Builder 打开失败："}${toErrorMessage(error)}`, 7000, "error")
+      showMessage(`${this.t("openFailed")}${toErrorMessage(error)}`, 7000, "error")
     }
   }
 }
