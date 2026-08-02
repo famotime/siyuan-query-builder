@@ -7,6 +7,7 @@ import {
   LINK_COUNT_FIELD,
   OUT_LINK_COUNT_FIELD,
   TAG_COUNT_FIELD,
+  TEXT_LENGTH_FIELD,
 } from "./constants"
 
 export interface FieldOption {
@@ -22,6 +23,7 @@ export function createFieldOptions(mappings: FieldMappings): FieldOption[] {
     { value: "created", label: "创建时间" },
     { value: "tag", label: "标签" },
     { value: TAG_COUNT_FIELD, label: "标签数量" },
+    { value: TEXT_LENGTH_FIELD, label: "文本长度" },
     { value: ASSET_COUNT_FIELD, label: "内嵌资源数量" },
     { value: BACKLINK_COUNT_FIELD, label: "反向链接数" },
     { value: OUT_LINK_COUNT_FIELD, label: "正向链接数" },

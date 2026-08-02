@@ -7,7 +7,7 @@ import type {
   QuerySort,
   QueryTemplate,
 } from "./types"
-import { AGGREGATE_VALUE_FIELD, ASSET_COUNT_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD } from "./catalog"
+import { AGGREGATE_VALUE_FIELD, ASSET_COUNT_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD, TEXT_LENGTH_FIELD } from "./catalog"
 import { CUSTOM_ATTR_PREFIX, toStorageAttrName } from "./attributes"
 
 const BASE_FIELD_MAP: Record<string, string> = {
@@ -55,6 +55,10 @@ function getDateComparableExpression(field: FieldId, fieldExpression: string) {
 function getFieldExpression(field: FieldId) {
   if (field === TAG_COUNT_FIELD) {
     return "(length(COALESCE(blocks.tag, '')) - length(replace(COALESCE(blocks.tag, ''), '#', ''))) / 2"
+  }
+
+  if (field === TEXT_LENGTH_FIELD) {
+    return "blocks.length"
   }
 
   if (field === BACKLINK_COUNT_FIELD) {
@@ -287,7 +291,7 @@ function getOrderExpression(field: FieldId) {
     return "RANDOM()"
   }
 
-  if (isAggregateValueField(field) || field === TAG_COUNT_FIELD || field === ASSET_COUNT_FIELD) {
+  if (isAggregateValueField(field) || field === TAG_COUNT_FIELD || field === ASSET_COUNT_FIELD || field === TEXT_LENGTH_FIELD) {
     return getFieldAlias(field)
   }
 

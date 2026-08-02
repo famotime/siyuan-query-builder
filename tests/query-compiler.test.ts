@@ -241,6 +241,41 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("assetCount DESC")
   })
 
+  it("builds textLength field from blocks.length and supports numeric filtering and sorting", () => {
+    const template: QueryTemplate = {
+      id: "template-text-length",
+      version: 1,
+      name: "Top Blocks By Text Length",
+      scope: {
+        type: "all_blocks",
+      },
+      filters: [
+        {
+          id: "filter-text-length",
+          field: "textLength",
+          operator: "gt",
+          value: "0",
+        },
+      ],
+      sorts: [
+        {
+          field: "textLength",
+          direction: "desc",
+        },
+      ],
+      fields: ["content", "textLength", "type", "box", "updated"],
+      limit: 10,
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("blocks.length AS textLength")
+    expect(compiled.sql).toContain("CAST(COALESCE(blocks.length, 0) AS REAL) > 0")
+    expect(compiled.sql).toContain("ORDER BY textLength DESC")
+    expect(compiled.sql).toContain("LIMIT 10")
+  })
+
   it("builds relative date filters for SiYuan timestamp strings", () => {
     const template: QueryTemplate = {
       id: "template-7",

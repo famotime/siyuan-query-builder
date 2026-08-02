@@ -6,6 +6,7 @@ import {
   LINK_COUNT_FIELD,
   OUT_LINK_COUNT_FIELD,
   TAG_COUNT_FIELD,
+  TEXT_LENGTH_FIELD,
 } from "./constants"
 import { createDefaultViewConfig, createId } from "./view-state"
 
@@ -391,6 +392,32 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
     viewType: "table",
   }
 
+  const topBlocksByTextLengthTemplate: QueryTemplate = {
+    id: createId("preset"),
+    version: 1,
+    name: "字数最多的块(Top10)",
+    scope: {
+      type: "all_blocks",
+    },
+    filters: [
+      {
+        id: createId("filter"),
+        field: TEXT_LENGTH_FIELD,
+        operator: "gt",
+        value: "0",
+      },
+    ],
+    sorts: [
+      {
+        field: TEXT_LENGTH_FIELD,
+        direction: "desc",
+      },
+    ],
+    fields: ["content", TEXT_LENGTH_FIELD, "type", "box", "updated"],
+    limit: 10,
+    viewType: "table",
+  }
+
   const randomDocumentsTemplate: QueryTemplate = {
     id: createId("preset"),
     version: 1,
@@ -535,6 +562,13 @@ export function createPresets(mappings: FieldMappings): PresetDefinition[] {
       title: "内嵌资源最多文档(Top10)",
       description: "按文档内嵌资源数量排序，快速定位图片、视频等资源密集文档。",
       snapshot: createPresetSnapshot(topAssetDocumentsTemplate, "table"),
+    },
+    {
+      id: "preset-top-blocks-by-text-length",
+      category: "daily",
+      title: "字数最多的块(Top10)",
+      description: "按文本字数长度降序排列，快速找出内容最长的块。",
+      snapshot: createPresetSnapshot(topBlocksByTextLengthTemplate, "table"),
     },
     {
       id: "preset-today-edited-documents",

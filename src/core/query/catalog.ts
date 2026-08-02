@@ -8,6 +8,7 @@ export {
   NUMERIC_FIELD_IDS,
   OUT_LINK_COUNT_FIELD,
   TAG_COUNT_FIELD,
+  TEXT_LENGTH_FIELD,
 } from "./catalog/constants"
 export { createFieldOptions, type FieldOption } from "./catalog/fields"
 export { createPresets, type PresetDefinition } from "./catalog/presets"

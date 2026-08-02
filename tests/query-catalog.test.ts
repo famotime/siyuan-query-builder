@@ -44,6 +44,7 @@ describe("createPresets", () => {
       "preset-recently-updated-documents-7d",
       "preset-recently-created-documents-30d",
       "preset-top-documents-by-assets",
+      "preset-top-blocks-by-text-length",
       "preset-today-edited-documents",
     ]))
 
@@ -62,6 +63,28 @@ describe("createPresets", () => {
         value: "0",
       }),
     ]))
+
+    const topBlocksByTextLength = presets.find(item => item.id === "preset-top-blocks-by-text-length")
+    expect(topBlocksByTextLength).toBeDefined()
+    expect(topBlocksByTextLength?.title).toBe("字数最多的块(Top10)")
+    expect(topBlocksByTextLength?.category).toBe("daily")
+    expect(topBlocksByTextLength?.snapshot.template.limit).toBe(10)
+    expect(topBlocksByTextLength?.snapshot.template.scope).toEqual({
+      type: "all_blocks",
+    })
+    expect(topBlocksByTextLength?.snapshot.template.fields).toEqual([
+      "content",
+      "textLength",
+      "type",
+      "box",
+      "updated",
+    ])
+    expect(topBlocksByTextLength?.snapshot.template.sorts).toEqual([
+      {
+        field: "textLength",
+        direction: "desc",
+      },
+    ])
 
     const topTags = presets.find(item => item.id === "preset-top-documents-by-tags")
     expect(topTags).toBeDefined()
@@ -254,6 +277,10 @@ describe("createPresets", () => {
       expect.objectContaining({
         value: "assetCount",
         label: "内嵌资源数量",
+      }),
+      expect.objectContaining({
+        value: "textLength",
+        label: "文本长度",
       }),
     ]))
   })
