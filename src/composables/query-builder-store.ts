@@ -145,8 +145,6 @@ export function createQueryBuilderStore() {
     blockingValidationIssues: selectors.blockingValidationIssues,
     runtime,
     recordMetric,
-    persistCurrentTemplateAndView: templateViews.persistCurrentTemplateAndView,
-    refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
     rememberEmbedTarget: embedTargets.rememberEmbedTarget,
     rememberQueryHistory: session.rememberQueryHistory,
     t,

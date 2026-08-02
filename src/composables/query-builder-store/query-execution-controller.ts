@@ -35,8 +35,6 @@ interface QueryExecutionControllerOptions {
   blockingValidationIssues: ComputedRef<ValidationIssue[]>
   runtime: QueryRuntime
   recordMetric: (metric: "queryRuns" | "embedInsertions" | "quickEdits" | "boardDrags", amount?: number) => void
-  persistCurrentTemplateAndView: () => Promise<QueryBuilderSnapshot>
-  refreshSavedTemplateSummaries: () => Promise<void>
   rememberEmbedTarget: (value: string) => Promise<void>
   rememberQueryHistory: (executedAt: string) => Promise<void>
   t: I18nHelper
@@ -54,8 +52,6 @@ export function createQueryExecutionController(options: QueryExecutionController
     blockingValidationIssues,
     runtime,
     recordMetric,
-    persistCurrentTemplateAndView,
-    refreshSavedTemplateSummaries,
     rememberEmbedTarget,
     rememberQueryHistory,
     t,
@@ -112,8 +108,6 @@ export function createQueryExecutionController(options: QueryExecutionController
       return
     }
     try {
-      await persistCurrentTemplateAndView()
-      await refreshSavedTemplateSummaries()
       await runtime.insertEmbedBlock({
         parentID: embedParentId.value.trim(),
         templateId: draft.template.id,

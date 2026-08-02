@@ -1124,7 +1124,7 @@ describe("createQueryBuilderStore view management", () => {
     expect(showMessage).toHaveBeenCalledWith(zhCN.boardDragWritebackUnsupported, 3500, "error")
   })
 
-  it("inserts embed blocks and remembers the selected parent target", async () => {
+  it("inserts embed blocks and remembers the selected parent target without auto saving template", async () => {
     const store = createQueryBuilderStore()
     store.embedParentId = "20260322194501-abc1234"
     store.draft.template.name = "任务看板"
@@ -1139,6 +1139,7 @@ describe("createQueryBuilderStore view management", () => {
       title: "任务看板",
       viewType: store.draft.view.type,
     })
+    expect(store.savedTemplateSummaries).toEqual([])
     expect(currentPlugin.read("query-builder.embed-target.v1")).toEqual({
       lastParentId: "20260322194501-abc1234",
       recentParentIds: ["20260322194501-abc1234"],
