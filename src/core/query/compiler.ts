@@ -186,6 +186,13 @@ function buildFilterClause(filter: QueryFilter) {
       }
       return `CAST(COALESCE(${expression}, 0) AS REAL) > ${number}`
     }
+    case "lt": {
+      const number = Number(filter.value)
+      if (!Number.isFinite(number)) {
+        throw new Error("lt requires a numeric value")
+      }
+      return `CAST(COALESCE(${expression}, 0) AS REAL) < ${number}`
+    }
     case "contains":
       return `instr(COALESCE(${expression}, ''), '${escapeSqlLiteral(String(filter.value || ""))}') > 0`
     case "not_contains":

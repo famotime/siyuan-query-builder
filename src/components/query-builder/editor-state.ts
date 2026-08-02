@@ -7,6 +7,7 @@ const COMMON_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> =
   { value: "eq", label: "等于" },
   { value: "neq", label: "不等于" },
   { value: "gt", label: "大于" },
+  { value: "lt", label: "小于" },
   { value: "contains", label: "包含" },
   { value: "not_contains", label: "不包含" },
   { value: "empty", label: "为空" },
@@ -16,6 +17,7 @@ const DATE_COMPATIBLE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: st
   { value: "eq", label: "等于" },
   { value: "neq", label: "不等于" },
   { value: "gt", label: "大于" },
+  { value: "lt", label: "小于" },
   { value: "empty", label: "为空" },
   { value: "not_empty", label: "非空" },
 ]

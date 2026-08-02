@@ -134,6 +134,21 @@ describe("QueryBuilderEditor", () => {
     expect(wrapper.get('[data-scope-form]').classes()).toContain('form-grid--scope')
   })
 
+  it("renders '小于' option in filter operator dropdown", () => {
+    currentStore = createStore()
+    currentStore.draft.template.filters = [
+      {
+        id: "filter-1",
+        field: "content",
+        operator: "lt",
+        value: "10",
+      },
+    ]
+    const wrapper = mount(QueryBuilderEditor)
+    const operatorSelect = wrapper.get('[data-filter-operator="filter-1"]')
+    expect(operatorSelect.text()).toContain("小于")
+  })
+
   it("uses the aggregation select directly and defaults to not using aggregation", () => {
     currentStore = createStore()
     const wrapper = mount(QueryBuilderEditor)

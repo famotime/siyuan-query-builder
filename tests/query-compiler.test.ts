@@ -188,6 +188,29 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("ORDER BY")
   })
 
+  it("compiles lt operator for numeric values", () => {
+    const template: QueryTemplate = {
+      id: "template-lt",
+      version: 1,
+      name: "LT Test",
+      scope: { type: "all_blocks" },
+      filters: [
+        {
+          id: "filter-lt",
+          field: "tagCount",
+          operator: "lt",
+          value: "5",
+        },
+      ],
+      sorts: [],
+      fields: ["content"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+    expect(compiled.sql).toContain("< 5")
+  })
+
   it("builds document asset count fields from assets and supports numeric sorting", () => {
     const template: QueryTemplate = {
       id: "template-asset-count",

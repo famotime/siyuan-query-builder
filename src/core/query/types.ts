@@ -14,6 +14,7 @@ export type FilterOperator =
   | "eq"
   | "neq"
   | "gt"
+  | "lt"
   | "contains"
   | "not_contains"
   | "empty"
