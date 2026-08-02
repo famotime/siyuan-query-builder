@@ -15,20 +15,11 @@
         :aria-expanded="String(advancedMode)"
         @click="$emit('toggle')"
       >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
+        <ChevronDown
           :class="{ 'is-expanded': advancedMode }"
-        >
-          <path
-            d="M7 10l5 5 5-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2.2"
-          />
-        </svg>
+          :size="16"
+          :stroke-width="1.75"
+        />
       </button>
     </div>
     <div
@@ -59,19 +50,10 @@
               :disabled="!hasAdvancedSql"
               @click="$emit('copy')"
             >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 9.75V7.5A2.25 2.25 0 0 1 11.25 5.25h7.5A2.25 2.25 0 0 1 21 7.5V15a2.25 2.25 0 0 1-2.25 2.25H16.5M9 9.75H6.75A2.25 2.25 0 0 0 4.5 12v6a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 16.5 18v-.75M9 9.75h7.5v7.5H9z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.8"
-                />
-              </svg>
+              <Copy
+                :size="16"
+                :stroke-width="1.75"
+              />
             </button>
           </div>
         </div>
@@ -82,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { ChevronDown, Copy } from 'lucide-vue-next'
+
 defineProps<{
   advancedMode: boolean
   advancedSql: string

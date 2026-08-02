@@ -12,15 +12,10 @@
         <div class="summary">
           <div class="summary__header">
             <div class="summary__icon" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm2 2v8h12V8H6zm3 2h6v4H9v-4z"
-                  fill="currentColor"
-                />
-              </svg>
+              <Database
+                :size="20"
+                :stroke-width="1.75"
+              />
             </div>
             <div>
               <h3>查询结果预览</h3>
@@ -40,6 +35,11 @@
                 type="button"
                 @click="selectResultViewType('table')"
               >
+                <Table
+                  class="tabs__icon"
+                  :size="14"
+                  :stroke-width="1.75"
+                />
                 表格
               </button>
               <button
@@ -49,6 +49,11 @@
                 type="button"
                 @click="selectResultViewType('board')"
               >
+                <Kanban
+                  class="tabs__icon"
+                  :size="14"
+                  :stroke-width="1.75"
+                />
                 看板
               </button>
               <button
@@ -58,6 +63,11 @@
                 type="button"
                 @click="selectResultViewType('list')"
               >
+                <List
+                  class="tabs__icon"
+                  :size="14"
+                  :stroke-width="1.75"
+                />
                 列表
               </button>
               <button
@@ -67,6 +77,11 @@
                 type="button"
                 @click="selectResultViewType('cards')"
               >
+                <LayoutGrid
+                  class="tabs__icon"
+                  :size="14"
+                  :stroke-width="1.75"
+                />
                 卡片
               </button>
             </div>
@@ -80,20 +95,11 @@
             :aria-expanded="String(!resultsCollapsed)"
             @click="resultsCollapsed = !resultsCollapsed"
           >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+            <ChevronDown
               :class="{ 'is-expanded': !resultsCollapsed }"
-            >
-              <path
-                d="M7 10l5 5 5-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2.2"
-              />
-            </svg>
+              :size="16"
+              :stroke-width="1.75"
+            />
           </button>
         </div>
       </div>
@@ -139,7 +145,11 @@
           class="empty"
           data-results-empty
         >
-          <div class="empty__icon" />
+          <Inbox
+            class="empty__icon"
+            :size="42"
+            :stroke-width="1.5"
+          />
           <h4>结果会在这里出现</h4>
           <p>运行查询后，可切换表格、看板、列表或统计视图，并继续编辑状态、日期和优先级。</p>
         </div>
@@ -195,6 +205,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { ChevronDown, Database, Inbox, Kanban, LayoutGrid, List, Table } from "lucide-vue-next"
 
 import ResultsBoardView from "@/components/query-builder/ResultsBoardView.vue"
 import ResultsCardsView from "@/components/query-builder/ResultsCardsView.vue"
@@ -361,7 +372,7 @@ h3 {
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+  background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);
@@ -503,14 +514,21 @@ h3 {
 }
 
 .tabs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: background 80ms ease, color 80ms ease;
   border: none;
   cursor: pointer;
-  padding: 5px 14px;
+  padding: 5px 12px;
   border-radius: 8px;
   background: transparent;
   color: var(--sqb-text-muted);
   font: 600 13px/1.2 var(--sqb-sans);
+}
+
+.tabs__icon {
+  flex: 0 0 auto;
 }
 
 .tabs__item--active {

@@ -3,15 +3,10 @@
     <header class="inline-widget__header">
       <div class="inline-widget__heading">
         <div class="inline-widget__icon" aria-hidden="true">
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm2 2v8h12V8H6zm3 2h6v4H9v-4z"
-              fill="currentColor"
-            />
-          </svg>
+          <Database
+            :size="20"
+            :stroke-width="1.75"
+          />
         </div>
         <div>
           <h2>{{ title }}</h2>
@@ -24,7 +19,11 @@
       v-if="!result.rows.length"
       class="empty"
     >
-      <div class="empty__icon" aria-hidden="true" />
+      <Inbox
+        class="empty__icon"
+        :size="42"
+        :stroke-width="1.5"
+      />
       <h5>嵌入结果为空</h5>
       <p>当前查询还没有匹配到内容。调整条件后重新运行，嵌入块会自动呈现新的结果。</p>
     </section>
@@ -151,6 +150,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { Database, Inbox } from "lucide-vue-next"
 
 import { createResultPresentation } from "@/core/view/presentation"
 import type { FieldMappings, ResultSet, ViewType } from "@/core/query/types"

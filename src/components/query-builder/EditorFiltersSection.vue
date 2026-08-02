@@ -11,6 +11,11 @@
           data-add-filter
           @click="store.addFilter"
         >
+          <Plus
+            class="btn__icon"
+            :size="16"
+            :stroke-width="1.75"
+          />
           添加条件
         </button>
         <button
@@ -22,20 +27,11 @@
           :aria-expanded="String(!props.collapsed)"
           @click="$emit('toggle')"
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+          <ChevronDown
             :class="{ 'is-expanded': !props.collapsed }"
-          >
-            <path
-              d="M7 10l5 5 5-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2.2"
-            />
-          </svg>
+            :size="16"
+            :stroke-width="1.75"
+          />
         </button>
       </div>
     </div>
@@ -155,6 +151,7 @@
 </template>
 
 <script setup lang="ts">
+import { ChevronDown, Plus } from "lucide-vue-next"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import type { FilterOperator, QueryFilter } from "@/core/query/types"

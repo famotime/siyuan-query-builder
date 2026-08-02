@@ -21,6 +21,11 @@
         type="button"
         @click="store.resetDraft"
       >
+        <Plus
+          class="btn__icon"
+          :size="16"
+          :stroke-width="1.75"
+        />
         新建查询
       </button>
       <button
@@ -29,16 +34,11 @@
         type="button"
         @click="store.saveTemplate"
       >
-        <svg
+        <Save
           class="btn__icon"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            d="M5 4h11l3 3v13H5V4zm2 2v12h10V8.2L15.8 6H15v4H9V6H7zm4 0v2h2V6h-2z"
-            fill="currentColor"
-          />
-        </svg>
+          :size="16"
+          :stroke-width="1.75"
+        />
         {{ store.saving ? "保存中..." : "保存模板" }}
       </button>
       <button
@@ -46,16 +46,11 @@
         :disabled="store.loading"
         @click="store.runQuery"
       >
-        <svg
+        <Play
           class="btn__icon"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            d="M8 6l10 6-10 6V6z"
-            fill="currentColor"
-          />
-        </svg>
+          :size="16"
+          :stroke-width="1.75"
+        />
         {{ store.loading ? "运行中..." : "运行查询" }}
       </button>
     </div>
@@ -63,6 +58,7 @@
 </template>
 
 <script setup lang="ts">
+import { Play, Plus, Save } from 'lucide-vue-next'
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 const store = useQueryBuilderStore()

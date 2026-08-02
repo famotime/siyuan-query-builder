@@ -7,17 +7,19 @@
   <template v-else>
     <div class="field-picker">
       <button
-        class="field-picker__toggle"
+        class="field-picker__toggle control"
         data-field-picker-toggle
         type="button"
         :aria-expanded="String(fieldPickerOpen)"
         @click="fieldPickerOpen = !fieldPickerOpen"
       >
         <span class="field-picker__summary">{{ selectedFieldSummary }}</span>
-        <span
+        <ChevronDown
           class="field-picker__chevron"
           :class="{ 'field-picker__chevron--open': fieldPickerOpen }"
-        >⌄</span>
+          :size="16"
+          :stroke-width="1.75"
+        />
       </button>
       <div
         v-if="fieldPickerOpen"
@@ -57,6 +59,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { ChevronDown } from "lucide-vue-next"
 
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
@@ -87,7 +90,7 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+  background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);
@@ -151,22 +154,25 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
 
 .field-picker__toggle {
   width: 100%;
+  height: 32px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 0 10px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface);
+  background: var(--sqb-surface-strong);
   color: var(--sqb-text);
   cursor: pointer;
   text-align: left;
-  font: 600 13px/1.35 var(--sqb-sans);
+  font: 13px/1.4 var(--sqb-sans);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .field-picker__toggle:hover {
-  background: var(--sqb-bg-strong);
+  border-color: var(--sqb-border-strong);
 }
 
 .field-picker__summary {
@@ -176,7 +182,6 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
 .field-picker__chevron {
   flex: 0 0 auto;
   color: var(--sqb-text-muted);
-  font: 600 16px/1 var(--sqb-sans);
   transition: transform 140ms ease;
 }
 

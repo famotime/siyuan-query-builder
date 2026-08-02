@@ -14,20 +14,11 @@
         :aria-expanded="String(!collapsed)"
         @click="emit('toggle')"
       >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
+        <ChevronDown
           :class="{ 'is-expanded': !collapsed }"
-        >
-          <path
-            d="M7 10l5 5 5-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2.2"
-          />
-        </svg>
+          :size="16"
+          :stroke-width="1.75"
+        />
       </button>
     </div>
     <p class="section-copy">
@@ -134,6 +125,11 @@
               class="btn btn--ghost btn--small"
               @click="store.addSort"
             >
+              <Plus
+                class="btn__icon"
+                :size="14"
+                :stroke-width="1.75"
+              />
               添加排序
             </button>
           </div>
@@ -196,6 +192,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { ChevronDown, Plus } from "lucide-vue-next"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorFieldPicker from "@/components/query-builder/EditorFieldPicker.vue"
@@ -304,7 +301,7 @@ h3 {
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+  background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);

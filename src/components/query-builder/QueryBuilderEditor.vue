@@ -244,7 +244,7 @@ const {
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+  background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);

@@ -3,39 +3,45 @@
 }
 
 #siyuan-query-builder-root,
-.siyuan-query-builder-tab-root {
+.siyuan-query-builder-tab-root,
+.b3-theme-light #siyuan-query-builder-root,
+.b3-theme-light .siyuan-query-builder-tab-root,
+#siyuan-query-builder-root.b3-theme-light,
+.siyuan-query-builder-tab-root.b3-theme-light,
+#siyuan-query-builder-root[data-sqb-theme="light"],
+.siyuan-query-builder-tab-root[data-sqb-theme="light"] {
   height: 100%;
   overflow: hidden;
-  --sqb-bg: #faf6f0;
-  --sqb-bg-strong: #f0ece4;
-  --sqb-surface: rgba(255, 255, 255, 0.84);
+  --sqb-bg: #f8faf9;
+  --sqb-bg-strong: #edf2ef;
+  --sqb-surface: rgba(255, 255, 255, 0.92);
   --sqb-surface-strong: #ffffff;
-  --sqb-surface-soft: rgba(245, 241, 234, 0.92);
-  --sqb-surface-muted: rgba(234, 230, 222, 0.9);
-  --sqb-border: rgba(116, 121, 110, 0.2);
-  --sqb-border-strong: rgba(116, 121, 110, 0.32);
-  --sqb-text: #2e3230;
-  --sqb-text-muted: #62685f;
-  --sqb-primary: #4a7c59;
-  --sqb-primary-strong: #355f42;
-  --sqb-primary-soft: rgba(74, 124, 89, 0.12);
-  --sqb-secondary: #6b6358;
-  --sqb-secondary-soft: rgba(107, 99, 88, 0.12);
-  --sqb-accent: #c4a66a;
-  --sqb-accent-soft: rgba(196, 166, 106, 0.18);
-  --sqb-danger: #b83230;
-  --sqb-danger-soft: rgba(184, 50, 48, 0.12);
-  --sqb-info: #5b7fa6;
-  --sqb-info-soft: rgba(91, 127, 166, 0.12);
-  --sqb-shadow-soft: 0 18px 42px rgba(57, 61, 52, 0.08);
-  --sqb-shadow-strong: 0 28px 60px rgba(57, 61, 52, 0.12);
+  --sqb-surface-soft: rgba(240, 245, 242, 0.94);
+  --sqb-surface-muted: rgba(230, 237, 233, 0.9);
+  --sqb-border: rgba(45, 106, 79, 0.14);
+  --sqb-border-strong: rgba(45, 106, 79, 0.28);
+  --sqb-text: #1a1d1b;
+  --sqb-text-muted: #4a524d;
+  --sqb-primary: #2d6a4f;
+  --sqb-primary-strong: #1b4332;
+  --sqb-primary-soft: rgba(45, 106, 79, 0.1);
+  --sqb-secondary: #526058;
+  --sqb-secondary-soft: rgba(82, 96, 88, 0.1);
+  --sqb-accent: #c49335;
+  --sqb-accent-soft: rgba(196, 147, 53, 0.15);
+  --sqb-danger: #c93b3b;
+  --sqb-danger-soft: rgba(201, 59, 59, 0.1);
+  --sqb-info: #2b6cb0;
+  --sqb-info-soft: rgba(43, 108, 176, 0.1);
+  --sqb-shadow-soft: 0 8px 24px rgba(27, 67, 50, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
+  --sqb-shadow-strong: 0 16px 40px rgba(27, 67, 50, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
   --sqb-serif: 'Palatino Linotype', 'Book Antiqua', Georgia, 'Source Han Serif SC', 'Songti SC', serif;
   --sqb-sans: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --sqb-mono: 'JetBrains Mono', 'Fira Code', monospace;
   background:
-    radial-gradient(circle at top left, rgba(142, 207, 158, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(196, 166, 106, 0.18), transparent 26%),
-    linear-gradient(180deg, #faf6f0 0%, #f7f2ea 52%, #f1ece3 100%);
+    radial-gradient(circle at top left, rgba(45, 106, 79, 0.08), transparent 30%),
+    radial-gradient(circle at top right, rgba(196, 147, 53, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8faf9 0%, #f4f7f5 52%, #edf2ef 100%);
   color: var(--sqb-text);
   font-family: var(--sqb-sans);
 }
@@ -45,35 +51,36 @@
   height: 100%;
 }
 
-.b3-theme-light #siyuan-query-builder-root,
-.b3-theme-light .siyuan-query-builder-tab-root {
-  --sqb-bg: #faf6f0;
-  --sqb-bg-strong: #f0ece4;
-  --sqb-surface: rgba(255, 255, 255, 0.84);
-  --sqb-surface-strong: #ffffff;
-  --sqb-surface-soft: rgba(245, 241, 234, 0.92);
-  --sqb-surface-muted: rgba(234, 230, 222, 0.9);
-  --sqb-border: rgba(116, 121, 110, 0.2);
-  --sqb-border-strong: rgba(116, 121, 110, 0.32);
-  --sqb-text: #2e3230;
-  --sqb-text-muted: #62685f;
-  --sqb-primary: #4a7c59;
-  --sqb-primary-strong: #355f42;
-  --sqb-primary-soft: rgba(74, 124, 89, 0.12);
-  --sqb-secondary: #6b6358;
-  --sqb-secondary-soft: rgba(107, 99, 88, 0.12);
-  --sqb-accent: #c4a66a;
-  --sqb-accent-soft: rgba(196, 166, 106, 0.18);
-  --sqb-danger: #b83230;
-  --sqb-danger-soft: rgba(184, 50, 48, 0.12);
-  --sqb-info: #5b7fa6;
-  --sqb-info-soft: rgba(91, 127, 166, 0.12);
-  --sqb-shadow-soft: 0 18px 42px rgba(57, 61, 52, 0.08);
-  --sqb-shadow-strong: 0 28px 60px rgba(57, 61, 52, 0.12);
-  background:
-    radial-gradient(circle at top left, rgba(142, 207, 158, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(196, 166, 106, 0.18), transparent 26%),
-    linear-gradient(180deg, #faf6f0 0%, #f7f2ea 52%, #f1ece3 100%);
+/* Global SVG Wireframe Fill Overrides: Enforce fill: none for all Lucide line icons */
+#siyuan-query-builder-root svg,
+.siyuan-query-builder-tab-root svg,
+.sqb-inline-host svg {
+  fill: none !important;
+}
+
+#siyuan-query-builder-root svg path,
+#siyuan-query-builder-root svg rect,
+#siyuan-query-builder-root svg circle,
+#siyuan-query-builder-root svg line,
+#siyuan-query-builder-root svg polyline,
+#siyuan-query-builder-root svg polygon,
+#siyuan-query-builder-root svg g,
+.siyuan-query-builder-tab-root svg path,
+.siyuan-query-builder-tab-root svg rect,
+.siyuan-query-builder-tab-root svg circle,
+.siyuan-query-builder-tab-root svg line,
+.siyuan-query-builder-tab-root svg polyline,
+.siyuan-query-builder-tab-root svg polygon,
+.siyuan-query-builder-tab-root svg g,
+.sqb-inline-host svg path,
+.sqb-inline-host svg rect,
+.sqb-inline-host svg circle,
+.sqb-inline-host svg line,
+.sqb-inline-host svg polyline,
+.sqb-inline-host svg polygon,
+.sqb-inline-host svg g {
+  fill: none !important;
+  stroke: currentColor;
 }
 
 #siyuan-query-builder-root,
@@ -98,6 +105,38 @@
   font: inherit;
 }
 
+/* Standardized Select Dropdown Chevron Styling */
+#siyuan-query-builder-root select,
+.siyuan-query-builder-tab-root select,
+.sqb-inline-host select,
+select.control,
+select.title-input,
+.sy-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a524d' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  padding-right: 32px !important;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  #siyuan-query-builder-root:not(.b3-theme-light):not([data-sqb-theme="light"]) select,
+  .siyuan-query-builder-tab-root:not(.b3-theme-light):not([data-sqb-theme="light"]) select,
+  .sqb-inline-host:not(.b3-theme-light):not([data-sqb-theme="light"]) select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ea89c' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  }
+}
+
+.b3-theme-dark select,
+.b3-theme-dark .sy-select,
+[data-sqb-theme="dark"] select,
+[data-sqb-theme="dark"] .sy-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ea89c' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}
+
 #siyuan-query-builder-root h1,
 .siyuan-query-builder-tab-root h1,
 #siyuan-query-builder-root h2,
@@ -114,22 +153,22 @@
   display: block;
   margin: 6px 0;
   --sqb-inline-bg:
-    radial-gradient(circle at top right, rgba(196, 166, 106, 0.1), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 241, 234, 0.92));
-  --sqb-inline-surface: rgba(255, 255, 255, 0.82);
-  --sqb-inline-surface-strong: rgba(255, 255, 255, 0.94);
-  --sqb-inline-surface-soft: rgba(245, 241, 234, 0.82);
-  --sqb-inline-border: rgba(116, 121, 110, 0.16);
-  --sqb-inline-border-soft: rgba(116, 121, 110, 0.12);
-  --sqb-inline-text: rgba(46, 50, 48, 0.96);
-  --sqb-inline-text-muted: rgba(98, 104, 95, 0.84);
-  --sqb-inline-primary: var(--sqb-primary-strong, #355f42);
-  --sqb-inline-primary-soft: rgba(74, 124, 89, 0.14);
-  --sqb-inline-accent: rgba(196, 166, 106, 0.16);
-  --sqb-inline-accent-text: #6e5723;
-  --sqb-inline-shadow: 0 16px 34px rgba(57, 61, 52, 0.08);
-  --sqb-inline-table-head: rgba(245, 241, 234, 0.96);
-  --sqb-inline-table-hover: rgba(245, 241, 234, 0.68);
+    radial-gradient(circle at top right, rgba(45, 106, 79, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 245, 0.94));
+  --sqb-inline-surface: rgba(255, 255, 255, 0.9);
+  --sqb-inline-surface-strong: rgba(255, 255, 255, 0.98);
+  --sqb-inline-surface-soft: rgba(240, 245, 242, 0.9);
+  --sqb-inline-border: rgba(45, 106, 79, 0.14);
+  --sqb-inline-border-soft: rgba(45, 106, 79, 0.1);
+  --sqb-inline-text: rgba(26, 29, 27, 0.96);
+  --sqb-inline-text-muted: rgba(74, 82, 77, 0.88);
+  --sqb-inline-primary: #1b4332;
+  --sqb-inline-primary-soft: rgba(45, 106, 79, 0.12);
+  --sqb-inline-accent: rgba(196, 147, 53, 0.14);
+  --sqb-inline-accent-text: #7a5813;
+  --sqb-inline-shadow: 0 12px 30px rgba(27, 67, 50, 0.06);
+  --sqb-inline-table-head: rgba(240, 245, 242, 0.96);
+  --sqb-inline-table-hover: rgba(230, 237, 233, 0.7);
 }
 
 .sqb-inline-host__fallback,
@@ -153,28 +192,28 @@
 .sqb-inline-host.b3-theme-light,
 .sqb-inline-host[data-sqb-theme="light"] {
   --sqb-inline-bg:
-    radial-gradient(circle at top right, rgba(196, 166, 106, 0.1), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 241, 234, 0.92));
-  --sqb-inline-surface: rgba(255, 255, 255, 0.82);
-  --sqb-inline-surface-strong: rgba(255, 255, 255, 0.94);
-  --sqb-inline-surface-soft: rgba(245, 241, 234, 0.82);
-  --sqb-inline-border: rgba(116, 121, 110, 0.16);
-  --sqb-inline-border-soft: rgba(116, 121, 110, 0.12);
-  --sqb-inline-text: rgba(46, 50, 48, 0.96);
-  --sqb-inline-text-muted: rgba(98, 104, 95, 0.84);
-  --sqb-inline-primary: var(--sqb-primary-strong, #355f42);
-  --sqb-inline-primary-soft: rgba(74, 124, 89, 0.14);
-  --sqb-inline-accent: rgba(196, 166, 106, 0.16);
-  --sqb-inline-accent-text: #6e5723;
-  --sqb-inline-shadow: 0 16px 34px rgba(57, 61, 52, 0.08);
-  --sqb-inline-table-head: rgba(245, 241, 234, 0.96);
-  --sqb-inline-table-hover: rgba(245, 241, 234, 0.68);
+    radial-gradient(circle at top right, rgba(45, 106, 79, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 245, 0.94));
+  --sqb-inline-surface: rgba(255, 255, 255, 0.9);
+  --sqb-inline-surface-strong: rgba(255, 255, 255, 0.98);
+  --sqb-inline-surface-soft: rgba(240, 245, 242, 0.9);
+  --sqb-inline-border: rgba(45, 106, 79, 0.14);
+  --sqb-inline-border-soft: rgba(45, 106, 79, 0.1);
+  --sqb-inline-text: rgba(26, 29, 27, 0.96);
+  --sqb-inline-text-muted: rgba(74, 82, 77, 0.88);
+  --sqb-inline-primary: #1b4332;
+  --sqb-inline-primary-soft: rgba(45, 106, 79, 0.12);
+  --sqb-inline-accent: rgba(196, 147, 53, 0.14);
+  --sqb-inline-accent-text: #7a5813;
+  --sqb-inline-shadow: 0 12px 30px rgba(27, 67, 50, 0.06);
+  --sqb-inline-table-head: rgba(240, 245, 242, 0.96);
+  --sqb-inline-table-hover: rgba(230, 237, 233, 0.7);
 }
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
-  #siyuan-query-builder-root,
-  .siyuan-query-builder-tab-root {
+  #siyuan-query-builder-root:not(.b3-theme-light):not([data-sqb-theme="light"]),
+  .siyuan-query-builder-tab-root:not(.b3-theme-light):not([data-sqb-theme="light"]) {
     --sqb-bg: #1e2220;
     --sqb-bg-strong: #252b27;
     --sqb-surface: rgba(38, 44, 40, 0.88);
@@ -204,7 +243,7 @@
       linear-gradient(180deg, #1e2220 0%, #1b2620 52%, #192320 100%);
   }
 
-  .sqb-inline-host {
+  .sqb-inline-host:not(.b3-theme-light):not([data-sqb-theme="light"]) {
     --sqb-inline-bg:
       radial-gradient(circle at top right, rgba(196, 166, 106, 0.16), transparent 26%),
       radial-gradient(circle at bottom left, rgba(74, 124, 89, 0.18), transparent 30%),
@@ -227,7 +266,11 @@
 }
 
 .b3-theme-dark #siyuan-query-builder-root,
-.b3-theme-dark .siyuan-query-builder-tab-root {
+.b3-theme-dark .siyuan-query-builder-tab-root,
+#siyuan-query-builder-root.b3-theme-dark,
+.siyuan-query-builder-tab-root.b3-theme-dark,
+#siyuan-query-builder-root[data-sqb-theme="dark"],
+.siyuan-query-builder-tab-root[data-sqb-theme="dark"] {
   --sqb-bg: #1e2220;
   --sqb-bg-strong: #252b27;
   --sqb-surface: rgba(38, 44, 40, 0.88);

@@ -5,23 +5,16 @@
     :title="title"
     :aria-label="ariaLabel || title"
   >
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        d="M8.5 5.75h7M10 4.25h4c.55 0 1 .45 1 1v.5h3M5.5 5.75h3M7.5 7.75h9l-.7 9.1a1.8 1.8 0 0 1-1.79 1.65h-4a1.8 1.8 0 0 1-1.79-1.65zM10.25 10.5v4.75M13.75 10.5v4.75"
-        fill="none"
-        stroke="currentColor"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-      />
-    </svg>
+    <Trash2
+      :size="17"
+      :stroke-width="1.75"
+    />
   </button>
 </template>
 
 <script setup lang="ts">
+import { Trash2 } from 'lucide-vue-next'
+
 defineProps<{
   title: string
   ariaLabel?: string
@@ -59,9 +52,12 @@ defineProps<{
   opacity: 0.45;
 }
 
-.delete-icon-button svg {
-  width: 17px;
-  height: 17px;
-  display: block;
+.delete-icon-button :deep(svg) {
+  fill: none !important;
+}
+
+.delete-icon-button :deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
 }
 </style>

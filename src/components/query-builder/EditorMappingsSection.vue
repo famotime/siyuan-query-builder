@@ -12,6 +12,11 @@
           type="button"
           @click="store.generateExampleDocument"
         >
+          <Sparkles
+            class="btn__icon"
+            :size="14"
+            :stroke-width="1.75"
+          />
           生成示例
         </button>
         <button
@@ -23,20 +28,11 @@
           :aria-expanded="String(!collapsed)"
           @click="$emit('toggle')"
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+          <ChevronDown
             :class="{ 'is-expanded': !collapsed }"
-          >
-            <path
-              d="M7 10l5 5 5-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2.2"
-            />
-          </svg>
+            :size="16"
+            :stroke-width="1.75"
+          />
         </button>
       </div>
     </div>
@@ -69,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+import { ChevronDown, Sparkles } from "lucide-vue-next"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 
 defineProps<{

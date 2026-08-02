@@ -14,6 +14,11 @@
         type="button"
         @click="emit('saveAs')"
       >
+        <Plus
+          class="btn__icon"
+          :size="14"
+          :stroke-width="1.75"
+        />
         添加为新视图
       </button>
     </div>
@@ -76,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+import { Plus } from "lucide-vue-next"
 import type { ViewConfig } from "@/core/query/types"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"

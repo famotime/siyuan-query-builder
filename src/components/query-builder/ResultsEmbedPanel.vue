@@ -35,10 +35,12 @@
             :aria-expanded="embedTargetMenuOpen"
             @click="toggleEmbedTargetMenu"
           >
-            <span
+            <ChevronDown
               class="embed-target-picker__chevron"
               :class="{ 'is-open': embedTargetMenuOpen }"
-            >⌄</span>
+              :size="14"
+              :stroke-width="1.75"
+            />
           </button>
           <div
             v-if="embedTargetMenuOpen"
@@ -106,16 +108,11 @@
         class="btn btn--embed"
         @click="emit('insert')"
       >
-        <svg
+        <Sparkles
           class="btn__icon"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3zm7 10l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8L19 13zM6 14l1.1 2.9L10 18l-2.9 1.1L6 22l-1.1-2.9L2 18l2.9-1.1L6 14z"
-            fill="currentColor"
-          />
-        </svg>
+          :size="16"
+          :stroke-width="1.75"
+        />
         生成嵌入块
       </button>
     </div>
@@ -124,6 +121,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { ChevronDown, Sparkles } from "lucide-vue-next"
 
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
 
@@ -344,7 +342,7 @@ onBeforeUnmount(() => {
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+  background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);

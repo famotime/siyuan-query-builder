@@ -44,20 +44,11 @@
           :aria-expanded="String(presetsExpanded)"
           @click="presetsExpanded = !presetsExpanded"
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+          <ChevronDown
             :class="{ 'is-expanded': presetsExpanded }"
-          >
-            <path
-              d="M7 10l5 5 5-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2.2"
-            />
-          </svg>
+            :size="16"
+            :stroke-width="1.75"
+          />
         </button>
       </div>
       <p class="section-copy">
@@ -82,22 +73,13 @@
               <span class="preset-group__title">{{ group.label }}</span>
               <span class="preset-group__meta">{{ group.items.length }}</span>
             </span>
-            <svg
+            <ChevronRight
               :data-preset-category-icon="group.id"
               class="preset-group__icon"
               :class="{ 'is-expanded': isPresetCategoryExpanded(group.id) }"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M9 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-              />
-            </svg>
+              :size="15"
+              :stroke-width="1.75"
+            />
           </button>
           <div
             v-if="isPresetCategoryExpanded(group.id)"
@@ -135,19 +117,10 @@
             aria-label="导入模板"
             @click="triggerTemplateImport"
           >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M12 4.5v8.25m0 0-3.5-3.5m3.5 3.5 3.5-3.5M4.75 14.5h4.1l1.45 2.2h3.4l1.45-2.2h4.1v2.1c0 1.05-.85 1.9-1.9 1.9H6.65c-1.05 0-1.9-.85-1.9-1.9z"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.9"
-              />
-            </svg>
+            <Upload
+              :size="16"
+              :stroke-width="1.75"
+            />
           </button>
           <input
             ref="templateImportInput"
@@ -166,20 +139,11 @@
             :aria-expanded="String(savedTemplatesExpanded)"
             @click="savedTemplatesExpanded = !savedTemplatesExpanded"
           >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+            <ChevronDown
               :class="{ 'is-expanded': savedTemplatesExpanded }"
-            >
-              <path
-                d="M7 10l5 5 5-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2.2"
-              />
-            </svg>
+              :size="16"
+              :stroke-width="1.75"
+            />
           </button>
         </div>
       </div>
@@ -215,19 +179,10 @@
             aria-label="导出模板"
             @click.stop="exportTemplate(summary.templateId)"
           >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M12 19.5v-8.25m0 0-3.5 3.5m3.5-3.5 3.5 3.5M4.75 9.5h4.1l1.45-2.2h3.4l1.45 2.2h4.1v-2.1c0-1.05-.85-1.9-1.9-1.9H6.65c-1.05 0-1.9.85-1.9 1.9z"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.9"
-              />
-            </svg>
+            <Download
+              :size="16"
+              :stroke-width="1.75"
+            />
           </button>
           <DeleteIconButton
             :data-template-delete="summary.templateId"
@@ -264,20 +219,11 @@
           :aria-expanded="String(historyExpanded)"
           @click="historyExpanded = !historyExpanded"
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+          <ChevronDown
             :class="{ 'is-expanded': historyExpanded }"
-          >
-            <path
-              d="M7 10l5 5 5-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2.2"
-            />
-          </svg>
+            :size="16"
+            :stroke-width="1.75"
+          />
         </button>
       </div>
       <p class="section-copy">
@@ -314,6 +260,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue"
+import { ChevronDown, ChevronRight, Download, Upload } from "lucide-vue-next"
 
 import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
@@ -397,14 +344,13 @@ async function exportTemplate(templateId: string) {
 
 .card--hero {
   background:
-    radial-gradient(circle at top right, rgba(120, 168, 134, 0.18), transparent 38%),
-    radial-gradient(circle at bottom left, rgba(196, 166, 106, 0.12), transparent 34%),
-    linear-gradient(165deg, rgba(42, 49, 45, 0.98), rgba(29, 34, 32, 0.98)),
-    var(--sqb-surface);
-  border-color: rgba(154, 178, 160, 0.22);
+    radial-gradient(circle at top right, rgba(45, 106, 79, 0.12), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(196, 147, 53, 0.1), transparent 36%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(240, 245, 242, 0.96));
+  border-color: var(--sqb-border);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 16px 36px rgba(14, 19, 17, 0.26);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 8px 24px rgba(27, 67, 50, 0.05);
 }
 
 .eyebrow {
@@ -417,7 +363,7 @@ async function exportTemplate(templateId: string) {
 
 .eyebrow--hero {
   margin-bottom: 6px;
-  color: rgba(186, 213, 193, 0.88);
+  color: var(--sqb-primary);
 }
 
 .brand {
@@ -434,10 +380,10 @@ async function exportTemplate(templateId: string) {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(120, 168, 134, 0.28), rgba(88, 109, 95, 0.82));
-  border: 1px solid rgba(190, 214, 196, 0.14);
+  background: linear-gradient(135deg, rgba(45, 106, 79, 0.14), rgba(45, 106, 79, 0.06));
+  border: 1px solid var(--sqb-border);
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .brand__mark img {
@@ -459,13 +405,13 @@ h1 {
 
 .hero-title {
   margin: 0;
-  color: rgba(248, 250, 248, 0.96);
+  color: var(--sqb-primary-strong);
   letter-spacing: 0.02em;
 }
 
 .hero-subtitle {
   margin: 6px 0 0;
-  color: rgba(186, 198, 190, 0.82);
+  color: var(--sqb-text-muted);
   font: 600 12px/1.35 var(--sqb-sans);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -485,7 +431,41 @@ h2 {
 }
 
 .muted--hero {
+  color: var(--sqb-text-muted);
+}
+
+.b3-theme-dark .card--hero,
+.b3-theme-dark.card--hero,
+[data-sqb-theme="dark"] .card--hero {
+  background:
+    radial-gradient(circle at top right, rgba(120, 168, 134, 0.18), transparent 38%),
+    radial-gradient(circle at bottom left, rgba(196, 166, 106, 0.12), transparent 34%),
+    linear-gradient(165deg, rgba(42, 49, 45, 0.98), rgba(29, 34, 32, 0.98));
+  border-color: rgba(154, 178, 160, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 36px rgba(14, 19, 17, 0.26);
+}
+
+.b3-theme-dark .eyebrow--hero,
+[data-sqb-theme="dark"] .eyebrow--hero {
+  color: rgba(186, 213, 193, 0.88);
+}
+
+.b3-theme-dark .hero-title,
+[data-sqb-theme="dark"] .hero-title {
+  color: rgba(248, 250, 248, 0.96);
+}
+
+.b3-theme-dark .muted--hero,
+[data-sqb-theme="dark"] .muted--hero {
   color: rgba(210, 219, 213, 0.86);
+}
+
+.b3-theme-dark .brand__mark,
+[data-sqb-theme="dark"] .brand__mark {
+  background: linear-gradient(135deg, rgba(120, 168, 134, 0.28), rgba(88, 109, 95, 0.82));
+  border-color: rgba(190, 214, 196, 0.14);
 }
 
 .actions,

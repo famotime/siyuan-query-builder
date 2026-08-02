@@ -10,12 +10,16 @@ import {
 import type { Plugin } from "@/external/siyuan"
 import type { WorkspaceOpenMode } from "@/core/plugin-settings"
 
+import { observeSiyuanTheme, syncSiyuanThemeMarkers } from "@/ui/theme"
+
 let pluginInstance: Plugin | null = null
 let dialog: Dialog | null = null
 let dialogApp: VueApp | null = null
 let dialogRootElement: HTMLDivElement | null = null
+let dialogThemeUnsub: (() => void) | null = null
 let workspaceTabRegistered = false
 const tabApps = new WeakMap<Element, VueApp>()
+const tabThemeUnsubs = new WeakMap<Element, () => void>()
 
 const WORKSPACE_TAB_TYPE = "workspace"
 const WORKSPACE_TAB_TITLE = "易搭 Query Builder"
@@ -40,38 +44,24 @@ async function appendDebugLog(source: string, error: unknown, info?: string) {
     return
   }
 
-  const message = error instanceof Error
-    ? `${error.name}: ${error.message}\n${error.stack || ""}`
-    : String(error)
-  const entry = {
+  const existing = await pluginInstance.loadData(DEBUG_LOG_STORAGE_KEY)
+  const list = Array.isArray(existing) ? existing : []
+  list.unshift({
+    timestamp: new Date().toISOString(),
     source,
-    info: info || "",
-    message,
-    time: new Date().toISOString(),
-  }
-
-  try {
-    const current = await pluginInstance.loadData(DEBUG_LOG_STORAGE_KEY)
-    const next = Array.isArray(current) ? [...current, entry].slice(-20) : [entry]
-    await pluginInstance.saveData(DEBUG_LOG_STORAGE_KEY, next)
-  } catch (persistError) {
-    console.error("[siyuan-query-builder] failed to persist debug log", persistError)
-  }
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    info,
+  })
+  await pluginInstance.saveData(DEBUG_LOG_STORAGE_KEY, list.slice(0, 30))
 }
 
 function createVueApp(rootElement: HTMLDivElement) {
   const app = createApp(App)
-  app.config.errorHandler = (error, instance, info) => {
-    console.error("[siyuan-query-builder] vue runtime error", error, info, instance)
-    appendDebugLog("vue-error-handler", error, info)
-    const detail = error instanceof Error ? error.stack || error.message : String(error)
-    rootElement.innerHTML = `
-      <section style="padding: 24px; font-family: Consolas, 'Courier New', monospace; color: #5c2a04;">
-        <h2 style="margin: 0 0 12px; font-family: Georgia, 'Times New Roman', serif;">Query Builder 渲染失败</h2>
-        <p style="margin: 0 0 12px;">${info}</p>
-        <pre style="white-space: pre-wrap; word-break: break-word;">${detail}</pre>
-      </section>
-    `
+
+  app.config.errorHandler = (err, _instance, info) => {
+    console.error("[siyuan-query-builder] Vue render error", err, info)
+    void appendDebugLog("vue_render_error", err, info)
     const message = pluginInstance?.i18n?.vueRenderError
       ? String(pluginInstance.i18n.vueRenderError)
       : "Query Builder 渲染失败，已记录调试日志"
@@ -82,10 +72,13 @@ function createVueApp(rootElement: HTMLDivElement) {
 }
 
 function mountWorkspaceInto(rootElement: HTMLDivElement) {
+  syncSiyuanThemeMarkers(rootElement)
   return createVueApp(rootElement)
 }
 
 function destroyDialogMount() {
+  dialogThemeUnsub?.()
+  dialogThemeUnsub = null
   dialogApp?.unmount()
   dialogApp = null
 
@@ -98,6 +91,12 @@ function destroyDialogMount() {
 }
 
 function destroyTabMount(hostElement: Element) {
+  const unsub = tabThemeUnsubs.get(hostElement)
+  if (unsub) {
+    unsub()
+    tabThemeUnsubs.delete(hostElement)
+  }
+
   const app = tabApps.get(hostElement)
   if (!app) {
     return
@@ -135,6 +134,7 @@ function registerWorkspaceTab() {
       this.element.innerHTML = ""
       this.element.appendChild(rootElement)
       tabApps.set(this.element, mountWorkspaceInto(rootElement))
+      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement))
     },
     destroy(this: { element: Element }) {
       destroyTabMount(this.element)
@@ -176,6 +176,7 @@ function openDialogPanel(forceVisible = false) {
   }
 
   dialogApp = mountWorkspaceInto(dialogRootElement)
+  dialogThemeUnsub = observeSiyuanTheme(dialogRootElement)
 }
 
 async function openWorkspaceTabPanel() {
