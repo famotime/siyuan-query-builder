@@ -30,6 +30,7 @@ function createStore() {
     loadTemplate: vi.fn(),
     deleteTemplate: vi.fn(),
     restoreQueryHistory: vi.fn(),
+    clearQueryHistory: vi.fn(),
     resetDraft: vi.fn(),
     runQuery: vi.fn(),
   })
@@ -254,5 +255,30 @@ describe("QueryBuilderSidebar", () => {
 
     expect(file.text).toHaveBeenCalled()
     expect(currentStore.importTemplateBundle).toHaveBeenCalledWith('{"schema":"siyuan-query-builder/template-bundle"}')
+  })
+
+  it("renders clear history button when history exists and calls clearQueryHistory when clicked", async () => {
+    currentStore = createStore()
+    const wrapperWithoutHistory = mount(QueryBuilderSidebar)
+    expect(wrapperWithoutHistory.find('[data-history-clear]').exists()).toBe(false)
+
+    currentStore.recentQueryHistory = [
+      {
+        id: "history-1",
+        templateName: "逾期任务",
+        summary: "全部内容 · 1 个条件 · 表格",
+        executedAt: "2026-03-22T08:30:00.000Z",
+      },
+    ]
+
+    const wrapperWithHistory = mount(QueryBuilderSidebar)
+    const clearButton = wrapperWithHistory.find('[data-history-clear]')
+
+    expect(clearButton.exists()).toBe(true)
+    expect(clearButton.attributes("title")).toBe("清空历史记录")
+
+    await clearButton.trigger("click")
+
+    expect(currentStore.clearQueryHistory).toHaveBeenCalled()
   })
 })

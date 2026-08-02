@@ -210,21 +210,37 @@
           </div>
           <span class="pill">{{ store.recentQueryHistory.length }}</span>
         </div>
-        <button
-          data-section-toggle="history"
-          class="section-toggle"
-          type="button"
-          :title="historyExpanded ? '收起历史记录' : '展开历史记录'"
-          :aria-label="historyExpanded ? '收起历史记录' : '展开历史记录'"
-          :aria-expanded="String(historyExpanded)"
-          @click="historyExpanded = !historyExpanded"
-        >
-          <ChevronDown
-            :class="{ 'is-expanded': historyExpanded }"
-            :size="16"
-            :stroke-width="1.75"
-          />
-        </button>
+        <div class="section-head-actions">
+          <button
+            v-if="store.recentQueryHistory.length"
+            data-history-clear
+            class="section-action"
+            type="button"
+            title="清空历史记录"
+            aria-label="清空历史记录"
+            @click.stop="store.clearQueryHistory()"
+          >
+            <Trash2
+              :size="16"
+              :stroke-width="1.75"
+            />
+          </button>
+          <button
+            data-section-toggle="history"
+            class="section-toggle"
+            type="button"
+            :title="historyExpanded ? '收起历史记录' : '展开历史记录'"
+            :aria-label="historyExpanded ? '收起历史记录' : '展开历史记录'"
+            :aria-expanded="String(historyExpanded)"
+            @click="historyExpanded = !historyExpanded"
+          >
+            <ChevronDown
+              :class="{ 'is-expanded': historyExpanded }"
+              :size="16"
+              :stroke-width="1.75"
+            />
+          </button>
+        </div>
       </div>
       <p class="section-copy">
         保留最近 10 次运行过的查询条件，方便快速回到刚刚验证过的筛选组合。
@@ -260,7 +276,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue"
-import { ChevronDown, ChevronRight, Download, Upload } from "lucide-vue-next"
+import { ChevronDown, ChevronRight, Download, Trash2, Upload } from "lucide-vue-next"
 
 import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"

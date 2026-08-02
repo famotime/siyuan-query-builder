@@ -214,6 +214,7 @@ export function createQueryBuilderStore() {
     recentQueryHistory,
     refreshCurrentDocumentTarget: embedTargets.refreshCurrentDocumentTarget,
     restoreQueryHistory: session.restoreQueryHistory,
+    clearQueryHistory: session.clearQueryHistory,
     refreshSavedTemplateSummaries: templateViews.refreshSavedTemplateSummaries,
     refreshSavedViews: templateViews.refreshSavedViews,
     removeFilter: draftActions.removeFilter,

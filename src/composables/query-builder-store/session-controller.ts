@@ -16,6 +16,7 @@ import { createSnapshot } from "./shared"
 interface QueryHistoryStore {
   list: () => Promise<QueryHistoryEntry[]>
   prepend: (entry: QueryHistoryEntry) => Promise<QueryHistoryEntry[]>
+  clear: () => Promise<QueryHistoryEntry[]>
 }
 
 interface TemplateViewsController {
@@ -118,6 +119,14 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
     return true
   }
 
+  async function clearQueryHistory() {
+    try {
+      recentQueryHistory.value = await queryHistoryStore.clear()
+    } catch {
+      recentQueryHistory.value = []
+    }
+  }
+
   async function initialize() {
     const notebookResult = await lsNotebooks()
     notebooks.value = notebookResult?.notebooks || []
@@ -181,6 +190,7 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
 
   return {
     applySnapshot,
+    clearQueryHistory,
     generateExampleDocument,
     initialize,
     refreshQueryHistory,

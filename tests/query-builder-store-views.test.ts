@@ -1186,6 +1186,10 @@ describe("createQueryBuilderStore view management", () => {
         value: "任务 3",
       }),
     ])
+
+    await (store as any).clearQueryHistory()
+    expect((store as any).recentQueryHistory).toEqual([])
+    expect(currentPlugin.read("query-builder.history.v1")).toBeUndefined()
   })
 
   it("applies an external snapshot by refreshing the target template views and clearing stale results", async () => {

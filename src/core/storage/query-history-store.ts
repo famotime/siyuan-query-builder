@@ -18,5 +18,9 @@ export function createQueryHistoryStore(storage: StorageAdapter) {
       await writeArrayStorage(storage, QUERY_HISTORY_STORAGE_KEY, next)
       return next
     },
+    async clear() {
+      await writeArrayStorage(storage, QUERY_HISTORY_STORAGE_KEY, [])
+      return []
+    },
   }
 }
