@@ -227,6 +227,15 @@ describe("QueryBuilderEditor", () => {
     expect(currentStore.toggleField).toHaveBeenCalledWith('attr:status')
   })
 
+  it('renders random sort option in sort direction selector', () => {
+    currentStore = createStore()
+    currentStore.draft.template.sorts = [{ field: 'updated', direction: 'asc' }]
+    const wrapper = mount(QueryBuilderEditor)
+
+    const sortPanel = wrapper.get('[data-sort-panel]')
+    expect(sortPanel.html()).toContain('随机排序')
+  })
+
   it('uses the same primary button style for adding filters as running queries', () => {
     currentStore = createStore()
 

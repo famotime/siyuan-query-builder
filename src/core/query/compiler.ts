@@ -306,7 +306,11 @@ function buildOrderClause(sorts: QuerySort[], groupBy?: FieldId, aggregation?: Q
   }
 
   for (const sort of sorts) {
-    orderParts.push(`${getOrderExpression(sort.field)} ${sort.direction.toUpperCase()}`)
+    if (sort.direction === "random") {
+      orderParts.push("RANDOM()")
+    } else {
+      orderParts.push(`${getOrderExpression(sort.field)} ${sort.direction.toUpperCase()}`)
+    }
   }
 
   if (!orderParts.length) {

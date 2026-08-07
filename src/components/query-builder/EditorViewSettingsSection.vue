@@ -161,6 +161,9 @@
                 <option value="desc">
                   降序
                 </option>
+                <option value="random">
+                  随机排序
+                </option>
               </select>
               <DeleteIconButton
                 :data-sort-delete="String(index)"

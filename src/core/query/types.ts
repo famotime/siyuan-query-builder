@@ -42,7 +42,7 @@ export interface QueryFilter {
 
 export interface QuerySort {
   field: FieldId
-  direction: "asc" | "desc"
+  direction: "asc" | "desc" | "random"
 }
 
 export interface QueryAggregation {

@@ -479,4 +479,28 @@ describe("buildQuery", () => {
     expect(compiled.sql).toContain("EXISTS (SELECT 1 FROM attributes WHERE attributes.block_id = blocks.id AND attributes.name LIKE 'custom-%')")
     expect(compiled.sql).toContain("substr(blocks.created, 1, 8) BETWEEN strftime('%Y%m%d', 'now', '-7 day') AND strftime('%Y%m%d', 'now')")
   })
+
+  it("builds SQL with random sorting when sort direction is random", () => {
+    const template: QueryTemplate = {
+      id: "template-random-sort",
+      version: 1,
+      name: "Random Blocks",
+      scope: {
+        type: "all_blocks",
+      },
+      filters: [],
+      sorts: [
+        {
+          field: "updated",
+          direction: "random",
+        },
+      ],
+      fields: ["content", "updated"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.sql).toContain("ORDER BY RANDOM()")
+  })
 })

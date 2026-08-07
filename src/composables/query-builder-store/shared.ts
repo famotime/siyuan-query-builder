@@ -100,7 +100,7 @@ export function syncAggregateTemplate(template: QueryTemplate, resultFields: Fie
     AGGREGATE_VALUE_FIELD,
     ...(template.groupBy ? [template.groupBy] : []),
   ])
-  const nextSorts = template.sorts.filter(sort => allowedSortFields.has(sort.field))
+  const nextSorts = template.sorts.filter(sort => sort.direction === "random" || allowedSortFields.has(sort.field))
 
   template.sorts = nextSorts.length
     ? nextSorts
