@@ -45,6 +45,7 @@ describe("createResultPresentation", () => {
       },
     })
 
+    expect(presentation.fieldLabel("memo")).toBe("备注")
     expect(presentation.fieldLabel("attr:status")).toBe("状态")
     expect(presentation.displayValue(rows[0]!, "updated")).toBe("2026-03-24 12:00:00")
     expect(presentation.displayValue(rows[0]!, "box")).toBe("工作笔记")

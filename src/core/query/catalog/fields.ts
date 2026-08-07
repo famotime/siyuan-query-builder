@@ -19,6 +19,7 @@ export interface FieldOption {
 export function createFieldOptions(mappings: FieldMappings): FieldOption[] {
   return [
     { value: "content", label: "标题 / 内容" },
+    { value: "memo", label: "备注" },
     { value: "updated", label: "更新时间" },
     { value: "created", label: "创建时间" },
     { value: "tag", label: "标签" },

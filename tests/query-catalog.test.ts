@@ -275,6 +275,10 @@ describe("createPresets", () => {
         hint: "assignee",
       }),
       expect.objectContaining({
+        value: "memo",
+        label: "备注",
+      }),
+      expect.objectContaining({
         value: "assetCount",
         label: "内嵌资源数量",
       }),

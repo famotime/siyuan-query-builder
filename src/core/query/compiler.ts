@@ -19,6 +19,7 @@ const BASE_FIELD_MAP: Record<string, string> = {
   hpath: "blocks.hpath",
   type: "blocks.type",
   subtype: "blocks.subtype",
+  memo: "blocks.memo",
   tag: "blocks.tag",
   created: "blocks.created",
   updated: "blocks.updated",
@@ -75,6 +76,12 @@ function getFieldExpression(field: FieldId) {
 
   if (field === LINK_COUNT_FIELD) {
     return `(${getFieldExpression(BACKLINK_COUNT_FIELD)} + ${getFieldExpression(OUT_LINK_COUNT_FIELD)})`
+  }
+
+  if (field === "memo") {
+    const spanSubquery = "SELECT GROUP_CONCAT(spans.content, ' | ') FROM spans WHERE spans.block_id = blocks.id AND (spans.type = 'memo' OR spans.type LIKE '%memo%' OR (spans.type = 'textmark' AND spans.ial LIKE '%memo%'))"
+    const spanExists = "EXISTS (SELECT 1 FROM spans WHERE spans.block_id = blocks.id AND (spans.type = 'memo' OR spans.type LIKE '%memo%' OR (spans.type = 'textmark' AND spans.ial LIKE '%memo%')))"
+    return `(CASE WHEN COALESCE(blocks.memo, '') <> '' AND ${spanExists} THEN blocks.memo || ' | ' || (${spanSubquery}) WHEN COALESCE(blocks.memo, '') <> '' THEN blocks.memo ELSE (${spanSubquery}) END)`
   }
 
   if (isAttrField(field)) {

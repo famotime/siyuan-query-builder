@@ -503,4 +503,40 @@ describe("buildQuery", () => {
 
     expect(compiled.sql).toContain("ORDER BY RANDOM()")
   })
+
+  it("builds SQL selecting, filtering, and sorting by unified memo (block memo + spans inline memo)", () => {
+    const template: QueryTemplate = {
+      id: "template-memo",
+      version: 1,
+      name: "Memo Query",
+      scope: {
+        type: "all_blocks",
+      },
+      filters: [
+        {
+          id: "filter-memo",
+          field: "memo",
+          operator: "contains",
+          value: "重要笔记",
+        },
+      ],
+      sorts: [
+        {
+          field: "memo",
+          direction: "asc",
+        },
+      ],
+      fields: ["content", "memo"],
+      viewType: "table",
+    }
+
+    const compiled = buildQuery(template)
+
+    expect(compiled.meta.selectedFields).toEqual(["content", "memo"])
+    expect(compiled.sql).toContain("AS memo")
+    expect(compiled.sql).toContain("CASE WHEN COALESCE(blocks.memo, '') <> ''")
+    expect(compiled.sql).toContain("SELECT GROUP_CONCAT(spans.content, ' | ') FROM spans")
+    expect(compiled.sql).toContain("重要笔记")
+    expect(compiled.sql).toContain("ORDER BY (CASE WHEN COALESCE(blocks.memo, '') <> ''")
+  })
 })
