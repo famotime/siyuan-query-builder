@@ -1,6 +1,6 @@
 {
   "name": "siyuan-query-builder",
-  "version": "0.9.0",
+  "version": "0.9.5",
   "type": "module",
   "description": "Visual query builder and multi-view workspace for SiYuan",
   "author": "famotime",
