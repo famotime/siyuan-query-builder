@@ -27,14 +27,144 @@ export function getSiYuanThemeColors(): ThemeColors {
   }
 }
 
+// 缓存正在进行的动态加载 Promise，防止同一页面多个图表并发触发多次脚本注入
+let echartsLoadingPromise: Promise<any> | null = null
+
+/**
+ * 动态加载脚本文件并设置超时保护
+ */
+function loadScriptWithTimeout(src: string, scriptId: string, timeoutMs = 3500): Promise<boolean> {
+  if (typeof document === "undefined") {
+    return Promise.resolve(false)
+  }
+
+  return new Promise((resolve) => {
+    let timer: any = null
+    const cleanup = () => {
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
+    }
+
+    // 检查 DOM 中是否已经存在相同 ID 的 script
+    const existing = document.getElementById(scriptId) as HTMLScriptElement | null
+    if (existing) {
+      if (typeof window !== "undefined" && (window as any).echarts) {
+        resolve(true)
+        return
+      }
+      existing.addEventListener("load", () => {
+        cleanup()
+        resolve(true)
+      }, { once: true })
+      existing.addEventListener("error", () => {
+        cleanup()
+        resolve(false)
+      }, { once: true })
+      timer = setTimeout(() => {
+        resolve(false)
+      }, timeoutMs)
+      return
+    }
+
+    const script = document.createElement("script")
+    script.id = scriptId
+    script.type = "text/javascript"
+    script.src = src
+    script.async = true
+
+    script.onload = () => {
+      cleanup()
+      resolve(true)
+    }
+    script.onerror = () => {
+      cleanup()
+      script.remove()
+      resolve(false)
+    }
+
+    timer = setTimeout(() => {
+      script.remove()
+      resolve(false)
+    }, timeoutMs)
+
+    document.head.appendChild(script)
+  })
+}
+
+/**
+ * 获取 ECharts 脚本的探测候选路径列表
+ * 离线优先：优先利用思源笔记安装包内置的 stage 静态资源，避免任何外网网络依赖
+ */
+function getEChartsCandidateUrls(): string[] {
+  const urls: string[] = []
+
+  // 1. 若当前页面已有其他 protyle 资源，自动提取其相对或反代部署基础前缀
+  if (typeof document !== "undefined") {
+    const existingElements = Array.from(
+      document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>("script[src], link[href]"),
+    )
+    for (const el of existingElements) {
+      const path = (el as HTMLScriptElement).src || (el as HTMLLinkElement).href || ""
+      const match = path.match(/^(.*\/stage\/protyle\/)/)
+      if (match && match[1]) {
+        urls.push(`${match[1]}js/echarts/echarts.min.js?v=5.3.2`)
+        urls.push(`${match[1]}js/echarts/echarts.min.js`)
+        break
+      }
+    }
+  }
+
+  // 2. 思源笔记标准的本地绝对服务路径（桌面端与标准 Web 端默认静态资源根路径）
+  urls.push("/stage/protyle/js/echarts/echarts.min.js?v=5.3.2")
+  urls.push("/stage/protyle/js/echarts/echarts.min.js")
+
+  // 3. 相对路径兜底（部分相对路径子页面或特殊打包窗口）
+  urls.push("stage/protyle/js/echarts/echarts.min.js")
+
+  // 4. 公共 CDN 兜底（仅用于非思源纯开发环境或独立组件调试）
+  urls.push("https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js")
+  urls.push("https://unpkg.com/echarts@5.5.0/dist/echarts.min.js")
+
+  return Array.from(new Set(urls))
+}
+
 /**
  * 获取 ECharts 实例对象
+ * 若环境尚未载入 window.echarts，将自动按需加载思源本地静态资源，避免手动添加图表块的前置要求
  */
-export async function getEChartsInstance(): Promise<any> {
-  if (typeof window !== "undefined" && (window as any).echarts) {
+export async function getEChartsInstance(forceReload = false): Promise<any> {
+  if (typeof window !== "undefined" && (window as any).echarts && !forceReload) {
     return (window as any).echarts
   }
-  return null
+
+  // 并发请求合并：如果有正在进行中的加载任务，复用该 Promise
+  if (echartsLoadingPromise && !forceReload) {
+    return echartsLoadingPromise
+  }
+
+  const candidateUrls = getEChartsCandidateUrls()
+  const scriptId = "protyleEchartsScript"
+
+  echartsLoadingPromise = (async () => {
+    try {
+      for (const url of candidateUrls) {
+        const ok = await loadScriptWithTimeout(url, scriptId, 3500)
+        if (ok && typeof window !== "undefined" && (window as any).echarts) {
+          return (window as any).echarts
+        }
+      }
+    } catch (e) {
+      console.warn("[SQB] Failed to auto-load ECharts:", e)
+    }
+    return null
+  })().finally(() => {
+    // 任务结束后清空进行中标志，后续读取直接走 window.echarts，若失败也支持按需重试
+    echartsLoadingPromise = null
+  })
+
+  return echartsLoadingPromise
 }
 
 /**

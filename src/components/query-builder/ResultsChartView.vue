@@ -1,10 +1,17 @@
 <template>
   <div class="chart-view" :style="{ height: height || '320px' }">
     <div
-      v-if="!isUnavailable"
+      v-if="!isUnavailable && !isLoading"
       ref="chartEl"
       class="chart-view__container"
     />
+    <div
+      v-else-if="isLoading"
+      class="chart-view__loading"
+    >
+      <div class="chart-view__spinner" />
+      <p class="chart-view__loading-desc">正在载入图表引擎...</p>
+    </div>
     <div
       v-else
       class="chart-view__fallback"
@@ -14,6 +21,13 @@
       <p class="chart-view__fallback-desc">
         思源环境中通过 window.echarts 渲染交互图表；当前环境暂未检测到 ECharts 引擎。
       </p>
+      <button
+        class="chart-view__retry-btn"
+        type="button"
+        @click="retryInit"
+      >
+        重试加载
+      </button>
     </div>
   </div>
 </template>
@@ -33,26 +47,41 @@ const emit = defineEmits<{
 
 const chartEl = ref<HTMLDivElement | null>(null)
 const isUnavailable = ref(false)
+const isLoading = ref(true)
 let chartInstance: any = null
 let resizeObserver: ResizeObserver | null = null
+let isDisposed = false
 
-async function initChart() {
-  if (!chartEl.value) return
-  const echarts = await getEChartsInstance()
+async function initChart(forceReload = false) {
+  if (isDisposed) return
+
+  isLoading.value = true
+  const echarts = await getEChartsInstance(forceReload)
+  if (isDisposed) return
+
   if (!echarts) {
+    isLoading.value = false
     isUnavailable.value = true
     return
   }
 
   isUnavailable.value = false
+  isLoading.value = false
+  await nextTick()
+  if (isDisposed || !chartEl.value) return
+
   try {
+    if (chartInstance) {
+      chartInstance.dispose()
+      chartInstance = null
+    }
     chartInstance = echarts.init(chartEl.value)
     chartInstance.setOption(props.option || {})
     chartInstance.on("click", (params: any) => {
       emit("clickItem", params)
     })
 
-    if (typeof ResizeObserver !== "undefined") {
+    if (typeof ResizeObserver !== "undefined" && !resizeObserver) {
       resizeObserver = new ResizeObserver(() => {
         chartInstance?.resize()
       })
@@ -64,11 +93,17 @@ async function initChart() {
   }
 }
 
+function retryInit() {
+  initChart(true)
+}
+
 watch(
   () => props.option,
   (newOpt) => {
     if (chartInstance && newOpt) {
       chartInstance.setOption(newOpt, true)
+    } else if (!chartInstance && newOpt && !isUnavailable.value && !isLoading.value) {
+      initChart()
     }
   },
   { deep: true },
@@ -80,7 +115,9 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  isDisposed = true
   resizeObserver?.disconnect()
+  resizeObserver = null
   chartInstance?.dispose()
   chartInstance = null
 })
@@ -101,6 +138,38 @@ onBeforeUnmount(() => {
 .chart-view__container {
   width: 100%;
   height: 100%;
+}
+
+.chart-view__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  color: var(--b3-theme-on-surface-light);
+}
+
+.chart-view__spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--b3-border-color);
+  border-top-color: var(--b3-theme-primary);
+  border-radius: 50%;
+  animation: sqb-chart-spin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes sqb-chart-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chart-view__loading-desc {
+  font-size: 12px;
+  margin: 0;
 }
 
 .chart-view__fallback {
@@ -131,5 +200,23 @@ onBeforeUnmount(() => {
   max-width: 320px;
   margin: 0;
   line-height: 1.5;
+}
+
+.chart-view__retry-btn {
+  margin-top: 12px;
+  padding: 5px 14px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--b3-border-color);
+  background: var(--b3-theme-surface, #ffffff);
+  color: var(--b3-theme-on-surface);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chart-view__retry-btn:hover {
+  background: var(--b3-theme-primary);
+  color: var(--b3-theme-on-primary, #ffffff);
+  border-color: var(--b3-theme-primary);
 }
 </style>
