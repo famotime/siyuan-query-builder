@@ -36,43 +36,45 @@
       </div>
       <div class="actions">
         <button
-          class="btn btn--ghost"
+          class="btn btn--ghost btn--icon-only"
           type="button"
-          title="返回常规查询编辑器"
+          title="返回常规查询构建"
+          aria-label="返回常规查询构建"
           @click="store.closeDashboard?.()"
         >
           <ArrowLeft
-            class="btn__icon"
+            class="btn__icon wireframe-icon"
             :size="16"
             :stroke-width="1.75"
           />
-          返回查询构建
         </button>
         <button
-          class="btn btn--ghost"
+          class="btn btn--ghost btn--icon-only"
           type="button"
+          title="保存为定制模板"
+          aria-label="保存为定制模板"
           @click="store.saveDashboardAsTemplate?.()"
         >
           <BookmarkPlus
-            class="btn__icon"
+            class="btn__icon wireframe-icon"
             :size="16"
             :stroke-width="1.75"
           />
-          保存为定制模板
         </button>
         <button
-          class="btn btn--solid"
+          class="btn btn--solid btn--icon-only"
           :disabled="store.activeDashboardLoading"
           type="button"
+          title="重新计算并刷新大盘"
+          aria-label="重新计算并刷新大盘"
           @click="store.runActiveDashboard?.()"
         >
           <RotateCw
-            class="btn__icon"
+            class="btn__icon wireframe-icon"
             :class="{ 'is-spinning': store.activeDashboardLoading }"
             :size="16"
             :stroke-width="1.75"
           />
-          {{ store.activeDashboardLoading ? "加载中..." : "刷新大盘" }}
         </button>
       </div>
     </template>
@@ -334,7 +336,10 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   font: 600 13px/1.2 var(--sqb-sans);
 
   &--icon-only {
-    padding: 0 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    box-sizing: border-box;
   }
 }
 
@@ -362,6 +367,23 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+  fill: none !important;
+  stroke: currentColor;
+}
+
+.wireframe-icon {
+  fill: none !important;
+  stroke: currentColor;
+  stroke-width: 1.75;
+}
+
+:deep(svg) {
+  fill: none !important;
+}
+
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
 }
 
 .actions {

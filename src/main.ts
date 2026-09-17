@@ -37,6 +37,16 @@ export function setActiveWorkspaceStore(store: any) {
   activeWorkspaceStore = store
 }
 
+export function getActiveWorkspaceStore() {
+  return activeWorkspaceStore
+}
+
+function onHostThemeChanged() {
+  if (activeWorkspaceStore?.activeDashboardId) {
+    void activeWorkspaceStore.runActiveDashboard()
+  }
+}
+
 export function getPendingWorkspaceTarget() {
   const target = pendingWorkspaceTarget
   pendingWorkspaceTarget = null
@@ -159,7 +169,7 @@ function registerWorkspaceTab() {
       this.element.innerHTML = ""
       this.element.appendChild(rootElement)
       tabApps.set(this.element, mountWorkspaceInto(rootElement))
-      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement))
+      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement, onHostThemeChanged))
     },
     destroy(this: { element: Element }) {
       destroyTabMount(this.element)
@@ -201,7 +211,7 @@ function openDialogPanel(forceVisible = false) {
   }
 
   dialogApp = mountWorkspaceInto(dialogRootElement)
-  dialogThemeUnsub = observeSiyuanTheme(dialogRootElement)
+  dialogThemeUnsub = observeSiyuanTheme(dialogRootElement, onHostThemeChanged)
 }
 
 async function openWorkspaceTabPanel() {
@@ -256,7 +266,7 @@ export function registerDashboardTab(dashboardId: string) {
       this.element.innerHTML = ""
       this.element.appendChild(rootElement)
       tabApps.set(this.element, mountWorkspaceInto(rootElement, { initialDashboardId: dashboardId }))
-      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement))
+      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement, onHostThemeChanged))
     },
     destroy(this: { element: Element }) {
       destroyTabMount(this.element)

@@ -3,6 +3,8 @@
  * 优先复用宿主环境内置的 window.echarts，无缝集成思源主题色彩
  */
 
+import { resolveSiyuanThemeMode } from "@/ui/theme"
+
 export interface ThemeColors {
   background: string
   text: string
@@ -15,13 +17,14 @@ export interface ThemeColors {
 }
 
 export function getSiYuanThemeColors(): ThemeColors {
+  const isDark = typeof document !== "undefined" && resolveSiyuanThemeMode() === "dark"
   return {
     background: "transparent",
-    text: "var(--b3-theme-on-background, #333333)",
-    subText: "var(--b3-theme-on-surface-light, #888888)",
-    primary: "var(--b3-theme-primary, #3b82f6)",
-    border: "var(--b3-border-color, #e5e7eb)",
-    success: "#2fb36b",
+    text: "var(--sqb-text, var(--b3-theme-on-background, #333333))",
+    subText: "var(--sqb-text-muted, var(--b3-theme-on-surface-light, #888888))",
+    primary: "var(--sqb-primary, var(--b3-theme-primary, #3b82f6))",
+    border: "var(--sqb-border, var(--b3-border-color, #e5e7eb))",
+    success: isDark ? "#40c463" : "#2fb36b",
     warning: "#f2a33c",
     danger: "#ef4444",
   }
@@ -327,7 +330,7 @@ export function buildBarDistributionOption(params: {
 }
 
 /**
- * 构造日历热力图（GitHub 贡献墙风格）
+ * 构造日历热力图（GitHub 贡献墙风格，自适应亮暗色主题）
  */
 export function buildCalendarHeatmapOption(params: {
   title: string
@@ -335,41 +338,60 @@ export function buildCalendarHeatmapOption(params: {
   endDate: string
   dateValuePairs: Array<[string, number]> // [ "YYYY-MM-DD", count ]
   maxVal?: number
+  isDarkTheme?: boolean
 }): Record<string, any> {
+  const isDark = params.isDarkTheme ?? (typeof document !== "undefined" && resolveSiyuanThemeMode() === "dark")
   const c = getSiYuanThemeColors()
   const max = params.maxVal || Math.max(1, ...params.dateValuePairs.map(p => p[1]))
+
+  const emptyCellColor = isDark ? "rgba(255, 255, 255, 0.05)" : "#ebedf0"
+  const cellBorderColor = isDark ? "rgba(25, 30, 28, 0.95)" : "#ffffff"
+  const colorScale = isDark
+    ? [emptyCellColor, "#0e4429", "#006d32", "#26a641", "#39d353"]
+    : [emptyCellColor, "#9be9a8", "#40c463", "#30a14e", "#216e39"]
 
   return {
     title: {
       text: params.title,
-      left: 10,
-      top: 6,
+      left: 12,
+      top: 8,
       textStyle: { fontSize: 13, fontWeight: 600, color: c.text },
     },
     tooltip: {
-      formatter: (p: any) => `${p.value[0]}：${p.value[1]} 次`,
-      backgroundColor: "var(--b3-theme-background, #fff)",
-      borderColor: "var(--b3-border-color, #eee)",
-      textStyle: { color: "var(--b3-theme-on-background, #333)", fontSize: 12 },
+      formatter: (p: any) => `${p.value[0]} · 产出 ${p.value[1]} 篇/次`,
+      backgroundColor: isDark ? "rgba(30, 36, 33, 0.95)" : "rgba(255, 255, 255, 0.96)",
+      borderColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)",
+      textStyle: { color: isDark ? "#e8e4dc" : "#1a1d1b", fontSize: 12 },
+      padding: [6, 10],
     },
     visualMap: {
       min: 0,
       max,
-      show: false,
+      show: true,
+      orient: "horizontal",
+      right: 18,
+      top: 8,
+      text: ["多", "少"],
+      textGap: 6,
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: { fontSize: 10, color: c.subText },
       inRange: {
-        color: ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"],
+        color: colorScale,
       },
     },
     calendar: {
-      top: 36,
+      top: 38,
       left: 42,
       right: 18,
       bottom: 8,
       range: [params.startDate, params.endDate],
       cellSize: ["auto", 13],
+      splitLine: { show: false },
       itemStyle: {
         borderWidth: 2,
-        borderColor: "var(--b3-theme-background, #ffffff)",
+        borderColor: cellBorderColor,
+        color: emptyCellColor,
       },
       yearLabel: { show: false },
       monthLabel: { nameMap: "ZH", color: c.subText, fontSize: 10 },

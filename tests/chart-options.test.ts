@@ -51,16 +51,29 @@ describe("chart options builders", () => {
     expect(horizontal.yAxis.type).toBe("category")
   })
 
-  it("builds calendar heatmap option", () => {
-    const opt = buildCalendarHeatmapOption({
+  it("builds calendar heatmap option with theme adaptation and legend", () => {
+    const lightOpt = buildCalendarHeatmapOption({
       title: "写作热力图",
       startDate: "2026-01-01",
       endDate: "2026-12-31",
       dateValuePairs: [["2026-09-17", 4]],
+      isDarkTheme: false,
     })
 
-    expect(opt.calendar.range).toEqual(["2026-01-01", "2026-12-31"])
-    expect(opt.series[0].type).toBe("heatmap")
+    expect(lightOpt.calendar.range).toEqual(["2026-01-01", "2026-12-31"])
+    expect(lightOpt.series[0].type).toBe("heatmap")
+    expect(lightOpt.visualMap.show).toBe(true)
+    expect(lightOpt.visualMap.inRange.color[0]).toBe("#ebedf0")
+
+    const darkOpt = buildCalendarHeatmapOption({
+      title: "暗色热力图",
+      startDate: "2026-01-01",
+      endDate: "2026-12-31",
+      dateValuePairs: [["2026-09-17", 4]],
+      isDarkTheme: true,
+    })
+    expect(darkOpt.visualMap.inRange.color[0]).toContain("rgba(255, 255, 255, 0.05)")
+    expect(darkOpt.calendar.itemStyle.borderColor).toContain("rgba(25, 30, 28")
   })
 
   it("builds pie composition option with donut radius", () => {

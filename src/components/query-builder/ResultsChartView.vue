@@ -35,6 +35,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { getEChartsInstance } from "@/core/view/chart"
+import { useSiyuanTheme } from "@/ui/theme"
 
 const props = defineProps<{
   option: Record<string, any>
@@ -45,6 +46,7 @@ const emit = defineEmits<{
   (e: "clickItem", params: any): void
 }>()
 
+const { currentTheme } = useSiyuanTheme()
 const chartEl = ref<HTMLDivElement | null>(null)
 const isUnavailable = ref(false)
 const isLoading = ref(true)
@@ -109,6 +111,14 @@ watch(
   { deep: true },
 )
 
+watch(currentTheme, async () => {
+  if (chartInstance && props.option) {
+    chartInstance.dispose()
+    chartInstance = null
+    await initChart(false)
+  }
+})
+
 onMounted(async () => {
   await nextTick()
   await initChart()
@@ -127,9 +137,11 @@ onBeforeUnmount(() => {
 .chart-view {
   width: 100%;
   min-height: 240px;
-  background: var(--b3-theme-background);
-  border: 1px solid var(--b3-border-color);
-  border-radius: 8px;
+  background: var(--sqb-surface);
+  border: 1px solid var(--sqb-border);
+  border-radius: 12px;
+  box-shadow: var(--sqb-shadow-soft);
+  backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;

@@ -48,6 +48,8 @@ import QueryBuilderTopbar from "@/components/query-builder/QueryBuilderTopbar.vu
 import { createQueryBuilderStore, queryBuilderStoreKey } from "@/composables/query-builder-store"
 import { getPendingWorkspaceTarget, setActiveWorkspaceStore } from "@/main"
 
+import { onSiyuanThemeChange } from "@/ui/theme"
+
 const props = defineProps<{
   initialDashboardId?: string
 }>()
@@ -55,6 +57,7 @@ const props = defineProps<{
 const store = createQueryBuilderStore()
 const bootError = ref("")
 const sidebarVisible = ref(!props.initialDashboardId)
+let themeUnsub: (() => void) | null = null
 
 provide(queryBuilderStoreKey, store)
 provide("sidebarVisible", sidebarVisible)
@@ -63,6 +66,12 @@ provide("toggleSidebar", () => {
 })
 
 onMounted(async () => {
+  themeUnsub = onSiyuanThemeChange(async () => {
+    if (store.activeDashboardId) {
+      await store.runActiveDashboard()
+    }
+  })
+
   try {
     setActiveWorkspaceStore(store)
     await store.initialize()
@@ -85,6 +94,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  themeUnsub?.()
+  themeUnsub = null
   setActiveWorkspaceStore(null)
 })
 
