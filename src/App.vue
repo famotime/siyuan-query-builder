@@ -1,5 +1,5 @@
 <template>
-  <section class="panel">
+  <section class="panel" :class="{ 'panel--no-sidebar': !sidebarVisible }">
     <template v-if="bootError">
       <main class="workspace workspace--boot-error">
         <section class="boot-error">
@@ -12,14 +12,25 @@
       </main>
     </template>
     <template v-else>
-      <QueryBuilderSidebar />
+      <QueryBuilderSidebar v-if="sidebarVisible" />
       <main class="workspace">
         <div class="workspace__topbar">
           <QueryBuilderTopbar />
         </div>
         <div class="workspace__scroll">
-          <QueryBuilderEditor />
-          <QueryBuilderResults />
+          <DashboardView
+            v-if="store.activeDashboardViewModel"
+            :view-model="store.activeDashboardViewModel"
+            :notebooks="store.notebooks"
+            @open-block="store.openBlock"
+            @update-param="store.updateDashboardParam"
+            @refresh="store.runActiveDashboard"
+            @save-as-template="store.saveDashboardAsTemplate"
+          />
+          <template v-else>
+            <QueryBuilderEditor />
+            <QueryBuilderResults />
+          </template>
         </div>
       </main>
     </template>
@@ -27,26 +38,54 @@
 </template>
 
 <script setup lang="ts">
-import { onErrorCaptured, onMounted, provide, ref } from "vue"
+import { onErrorCaptured, onMounted, onUnmounted, provide, ref } from "vue"
 
+import DashboardView from "@/components/query-builder/DashboardView.vue"
 import QueryBuilderEditor from "@/components/query-builder/QueryBuilderEditor.vue"
 import QueryBuilderResults from "@/components/query-builder/QueryBuilderResults.vue"
 import QueryBuilderSidebar from "@/components/query-builder/QueryBuilderSidebar.vue"
 import QueryBuilderTopbar from "@/components/query-builder/QueryBuilderTopbar.vue"
 import { createQueryBuilderStore, queryBuilderStoreKey } from "@/composables/query-builder-store"
+import { getPendingWorkspaceTarget, setActiveWorkspaceStore } from "@/main"
+
+const props = defineProps<{
+  initialDashboardId?: string
+}>()
 
 const store = createQueryBuilderStore()
 const bootError = ref("")
+const sidebarVisible = ref(!props.initialDashboardId)
 
 provide(queryBuilderStoreKey, store)
+provide("sidebarVisible", sidebarVisible)
+provide("toggleSidebar", () => {
+  sidebarVisible.value = !sidebarVisible.value
+})
 
 onMounted(async () => {
   try {
+    setActiveWorkspaceStore(store)
     await store.initialize()
+
+    const targetDashboardId = props.initialDashboardId || getPendingWorkspaceTarget()?.dashboardId
+    if (targetDashboardId) {
+      await store.loadDashboard(targetDashboardId)
+    } else {
+      const target = getPendingWorkspaceTarget()
+      if (target?.snapshot) {
+        store.applySnapshot(target.snapshot)
+      } else if (target?.templateId) {
+        await store.loadTemplate(target.templateId)
+      }
+    }
   } catch (error) {
     bootError.value = error instanceof Error ? error.stack || error.message : String(error)
     console.error("[siyuan-query-builder] panel initialization failed", error)
   }
+})
+
+onUnmounted(() => {
+  setActiveWorkspaceStore(null)
 })
 
 onErrorCaptured((error, instance, info) => {
@@ -66,6 +105,10 @@ onErrorCaptured((error, instance, info) => {
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   color: var(--sqb-text);
   overflow: hidden;
+
+  &--no-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .workspace {

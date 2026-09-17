@@ -5,10 +5,14 @@ const {
   init,
   openPanel,
   destroy,
+  mountDock,
+  unmountDock,
 } = vi.hoisted(() => ({
   init: vi.fn(),
   openPanel: vi.fn(async () => {}),
   destroy: vi.fn(),
+  mountDock: vi.fn(),
+  unmountDock: vi.fn(),
 }))
 
 const renderer = vi.hoisted(() => ({
@@ -20,6 +24,8 @@ vi.mock("@/main", () => ({
   init,
   openPanel,
   destroy,
+  mountDock,
+  unmountDock,
 }))
 
 vi.mock("@/inline/service", () => ({

@@ -84,6 +84,34 @@
                 />
                 卡片
               </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'calendar' }"
+                data-view-type="calendar"
+                type="button"
+                @click="selectResultViewType('calendar')"
+              >
+                <Calendar
+                  class="tabs__icon"
+                  :size="14"
+                  :stroke-width="1.75"
+                />
+                月历
+              </button>
+              <button
+                class="tabs__item"
+                :class="{ 'tabs__item--active': store.draft.view.type === 'chart' }"
+                data-view-type="chart"
+                type="button"
+                @click="selectResultViewType('chart')"
+              >
+                <BarChart3
+                  class="tabs__icon"
+                  :size="14"
+                  :stroke-width="1.75"
+                />
+                图表
+              </button>
             </div>
           </div>
           <button
@@ -182,6 +210,17 @@
           :open-block="store.openBlock"
         />
 
+        <ResultsCalendarView
+          v-else-if="store.draft.view.type === 'calendar'"
+          :tasks="calendarTasks"
+          @open-block="store.openBlock"
+        />
+
+        <ResultsChartView
+          v-else-if="store.draft.view.type === 'chart'"
+          :option="defaultChartOption"
+        />
+
         <ResultsCardsView
           v-else
           :cards="store.cardsSummary"
@@ -205,16 +244,22 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { ChevronDown, Database, Inbox, Kanban, LayoutGrid, List, Table } from "lucide-vue-next"
+import { BarChart3, Calendar, ChevronDown, Database, Inbox, Kanban, LayoutGrid, List, Table } from "lucide-vue-next"
 
 import ResultsBoardView from "@/components/query-builder/ResultsBoardView.vue"
+import ResultsCalendarView from "@/components/query-builder/ResultsCalendarView.vue"
 import ResultsCardsView from "@/components/query-builder/ResultsCardsView.vue"
+import ResultsChartView from "@/components/query-builder/ResultsChartView.vue"
 import ResultsEmbedPanel from "@/components/query-builder/ResultsEmbedPanel.vue"
 import ResultsListView from "@/components/query-builder/ResultsListView.vue"
 import ResultsSavedViewsPanel from "@/components/query-builder/ResultsSavedViewsPanel.vue"
 import ResultsSqlPreview from "@/components/query-builder/ResultsSqlPreview.vue"
 import ResultsTableView from "@/components/query-builder/ResultsTableView.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import { parseDateFromHPath, parseTaskStatus } from "@/core/dashboard/calculator"
+import type { CalendarTaskItem } from "@/core/dashboard/types"
+import type { ViewType } from "@/core/query/types"
+import { buildBarDistributionOption } from "@/core/view/chart"
 import { showMessage } from "@/external/siyuan"
 
 const store = useQueryBuilderStore()
@@ -222,6 +267,40 @@ const store = useQueryBuilderStore()
 const hasAdvancedSql = computed(() => Boolean(store.advancedSql?.trim()))
 const hasResultRows = computed(() => Boolean(store.resultSet?.rows.length))
 const resultsCollapsed = ref(false)
+
+const calendarTasks = computed<CalendarTaskItem[]>(() => {
+  if (!store.resultSet?.rows) return []
+  return store.resultSet.rows.map(r => {
+    const text = String(r.markdown || r.content || "")
+    const status = parseTaskStatus(text)
+    const date = parseDateFromHPath(String(r.hpath || "")) || String(r.created || "").slice(0, 8).replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3")
+    return {
+      id: r.id,
+      content: text.replace(/^\[[^\]]*\]\s*/, "").trim() || "未命名块",
+      status,
+      date,
+      docTitle: r.hpath ? String(r.hpath).split("/").pop() : undefined,
+      docId: r.root_id,
+    }
+  })
+})
+
+const defaultChartOption = computed(() => {
+  if (store.cardsSummary && store.cardsSummary.length > 1) {
+    const categories = store.cardsSummary.slice(1).map(c => c.label)
+    const values = store.cardsSummary.slice(1).map(c => Number(c.value) || 0)
+    return buildBarDistributionOption({
+      title: store.draft.template.name ? `${store.draft.template.name} - 分组统计` : "分组统计图表",
+      categories,
+      values,
+    })
+  }
+  return buildBarDistributionOption({
+    title: "统计图表",
+    categories: ["总结果数"],
+    values: [store.resultSet?.rows.length || 0],
+  })
+})
 
 async function writeClipboardText(text: string) {
   if (navigator.clipboard?.writeText) {
@@ -258,7 +337,7 @@ async function copyAdvancedSql() {
   }
 }
 
-async function selectResultViewType(type: "table" | "board" | "list" | "cards") {
+async function selectResultViewType(type: ViewType) {
   const matchingSavedView = store.savedViews?.find(view => view.type === type)
   if (matchingSavedView) {
     await store.loadSavedView(matchingSavedView.id)

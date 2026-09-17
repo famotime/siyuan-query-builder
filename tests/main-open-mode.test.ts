@@ -60,16 +60,48 @@ describe("main open mode", () => {
     vi.clearAllMocks()
   })
 
-  it("registers a custom workspace tab on init", async () => {
+  it("registers workspace tab and independent scenario dashboard tabs on init", async () => {
     const plugin = createPlugin()
     const { destroy, init } = await loadMainModule()
 
     init(plugin as any)
 
-    expect(plugin.addTab).toHaveBeenCalledTimes(1)
     expect(plugin.addTab).toHaveBeenCalledWith(expect.objectContaining({
       type: "workspace",
       init: expect.any(Function),
+    }))
+    expect(plugin.addTab).toHaveBeenCalledWith(expect.objectContaining({
+      type: "dashboard-daily-cockpit",
+      init: expect.any(Function),
+    }))
+    expect(plugin.addTab).toHaveBeenCalledWith(expect.objectContaining({
+      type: "dashboard-habit-tracker",
+      init: expect.any(Function),
+    }))
+
+    destroy()
+  })
+
+  it("opens an independent dashboard tab with openDashboardTab", async () => {
+    const plugin = createPlugin()
+    const {
+      destroy,
+      init,
+      openDashboardTab,
+      openTab,
+    } = await loadMainModule()
+
+    init(plugin as any)
+    await openDashboardTab("habit-tracker")
+
+    expect(openTab).toHaveBeenCalledWith(expect.objectContaining({
+      app: plugin.app,
+      custom: expect.objectContaining({
+        id: "siyuan-query-builderdashboard-habit-tracker",
+        title: "易搭 - 微习惯打卡与精力大盘",
+        icon: "iconQueryBuilder",
+      }),
+      openNewTab: true,
     }))
 
     destroy()

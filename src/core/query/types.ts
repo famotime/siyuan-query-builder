@@ -1,4 +1,11 @@
-export type ViewType = "table" | "board" | "list" | "cards"
+export type ViewType =
+  | "table"
+  | "board"
+  | "list"
+  | "cards"
+  | "calendar"
+  | "chart"
+  | "dashboard"
 
 export type AggregationFunction = "count" | "sum" | "avg" | "min" | "max"
 

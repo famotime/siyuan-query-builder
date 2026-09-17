@@ -21,7 +21,7 @@ import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
 import { LEGACY_TEMPLATE_STORAGE_KEY } from "@/core/storage/migrations"
 import { EMBED_TARGET_PREFS_KEY } from "@/composables/query-builder-store/shared"
 import { createInlineBlockRenderer } from "@/inline/service"
-import { DEBUG_LOG_STORAGE_KEY, destroy, init, openPanel } from "@/main"
+import { DEBUG_LOG_STORAGE_KEY, destroy, init, mountDock, openPanel, unmountDock } from "@/main"
 import { createI18nHelper } from "@/utils/i18n"
 
 const pluginInfo = pluginInfoJson as { version?: string }
@@ -80,9 +80,35 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
         },
       })
 
+      this.addDock({
+        config: {
+          position: "RightTop",
+          size: { width: 320, height: 0 },
+          icon: "iconQueryBuilder",
+          title: "易搭",
+        },
+        data: {},
+        type: "query-builder-dock",
+        init: (dock) => {
+          mountDock(dock.element)
+        },
+        destroy: (dock) => {
+          unmountDock(dock.element)
+        },
+      })
+
       this.addCommand({
         langKey: "addTopBarIcon",
         hotkey: "⌘⇧Q",
+        callback: () => {
+          void this.showWorkspace(true)
+        },
+      })
+
+      this.addCommand({
+        langKey: "openDashboard",
+        langText: "打开场景仪表板",
+        hotkey: "⌘⇧D",
         callback: () => {
           void this.showWorkspace(true)
         },

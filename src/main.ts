@@ -2,13 +2,15 @@ import type { App as VueApp } from "vue"
 import { createApp } from "vue"
 
 import App from "./App.vue"
+import QueryBuilderDock from "@/components/query-builder/QueryBuilderDock.vue"
 import {
   Dialog,
   openTab,
   showMessage,
 } from "@/external/siyuan"
 import type { Plugin } from "@/external/siyuan"
-import type { WorkspaceOpenMode } from "@/core/plugin-settings"
+import { loadPluginSettings, type WorkspaceOpenMode } from "@/core/plugin-settings"
+import { SCENARIO_DASHBOARDS, getDashboardDefinition } from "@/core/dashboard/catalog"
 
 import { observeSiyuanTheme, syncSiyuanThemeMarkers } from "@/ui/theme"
 
@@ -20,6 +22,26 @@ let dialogThemeUnsub: (() => void) | null = null
 let workspaceTabRegistered = false
 const tabApps = new WeakMap<Element, VueApp>()
 const tabThemeUnsubs = new WeakMap<Element, () => void>()
+const dockApps = new WeakMap<Element, VueApp>()
+const dockThemeUnsubs = new WeakMap<Element, () => void>()
+
+let pendingWorkspaceTarget: {
+  dashboardId?: string
+  snapshot?: any
+  templateId?: string
+} | null = null
+
+let activeWorkspaceStore: any = null
+
+export function setActiveWorkspaceStore(store: any) {
+  activeWorkspaceStore = store
+}
+
+export function getPendingWorkspaceTarget() {
+  const target = pendingWorkspaceTarget
+  pendingWorkspaceTarget = null
+  return target
+}
 
 const WORKSPACE_TAB_TYPE = "workspace"
 const WORKSPACE_TAB_TITLE = "易搭 Query Builder"
@@ -37,6 +59,9 @@ export function usePlugin() {
 export function init(plugin: Plugin) {
   pluginInstance = plugin
   registerWorkspaceTab()
+  for (const d of SCENARIO_DASHBOARDS) {
+    registerDashboardTab(d.id)
+  }
 }
 
 async function appendDebugLog(source: string, error: unknown, info?: string) {
@@ -56,8 +81,8 @@ async function appendDebugLog(source: string, error: unknown, info?: string) {
   await pluginInstance.saveData(DEBUG_LOG_STORAGE_KEY, list.slice(0, 30))
 }
 
-function createVueApp(rootElement: HTMLDivElement) {
-  const app = createApp(App)
+function createVueApp(rootElement: HTMLDivElement, props?: Record<string, unknown>) {
+  const app = createApp(App, props)
 
   app.config.errorHandler = (err, _instance, info) => {
     console.error("[siyuan-query-builder] Vue render error", err, info)
@@ -71,9 +96,9 @@ function createVueApp(rootElement: HTMLDivElement) {
   return app
 }
 
-function mountWorkspaceInto(rootElement: HTMLDivElement) {
+function mountWorkspaceInto(rootElement: HTMLDivElement, props?: Record<string, unknown>) {
   syncSiyuanThemeMarkers(rootElement)
-  return createVueApp(rootElement)
+  return createVueApp(rootElement, props)
 }
 
 function destroyDialogMount() {
@@ -207,6 +232,137 @@ export async function openPanel(forceVisible = false, openMode: WorkspaceOpenMod
   openDialogPanel(forceVisible)
 }
 
+const registeredDashboardTabTypes = new Set<string>()
+
+export function registerDashboardTab(dashboardId: string) {
+  if (!pluginInstance) {
+    return
+  }
+  const tabType = `dashboard-${dashboardId}`
+  if (registeredDashboardTabTypes.has(tabType)) {
+    return
+  }
+
+  pluginInstance.addTab({
+    type: tabType,
+    init(this: { element: Element }) {
+      if (!(this.element instanceof HTMLElement)) {
+        throw new Error("Failed to create dashboard tab host")
+      }
+
+      const rootElement = document.createElement("div")
+      rootElement.className = "siyuan-query-builder-tab-root"
+      rootElement.style.height = "100%"
+      this.element.innerHTML = ""
+      this.element.appendChild(rootElement)
+      tabApps.set(this.element, mountWorkspaceInto(rootElement, { initialDashboardId: dashboardId }))
+      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement))
+    },
+    destroy(this: { element: Element }) {
+      destroyTabMount(this.element)
+    },
+    beforeDestroy(this: { element: Element }) {
+      destroyTabMount(this.element)
+    },
+  })
+
+  registeredDashboardTabTypes.add(tabType)
+}
+
+export async function openDashboardTab(dashboardId: string) {
+  if (!pluginInstance) {
+    throw new Error("Plugin instance has not been initialized")
+  }
+  registerDashboardTab(dashboardId)
+  const def = getDashboardDefinition(dashboardId)
+  const title = def ? `易搭 - ${def.title}` : WORKSPACE_TAB_TITLE
+  const tabType = `dashboard-${dashboardId}`
+
+  if (dialog) {
+    dialog.destroy()
+  }
+
+  await openTab({
+    app: pluginInstance.app,
+    custom: {
+      id: `${pluginInstance.name}${tabType}`,
+      icon: WORKSPACE_TAB_ICON,
+      title,
+    },
+    openNewTab: true,
+  })
+}
+
+export async function openWorkspaceWithDashboard(dashboardId?: string, openMode?: WorkspaceOpenMode) {
+  if (!pluginInstance) {
+    return
+  }
+
+  // 点击场景仪表板时，默认在独立的页签中打开
+  if (dashboardId) {
+    if (openMode === "dialog") {
+      pendingWorkspaceTarget = { dashboardId }
+      await openPanel(true, "dialog")
+      if (activeWorkspaceStore?.loadDashboard) {
+        await activeWorkspaceStore.loadDashboard(dashboardId)
+      }
+      return
+    }
+    await openDashboardTab(dashboardId)
+    return
+  }
+
+  const mode = openMode || (await loadPluginSettings(pluginInstance)).openMode
+  await openPanel(true, mode)
+}
+
+export async function openWorkspaceWithPreset(snapshot: any, openMode?: WorkspaceOpenMode) {
+  if (!pluginInstance) {
+    return
+  }
+  const mode = openMode || (await loadPluginSettings(pluginInstance)).openMode
+  pendingWorkspaceTarget = { snapshot }
+  await openPanel(true, mode)
+  if (activeWorkspaceStore?.applySnapshot) {
+    activeWorkspaceStore.applySnapshot(snapshot)
+  }
+}
+
+export async function openWorkspaceWithTemplate(templateId: string, openMode?: WorkspaceOpenMode) {
+  if (!pluginInstance) {
+    return
+  }
+  const mode = openMode || (await loadPluginSettings(pluginInstance)).openMode
+  pendingWorkspaceTarget = { templateId }
+  await openPanel(true, mode)
+  if (activeWorkspaceStore?.loadTemplate) {
+    await activeWorkspaceStore.loadTemplate(templateId)
+  }
+}
+
+export function mountDock(hostElement: HTMLElement) {
+  syncSiyuanThemeMarkers(hostElement)
+  dockThemeUnsubs.set(hostElement, observeSiyuanTheme(hostElement))
+  const app = createApp(QueryBuilderDock)
+  app.mount(hostElement)
+  dockApps.set(hostElement, app)
+  return app
+}
+
+export function unmountDock(hostElement: HTMLElement) {
+  const unsub = dockThemeUnsubs.get(hostElement)
+  if (unsub) {
+    unsub()
+    dockThemeUnsubs.delete(hostElement)
+  }
+  const app = dockApps.get(hostElement)
+  if (app) {
+    app.unmount()
+    dockApps.delete(hostElement)
+  }
+  hostElement.innerHTML = ""
+}
+
 export function destroy() {
   if (dialog) {
     dialog.destroy()
@@ -214,5 +370,6 @@ export function destroy() {
     destroyDialogMount()
   }
   workspaceTabRegistered = false
+  registeredDashboardTabTypes.clear()
   pluginInstance = null
 }

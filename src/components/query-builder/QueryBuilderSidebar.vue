@@ -23,6 +23,60 @@
       </p>
     </div>
 
+    <div class="card card--dashboards">
+      <div class="section-head">
+        <div class="section-head-main">
+          <div class="section-head-copy">
+            <span class="section-kicker">
+              <Sparkles :size="12" class="section-kicker-icon" /> Dashboards
+            </span>
+            <h2>场景仪表板</h2>
+          </div>
+          <span
+            data-dashboards-count
+            class="pill pill--accent"
+          >{{ store.dashboards?.length || 0 }}</span>
+        </div>
+        <button
+          data-section-toggle="dashboards"
+          class="section-toggle"
+          type="button"
+          :title="dashboardsExpanded ? '收起场景仪表板' : '展开场景仪表板'"
+          :aria-label="dashboardsExpanded ? '收起场景仪表板' : '展开场景仪表板'"
+          :aria-expanded="String(dashboardsExpanded)"
+          @click="dashboardsExpanded = !dashboardsExpanded"
+        >
+          <ChevronDown
+            :class="{ 'is-expanded': dashboardsExpanded }"
+            :size="16"
+            :stroke-width="1.75"
+          />
+        </button>
+      </div>
+      <p class="section-copy">
+        开箱即用的工作台与多维大盘，支持基于示例参数化定制。
+      </p>
+      <div v-if="dashboardsExpanded" class="preset-group__body">
+        <button
+          v-for="d in (store.dashboards || [])"
+          :key="d.id"
+          class="item preset-item dashboard-item"
+          :class="{ 'preset-item--active': store.activeDashboardId === d.id }"
+          @click="store.loadDashboard?.(d.id)"
+        >
+          <div class="dashboard-item__header">
+            <component
+              :is="getDashboardIcon(d.id)"
+              :size="14"
+              class="dashboard-item__icon"
+            />
+            <strong>{{ d.title }}</strong>
+          </div>
+          <span>{{ d.description }}</span>
+        </button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="section-head">
         <div class="section-head-main">
@@ -276,7 +330,19 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue"
-import { ChevronDown, ChevronRight, Download, Trash2, Upload } from "lucide-vue-next"
+import {
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Flame,
+  HeartPulse,
+  LayoutDashboard,
+  Sparkles,
+  Target,
+  Trash2,
+  TrendingUp,
+  Upload,
+} from "lucide-vue-next"
 
 import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
@@ -290,6 +356,24 @@ import {
 } from "@/components/query-builder/sidebar-utils"
 
 const store = useQueryBuilderStore()
+
+function getDashboardIcon(id: string) {
+  switch (id) {
+    case "daily-cockpit":
+      return LayoutDashboard
+    case "habit-tracker":
+      return Flame
+    case "kb-health":
+      return HeartPulse
+    case "writing-flow":
+      return TrendingUp
+    case "project-delivery":
+      return Target
+    default:
+      return LayoutDashboard
+  }
+}
+const dashboardsExpanded = ref(true)
 const presetsExpanded = ref(true)
 const historyExpanded = ref(true)
 const savedTemplatesExpanded = ref(true)
@@ -767,6 +851,34 @@ h2 {
   color: var(--sqb-primary-strong);
   text-align: center;
   font: 700 12px/1.2 var(--sqb-sans);
+}
+
+.pill--accent {
+  background: var(--sqb-primary);
+  color: #ffffff;
+}
+
+.card--dashboards {
+  border-color: rgba(74, 124, 89, 0.25);
+  background: linear-gradient(180deg, rgba(74, 124, 89, 0.04) 0%, var(--sqb-surface) 100%);
+}
+
+.section-kicker-icon {
+  display: inline-block;
+  vertical-align: -1px;
+  margin-right: 2px;
+  color: var(--sqb-primary);
+}
+
+.dashboard-item__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dashboard-item__icon {
+  color: var(--sqb-primary);
+  flex-shrink: 0;
 }
 
 .sidebar-footnote {

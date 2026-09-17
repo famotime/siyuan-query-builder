@@ -23,6 +23,7 @@ export class Plugin {
   topBarItems: any[] = []
   commands: any[] = []
   tabDefinitions: any[] = []
+  dockDefinitions: any[] = []
   private storage = new Map<string, unknown>()
 
   constructor(options?: { app?: any, name?: string, i18n?: Record<string, string> }) {
@@ -72,6 +73,24 @@ export class Plugin {
       element: document.createElement("div"),
       type: options.type,
     })
+  }
+
+  addDock(options: any) {
+    this.dockDefinitions.push(options)
+    const element = document.createElement("div")
+    const dockModel = {
+      element,
+      type: options.type,
+      config: options.config,
+      data: options.data,
+    }
+    if (typeof options.init === "function") {
+      options.init.call(dockModel, dockModel)
+    }
+    return {
+      config: options.config,
+      model: dockModel,
+    }
   }
 
   seed(storageName: string, value: unknown) {
