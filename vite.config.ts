@@ -65,11 +65,11 @@ export default defineConfig(({
             dest: "./",
           },
           {
-            src: "./icon.png",
+            src: "./icon.*",
             dest: "./",
           },
           {
-            src: "./preview.png",
+            src: "./preview.*",
             dest: "./",
           },
           {
@@ -139,6 +139,8 @@ export default defineConfig(({
                   inDir: "./dist",
                   outDir: "./",
                   outFileName: "package.zip",
+                // 过滤以点开头的文件和目录，确保符合思源集市规范，避免数据同步异常
+                filter: (fileName) => !fileName.startsWith("."),
                 }),
               ]),
         ],
