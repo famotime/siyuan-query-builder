@@ -7,38 +7,40 @@
       </div>
       <div class="section-head-actions">
         <button
+          v-sqb-tooltip="'一键填充常用的属性映射示例'"
           class="btn btn--outline btn--small"
           data-generate-examples
           type="button"
+          aria-label="生成示例"
           @click="store.generateExampleDocument"
         >
           <Sparkles
-            class="btn__icon"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
             :size="14"
             :stroke-width="1.75"
           />
           生成示例
         </button>
         <button
+          v-sqb-tooltip="collapsed ? '展开字段映射' : '收起字段映射'"
           class="section-toggle"
           type="button"
           data-section-toggle="mappings"
-          :title="collapsed ? '展开字段映射' : '收起字段映射'"
           :aria-label="collapsed ? '展开字段映射' : '收起字段映射'"
           :aria-expanded="String(!collapsed)"
           @click="$emit('toggle')"
         >
           <ChevronDown
+            class="sqb-wireframe-icon"
+            style="fill: none !important;"
             :class="{ 'is-expanded': !collapsed }"
-            :size="16"
+            :size="15"
             :stroke-width="1.75"
           />
         </button>
       </div>
     </div>
-    <p class="section-copy">
-      快速编辑、看板列和统计字段都会依赖这里的属性名称。
-    </p>
     <div
       v-if="!collapsed"
       class="form-grid"
@@ -67,6 +69,7 @@
 <script setup lang="ts">
 import { ChevronDown, Sparkles } from "lucide-vue-next"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{
   collapsed: boolean
@@ -79,3 +82,16 @@ defineEmits<{
 
 const store = useQueryBuilderStore()
 </script>
+
+<style scoped>
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
+}
+
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
+}
+</style>

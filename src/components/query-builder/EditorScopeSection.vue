@@ -6,24 +6,23 @@
         <h3>查询范围</h3>
       </div>
       <button
+        v-sqb-tooltip="collapsed ? '展开查询范围' : '收起查询范围'"
         class="section-toggle"
         type="button"
         data-section-toggle="scope"
-        :title="collapsed ? '展开查询范围' : '收起查询范围'"
         :aria-label="collapsed ? '展开查询范围' : '收起查询范围'"
         :aria-expanded="String(!collapsed)"
         @click="$emit('toggle')"
       >
         <ChevronDown
+          class="sqb-wireframe-icon"
+          style="fill: none !important;"
           :class="{ 'is-expanded': !collapsed }"
-          :size="16"
+          :size="15"
           :stroke-width="1.75"
         />
       </button>
     </div>
-    <p class="section-copy">
-      定义这次查询要覆盖哪些笔记内容，再用更精确的值缩小范围。
-    </p>
     <div
       v-if="!collapsed"
       class="form-grid form-grid--scope"
@@ -111,6 +110,7 @@
 <script setup lang="ts">
 import { ChevronDown } from "lucide-vue-next"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{
   collapsed: boolean
@@ -122,3 +122,16 @@ defineEmits<{
 
 const store = useQueryBuilderStore()
 </script>
+
+<style scoped>
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
+}
+
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
+}
+</style>

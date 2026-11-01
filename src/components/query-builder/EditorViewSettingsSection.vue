@@ -6,24 +6,23 @@
         <h3>排序、分组与字段</h3>
       </div>
       <button
+        v-sqb-tooltip="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
         class="section-toggle"
         type="button"
         data-section-toggle="view"
-        :title="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
         :aria-label="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
         :aria-expanded="String(!collapsed)"
         @click="emit('toggle')"
       >
         <ChevronDown
+          class="sqb-wireframe-icon"
+          style="fill: none !important;"
           :class="{ 'is-expanded': !collapsed }"
-          :size="16"
+          :size="15"
           :stroke-width="1.75"
         />
       </button>
     </div>
-    <p class="section-copy">
-      控制结果如何分组展示、如何排序，以及最终输出哪些字段。
-    </p>
     <template v-if="!collapsed">
       <div class="form-grid form-grid--top">
         <label class="field">
@@ -122,11 +121,15 @@
               <h4>排序规则</h4>
             </div>
             <button
+              v-sqb-tooltip="'新增排序规则'"
               class="btn btn--ghost btn--small"
+              type="button"
+              aria-label="添加排序"
               @click="store.addSort"
             >
               <Plus
-                class="btn__icon"
+                class="btn__icon sqb-wireframe-icon"
+                style="fill: none !important;"
                 :size="14"
                 :stroke-width="1.75"
               />
@@ -200,6 +203,7 @@ import { ChevronDown, Plus } from "lucide-vue-next"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorFieldPicker from "@/components/query-builder/EditorFieldPicker.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{
   collapsed: boolean
@@ -229,12 +233,12 @@ const aggregationModeProxy = computed({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
 .card {
-  padding: 18px;
-  border-radius: 20px;
+  padding: 16px;
+  border-radius: 12px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-soft);
@@ -246,32 +250,33 @@ const aggregationModeProxy = computed({
 
 h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.2;
-  font-family: var(--sqb-serif);
 }
 
 .section-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-soft);
   color: var(--sqb-text-muted);
   cursor: pointer;
-}
+  transition: all 120ms ease;
 
-.section-toggle:hover {
-  background: var(--sqb-bg-strong);
+  &:hover {
+    background: var(--sqb-bg-strong);
+    color: var(--sqb-primary);
+    border-color: var(--sqb-primary);
+  }
 }
 
 .section-toggle svg {
-  width: 16px;
-  height: 16px;
   transition: transform 140ms ease;
 }
 
@@ -281,28 +286,22 @@ h3 {
 
 .section-heading {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   text-align: left;
 }
 
 .section-kicker {
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: var(--sqb-primary);
-  font: 700 11px/1.2 var(--sqb-sans);
-}
-
-.section-copy {
-  margin: 10px 0 0;
-  color: var(--sqb-text-muted);
-  font: 13px/1.55 var(--sqb-sans);
+  font: 700 10px/1.1 var(--sqb-sans);
 }
 
 .control {
   width: 100%;
   box-sizing: border-box;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--sqb-border);
   background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
@@ -323,7 +322,7 @@ h3 {
 .control:focus {
   outline: none;
   border-color: var(--sqb-primary);
-  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+  box-shadow: 0 0 0 2px var(--sqb-primary-soft);
 }
 
 .btn {
@@ -333,37 +332,38 @@ h3 {
   gap: 6px;
   height: 32px;
   flex: 0 0 auto;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+  transition: all 120ms ease;
   cursor: pointer;
-  font: 600 13px/1.2 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
   white-space: nowrap;
-  border-radius: 8px;
-  padding: 0 12px;
+  border-radius: 6px;
+  padding: 0 10px;
   border: 1px solid transparent;
 }
 
 .btn--small {
   height: 26px;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--sqb-text-muted);
-  border-color: transparent;
-}
+  border-color: var(--sqb-border);
 
-.btn--ghost:hover {
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text);
+  &:hover {
+    background: var(--sqb-bg-strong);
+    color: var(--sqb-text);
+    border-color: var(--sqb-border-strong);
+  }
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .form-grid--top {
@@ -371,18 +371,18 @@ h3 {
 }
 
 .form-grid--aggregation {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .field span {
   color: var(--sqb-secondary);
-  font: 700 13px/1.25 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
 }
 
 .filter-row {
@@ -403,37 +403,37 @@ h3 {
 .view-config-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18px;
+  gap: 14px;
   align-items: start;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .view-config-panel {
   display: grid;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 16px;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-soft);
 }
 
 .view-config-panel__head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding-bottom: 12px;
+  gap: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--sqb-border);
 }
 
 .view-config-panel__copy {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .view-config-panel__copy h4 {
   margin: 0;
-  font: 700 16px/1.2 var(--sqb-serif);
+  font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .stack {
@@ -442,7 +442,18 @@ h3 {
 }
 
 .gap-sm {
-  gap: 10px;
+  gap: 8px;
+}
+
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
+}
+
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
 }
 
 @media (max-width: 1100px) {

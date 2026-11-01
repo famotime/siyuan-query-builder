@@ -95,4 +95,13 @@ defineProps<{
 .sy-button--danger:hover {
   filter: brightness(1.1);
 }
+
+.sy-button :deep(svg) {
+  fill: none !important;
+}
+
+.sy-button :deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
+}
 </style>

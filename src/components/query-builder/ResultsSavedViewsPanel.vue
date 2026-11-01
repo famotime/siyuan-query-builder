@@ -4,18 +4,20 @@
     class="saved-views"
   >
     <div class="saved-views__head">
-      <div>
+      <div class="saved-views__heading">
         <h4>已保存视图</h4>
-        <p class="muted">同一模板下可切换多个视图配置，并可指定默认视图。</p>
       </div>
       <button
+        v-sqb-tooltip="'将当前显示配置添加为新视图'"
         class="btn btn--ghost btn--small"
         data-view-save-as
         type="button"
+        aria-label="添加为新视图"
         @click="emit('saveAs')"
       >
         <Plus
-          class="btn__icon"
+          class="btn__icon sqb-wireframe-icon"
+          style="fill: none !important;"
           :size="14"
           :stroke-width="1.75"
         />
@@ -52,21 +54,23 @@
             :data-view-card-meta="view.id"
           >
             <button
+              v-sqb-tooltip="view.defaultView ? '当前已设为默认视图' : '设为打开时的默认视图'"
               class="saved-views__badge"
               :data-view-default-badge="view.id"
               :data-state="view.defaultView ? 'active' : 'idle'"
               type="button"
+              :aria-label="view.defaultView ? '默认视图' : '设为默认视图'"
               @click.stop="emit('setDefault', view.id)"
             >
               默认
             </button>
-          <DeleteIconButton
-            :data-view-delete="view.id"
-            class="saved-views__delete"
-            title="删除视图"
-            aria-label="删除视图"
-            @click.stop="emit('delete', view.id)"
-          />
+            <DeleteIconButton
+              :data-view-delete="view.id"
+              class="saved-views__delete"
+              title="删除视图"
+              aria-label="删除视图"
+              @click.stop="emit('delete', view.id)"
+            />
           </div>
         </div>
         <p
@@ -85,6 +89,7 @@ import { Plus } from "lucide-vue-next"
 import type { ViewConfig } from "@/core/query/types"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{
   activeViewId: string
@@ -128,10 +133,10 @@ function viewTypeDescription(type: string) {
 <style lang="scss" scoped>
 .saved-views {
   display: grid;
-  gap: 12px;
-  margin-bottom: 18px;
-  padding: 14px;
-  border-radius: 16px;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 12px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-soft);
 }
@@ -145,21 +150,34 @@ function viewTypeDescription(type: string) {
   gap: 10px;
 }
 
+.saved-views__heading h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sqb-text);
+}
+
 .saved-views__list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   justify-content: start;
-  gap: 12px;
+  gap: 10px;
 }
 
 .saved-views__item {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
-  padding: 10px 11px;
-  border-radius: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface);
+  transition: all 120ms ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--sqb-primary);
+  }
 }
 
 .saved-views__item--active {
@@ -178,7 +196,7 @@ function viewTypeDescription(type: string) {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  min-height: 30px;
+  min-height: 26px;
   text-align: left;
 }
 
@@ -188,25 +206,24 @@ function viewTypeDescription(type: string) {
 }
 
 .saved-views__main strong {
-  font: 700 15px/1.2 var(--sqb-serif);
-  letter-spacing: 0.01em;
+  font: 600 13px/1.2 var(--sqb-sans);
 }
 
 .saved-views__description {
   color: var(--sqb-text-muted);
-  font: 12px/1.35 var(--sqb-sans);
+  font: 11px/1.35 var(--sqb-sans);
   margin: 0;
 }
 
 .saved-views__meta {
   flex: none;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 4px;
 }
 
 .saved-views__delete {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   margin-right: 0;
 }
 
@@ -215,23 +232,22 @@ function viewTypeDescription(type: string) {
   align-items: center;
   justify-content: center;
   flex: none;
-  min-width: 38px;
-  height: 22px;
-  padding: 0 7px;
-  border: 1px solid var(--sqb-border-strong);
+  min-width: 32px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--sqb-border);
   border-radius: 999px;
-  background: var(--sqb-bg-strong);
+  background: var(--sqb-surface);
   color: var(--sqb-text-muted);
-  font: 700 10px/1 var(--sqb-sans);
+  font: 600 10px/1 var(--sqb-sans);
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  transition: all 120ms ease;
 }
 
 .saved-views__badge[data-state='active'] {
   border-color: var(--sqb-primary);
-  background: var(--sqb-primary-soft);
-  color: var(--sqb-primary-strong);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02);
+  background: var(--sqb-primary);
+  color: #ffffff;
 }
 
 .saved-views__badge:hover {
@@ -239,16 +255,8 @@ function viewTypeDescription(type: string) {
   color: var(--sqb-primary);
 }
 
-.saved-views__badge:focus-visible {
-  outline: none;
-  border-color: var(--sqb-primary);
-  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
-}
-
-.muted {
-  margin: 0;
-  color: var(--sqb-text-muted);
-  font: 13px/1.55 var(--sqb-sans);
+.saved-views__badge[data-state='active']:hover {
+  color: #ffffff;
 }
 
 .btn {
@@ -256,32 +264,43 @@ function viewTypeDescription(type: string) {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+  height: 28px;
+  transition: all 120ms ease;
   border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 0 12px;
+  border-radius: 6px;
+  padding: 0 10px;
   background: transparent;
   cursor: pointer;
-  font: 600 13px/1.2 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
   white-space: nowrap;
 }
 
 .btn--small {
-  height: 26px;
+  height: 24px;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--sqb-text-muted);
-  border-color: var(--sqb-border-strong);
+  border-color: var(--sqb-border);
+
+  &:hover {
+    background: var(--sqb-bg-strong);
+    color: var(--sqb-text);
+  }
 }
 
-.btn--ghost:hover {
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text);
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
+}
+
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
 }
 
 @media (max-width: 1180px) {

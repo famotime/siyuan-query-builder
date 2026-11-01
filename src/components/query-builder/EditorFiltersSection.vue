@@ -7,37 +7,39 @@
       </div>
       <div class="section-head-actions">
         <button
-          class="btn btn--solid"
+          v-sqb-tooltip="'新增一条筛选过滤规则'"
+          class="btn btn--solid btn--small"
           data-add-filter
+          aria-label="添加条件"
           @click="store.addFilter"
         >
           <Plus
-            class="btn__icon"
-            :size="16"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="14"
             :stroke-width="1.75"
           />
           添加条件
         </button>
         <button
+          v-sqb-tooltip="props.collapsed ? '展开条件编辑器' : '收起条件编辑器'"
           class="section-toggle"
           type="button"
           data-section-toggle="filters"
-          :title="props.collapsed ? '展开条件编辑器' : '收起条件编辑器'"
           :aria-label="props.collapsed ? '展开条件编辑器' : '收起条件编辑器'"
           :aria-expanded="String(!props.collapsed)"
           @click="$emit('toggle')"
         >
           <ChevronDown
+            class="sqb-wireframe-icon"
+            style="fill: none !important;"
             :class="{ 'is-expanded': !props.collapsed }"
-            :size="16"
+            :size="15"
             :stroke-width="1.75"
           />
         </button>
       </div>
     </div>
-    <p class="section-copy">
-      组合字段、操作符和值来描述真正要筛出的内容。
-    </p>
     <template v-if="!props.collapsed">
       <div
         v-if="store.draft.template.filters.length"
@@ -114,11 +116,11 @@
           >
             <template v-if="index > 0">
               <button
+                v-sqb-tooltip="`切换连接符，当前为 ${props.displayFilterCondition(filter.condition)}`"
                 :data-filter-condition-toggle="filter.id"
                 class="filter-row__logic"
                 :data-state="filter.condition || 'and'"
                 type="button"
-                :title="`切换条件连接词，当前为 ${props.displayFilterCondition(filter.condition)}`"
                 :aria-label="`切换条件连接词，当前为 ${props.displayFilterCondition(filter.condition)}`"
                 @click="props.toggleFilterCondition(index)"
               >
@@ -144,7 +146,7 @@
         v-else
         class="muted"
       >
-        还没有筛选条件，可以先从状态、日期、项目开始。
+        暂无筛选条件，点击上方添加。
       </p>
     </template>
   </article>
@@ -155,6 +157,7 @@ import { ChevronDown, Plus } from "lucide-vue-next"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import type { FilterOperator, QueryFilter } from "@/core/query/types"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 defineEmits<{
   toggle: []
@@ -192,3 +195,16 @@ function onFilterRowDragStart(filterId: string, event: DragEvent) {
   props.onFilterDragStart(filterId)
 }
 </script>
+
+<style scoped>
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
+}
+
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
+}
+</style>

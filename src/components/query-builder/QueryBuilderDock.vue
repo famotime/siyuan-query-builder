@@ -16,20 +16,22 @@
       </div>
       <div class="sqb-dock__header-actions">
         <button
+          v-sqb-tooltip="'在工作台页签中打开'"
           class="sqb-dock__btn-icon"
           title="在工作台页签中打开"
           aria-label="在工作台页签中打开"
           @click="openInWorkspace('tab')"
         >
-          <Maximize2 :size="15" />
+          <Maximize2 class="sqb-wireframe-icon" style="fill: none !important;" :size="15" />
         </button>
         <button
+          v-sqb-tooltip="'在弹窗中打开'"
           class="sqb-dock__btn-icon"
           title="在弹窗中打开"
           aria-label="在弹窗中打开"
           @click="openInWorkspace('dialog')"
         >
-          <Layers :size="15" />
+          <Layers class="sqb-wireframe-icon" style="fill: none !important;" :size="15" />
         </button>
       </div>
     </header>
@@ -198,6 +200,7 @@ import {
   openWorkspaceWithTemplate,
   usePlugin,
 } from "@/main"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 const dashboards = ref(SCENARIO_DASHBOARDS)
 const allPresets = ref(createPresets(DEFAULT_FIELD_MAPPINGS))

@@ -13,14 +13,16 @@
           <div class="summary__header">
             <div class="summary__icon" aria-hidden="true">
               <Database
-                :size="20"
+                class="sqb-wireframe-icon"
+                style="fill: none !important;"
+                :size="18"
                 :stroke-width="1.75"
               />
             </div>
             <div>
               <h3>查询结果预览</h3>
               <p class="muted">
-                {{ store.resultSet?.rows.length ? store.resultSummary : "实时查看匹配结果并快速编辑" }}
+                {{ store.resultSet?.rows.length ? store.resultSummary : "等待运行查询" }}
               </p>
             </div>
           </div>
@@ -36,7 +38,8 @@
                 @click="selectResultViewType('table')"
               >
                 <Table
-                  class="tabs__icon"
+                  class="tabs__icon sqb-wireframe-icon"
+                  style="fill: none !important;"
                   :size="14"
                   :stroke-width="1.75"
                 />
@@ -50,7 +53,8 @@
                 @click="selectResultViewType('board')"
               >
                 <Kanban
-                  class="tabs__icon"
+                  class="tabs__icon sqb-wireframe-icon"
+                  style="fill: none !important;"
                   :size="14"
                   :stroke-width="1.75"
                 />
@@ -64,7 +68,8 @@
                 @click="selectResultViewType('list')"
               >
                 <List
-                  class="tabs__icon"
+                  class="tabs__icon sqb-wireframe-icon"
+                  style="fill: none !important;"
                   :size="14"
                   :stroke-width="1.75"
                 />
@@ -78,7 +83,8 @@
                 @click="selectResultViewType('cards')"
               >
                 <LayoutGrid
-                  class="tabs__icon"
+                  class="tabs__icon sqb-wireframe-icon"
+                  style="fill: none !important;"
                   :size="14"
                   :stroke-width="1.75"
                 />
@@ -92,7 +98,8 @@
                 @click="selectResultViewType('calendar')"
               >
                 <Calendar
-                  class="tabs__icon"
+                  class="tabs__icon sqb-wireframe-icon"
+                  style="fill: none !important;"
                   :size="14"
                   :stroke-width="1.75"
                 />
@@ -106,7 +113,8 @@
                 @click="selectResultViewType('chart')"
               >
                 <BarChart3
-                  class="tabs__icon"
+                  class="tabs__icon sqb-wireframe-icon"
+                  style="fill: none !important;"
                   :size="14"
                   :stroke-width="1.75"
                 />
@@ -115,17 +123,19 @@
             </div>
           </div>
           <button
+            v-sqb-tooltip="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
             class="section-toggle"
             data-results-preview-toggle
             type="button"
-            :title="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
             :aria-label="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
             :aria-expanded="String(!resultsCollapsed)"
             @click="resultsCollapsed = !resultsCollapsed"
           >
             <ChevronDown
+              class="sqb-wireframe-icon"
+              style="fill: none !important;"
               :class="{ 'is-expanded': !resultsCollapsed }"
-              :size="16"
+              :size="15"
               :stroke-width="1.75"
             />
           </button>
@@ -174,8 +184,9 @@
           data-results-empty
         >
           <Inbox
-            class="empty__icon"
-            :size="42"
+            class="empty__icon sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="38"
             :stroke-width="1.5"
           />
           <h4>结果会在这里出现</h4>
@@ -261,6 +272,7 @@ import type { CalendarTaskItem } from "@/core/dashboard/types"
 import type { ViewType } from "@/core/query/types"
 import { buildBarDistributionOption } from "@/core/view/chart"
 import { showMessage } from "@/external/siyuan"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 const store = useQueryBuilderStore()
 
@@ -351,13 +363,13 @@ async function selectResultViewType(type: ViewType) {
 <style lang="scss" scoped>
 .results {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .card {
-  min-height: 560px;
-  padding: 20px;
-  border-radius: 20px;
+  min-height: 480px;
+  padding: 16px;
+  border-radius: 12px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-soft);
@@ -373,11 +385,11 @@ async function selectResultViewType(type: ViewType) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 14px;
 }
 
 .section-head {
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--sqb-border);
 }
 
@@ -390,7 +402,7 @@ async function selectResultViewType(type: ViewType) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
 }
 
 .summary {
@@ -410,22 +422,22 @@ async function selectResultViewType(type: ViewType) {
 .summary__header {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .summary__icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   background: var(--sqb-primary-soft);
   color: var(--sqb-primary);
 }
 
 .summary__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 h3,
@@ -434,160 +446,42 @@ h4 {
 }
 
 h3 {
-  font-size: 18px;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.2;
-  font-family: var(--sqb-serif);
 }
 
 .muted {
   margin: 0;
   color: var(--sqb-text-muted);
-  font: 13px/1.55 var(--sqb-sans);
+  font: 12px/1.4 var(--sqb-sans);
 }
 
 .control {
   width: 100%;
   box-sizing: border-box;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--sqb-border);
   background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);
   transition: border-color 140ms ease, box-shadow 140ms ease;
-}
 
-.control::placeholder {
-  color: var(--sqb-text-muted);
-  opacity: 0.6;
-}
-
-.control:hover {
-  border-color: var(--sqb-border-strong);
-}
-
-.control:focus {
-  outline: none;
-  border-color: var(--sqb-primary);
-  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 32px;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 0 12px;
-  background: transparent;
-  cursor: pointer;
-  font: 600 13px/1.2 var(--sqb-sans);
-}
-
-.tabs__item:hover {
-  background: var(--sqb-bg-strong);
-}
-
-.btn--ghost {
-  background: transparent;
-  color: var(--sqb-text-muted);
-  border-color: var(--sqb-border-strong);
-}
-
-.btn--ghost:hover {
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text);
-}
-
-.saved-views {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-soft);
-}
-
-.saved-views__head,
-.saved-views__actions,
-.saved-views__main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.saved-views__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 12px;
-}
-
-.saved-views__item {
-  display: grid;
-  gap: 10px;
-  min-height: 100px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface);
-}
-
-.saved-views__item--active {
-  border-color: var(--sqb-primary);
-  background: var(--sqb-primary-soft);
-}
-
-.saved-views__main {
-  border: none;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-  color: inherit;
-  justify-content: flex-start;
-  align-items: flex-start;
-  min-height: 42px;
-}
-
-.saved-views__delete {
-  margin-right: -2px;
-}
-
-.saved-views__actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 8px;
-}
-
-.saved-views__actions .btn {
-  width: 100%;
-  height: 32px;
-  padding: 0 12px;
-  justify-content: center;
-}
-
-.saved-views__badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--sqb-primary-soft);
-  color: var(--sqb-primary-strong);
-  font: 700 12px/1.2 var(--sqb-sans);
+  &:focus {
+    outline: none;
+    border-color: var(--sqb-primary);
+    box-shadow: 0 0 0 2px var(--sqb-primary-soft);
+  }
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 10px;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
   background: var(--sqb-bg-strong);
   border: 1px solid var(--sqb-border);
 }
@@ -595,15 +489,20 @@ h3 {
 .tabs__item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: background 80ms ease, color 80ms ease;
+  gap: 5px;
+  transition: all 120ms ease;
   border: none;
   cursor: pointer;
-  padding: 5px 12px;
-  border-radius: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
   background: transparent;
   color: var(--sqb-text-muted);
-  font: 600 13px/1.2 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
+
+  &:hover {
+    background: var(--sqb-surface);
+    color: var(--sqb-text);
+  }
 }
 
 .tabs__icon {
@@ -612,398 +511,92 @@ h3 {
 
 .tabs__item--active {
   background: var(--sqb-surface-strong);
-  color: var(--sqb-primary-strong);
-  box-shadow: 0 1px 4px rgba(57, 61, 52, 0.08);
-}
-
-.btn__icon {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 auto;
-}
-
-.alert {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--sqb-danger-soft);
-  color: var(--sqb-danger);
-  font: 13px/1.45 var(--sqb-sans);
-}
-
-:deep(.advanced-panel) {
-  margin-top: 14px;
-  border-radius: 16px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-soft);
-  overflow: hidden;
-}
-
-:deep(.advanced-panel__head) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 18px;
-}
-
-:deep(.advanced-panel__copy) {
-  display: grid;
-  gap: 3px;
-}
-
-:deep(.advanced-panel__eyebrow) {
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
   color: var(--sqb-primary);
-  font: 700 11px/1.2 var(--sqb-sans);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-:deep(.advanced-panel__copy strong) {
-  font: 700 15px/1.25 var(--sqb-sans);
-  color: var(--sqb-text);
-}
-
-:deep(.advanced-panel__copy span:last-child) {
-  color: var(--sqb-text-muted);
-  font: 13px/1.45 var(--sqb-sans);
-}
-
-:deep(.section-toggle) {
+.section-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: 1px solid var(--sqb-border);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--sqb-surface);
   color: var(--sqb-text-muted);
   cursor: pointer;
+  transition: all 120ms ease;
+
+  &:hover {
+    background: var(--sqb-bg-strong);
+    color: var(--sqb-primary);
+  }
 }
 
-:deep(.section-toggle:hover) {
-  background: var(--sqb-bg-strong);
-}
-
-:deep(.section-toggle svg) {
-  width: 16px;
-  height: 16px;
+.section-toggle svg {
   transition: transform 140ms ease;
 }
 
-:deep(.section-toggle svg.is-expanded) {
+.section-toggle svg.is-expanded {
   transform: rotate(180deg);
 }
 
-:deep(.sql-box) {
-  padding: 0 18px 18px;
-}
-
-:deep(.sql-box__surface) {
-  overflow: hidden;
-  border-radius: 14px;
-  border: 1px solid var(--sqb-border-strong);
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 42%),
-    var(--sqb-bg-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-:deep(.sql-box__toolbar) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--sqb-border);
-  background: rgba(255, 255, 255, 0.22);
-}
-
-:deep(.sql-box__actions) {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-:deep(.sql-box__language) {
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--sqb-text-muted);
-  font: 700 11px/1.2 var(--sqb-mono);
-}
-
-:deep(.sql-box__collapse) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 28px;
-  padding: 0 10px;
+.alert {
+  margin-top: 10px;
+  padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--sqb-text-muted);
-  cursor: pointer;
-  font: 600 12px/1 var(--sqb-sans);
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
-}
+  background: var(--sqb-danger-soft);
+  color: var(--sqb-danger);
+  font: 12px/1.4 var(--sqb-sans);
 
-:deep(.sql-box__collapse:hover) {
-  border-color: var(--sqb-border);
-  background: var(--sqb-surface);
-  color: var(--sqb-text);
-}
-
-:deep(.sql-box__collapse:focus-visible) {
-  outline: 2px solid var(--sqb-primary);
-  outline-offset: 2px;
-}
-
-:deep(.sql-box__copy) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--sqb-text-muted);
-  cursor: pointer;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease, opacity 80ms ease;
-}
-
-:deep(.sql-box__copy:hover:not(:disabled)) {
-  border-color: var(--sqb-border);
-  background: var(--sqb-surface);
-  color: var(--sqb-text);
-}
-
-:deep(.sql-box__copy:focus-visible) {
-  outline: 2px solid var(--sqb-primary);
-  outline-offset: 2px;
-}
-
-:deep(.sql-box__copy:disabled) {
-  cursor: default;
-  opacity: 0.4;
-}
-
-:deep(.sql-box__copy svg) {
-  width: 16px;
-  height: 16px;
-}
-
-:deep(.sql-box__code) {
-  margin: 0;
-  padding: 14px 16px 16px;
-  color: var(--sqb-text);
-  white-space: pre-wrap;
-  word-break: break-word;
-  font: 12px/1.55 var(--sqb-mono);
-}
-
-:deep(.sql-box__code code) {
-  font: inherit;
+  &--warning {
+    background: var(--sqb-accent-soft);
+    color: var(--sqb-accent);
+  }
 }
 
 .empty {
-  min-height: 280px;
-  margin-top: 16px;
+  min-height: 220px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   text-align: center;
-  border-radius: 16px;
+  border-radius: 10px;
   border: 1px dashed var(--sqb-border-strong);
   background: var(--sqb-surface-soft);
 }
 
 .empty__icon {
-  position: relative;
-  width: 48px;
-  height: 48px;
-}
-
-.empty__icon::before,
-.empty__icon::after {
-  content: '';
-  position: absolute;
-}
-
-.empty__icon::before {
-  inset: 4px 8px 8px 4px;
-  border: 3px solid var(--sqb-border-strong);
-  border-radius: 50%;
-}
-
-.empty__icon::after {
-  right: 4px;
-  bottom: 2px;
-  width: 16px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--sqb-border-strong);
-  transform: rotate(48deg);
-  transform-origin: center;
+  color: var(--sqb-text-muted);
+  opacity: 0.6;
 }
 
 .empty h4 {
-  font-size: 15px;
-  color: var(--sqb-text-muted);
+  font-size: 13px;
+  color: var(--sqb-text);
+  font-weight: 600;
 }
 
 .empty p {
   margin: 0;
   color: var(--sqb-text-muted);
-  font: 13px/1.5 var(--sqb-sans);
-  max-width: 420px;
+  font: 12px/1.4 var(--sqb-sans);
+  max-width: 320px;
 }
 
-:deep(.table-wrap) {
-  margin-top: 12px;
-  overflow: auto;
-  border-radius: 12px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-strong);
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
 }
 
-:deep(.table) {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-:deep(.table th),
-:deep(.table td) {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--sqb-border);
-  text-align: left;
-  vertical-align: top;
-  font: 13px/1.45 var(--sqb-sans);
-}
-
-:deep(.table th) {
-  position: sticky;
-  top: 0;
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font: 600 11px/1.3 var(--sqb-sans);
-}
-
-:deep(.link) {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--sqb-primary-strong);
-  cursor: pointer;
-  text-align: left;
-  font: 600 13px/1.45 var(--sqb-sans);
-}
-
-:deep(.link--block) {
-  display: block;
-  margin-bottom: 10px;
-}
-
-:deep(.board) {
-  margin-top: 14px;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(260px, 1fr);
-  gap: 16px;
-  overflow-x: auto;
-}
-
-:deep(.board__column) {
-  min-height: 280px;
-  padding: 14px;
-  border-radius: 16px;
-  background: var(--sqb-surface-soft);
-  border: 1px solid var(--sqb-border);
-}
-
-:deep(.board__head) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-:deep(.board__card) {
-  margin-bottom: 8px;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--sqb-surface);
-  border: 1px solid var(--sqb-border);
-  cursor: grab;
-}
-
-:deep(.tokens) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-:deep(.tokens span),
-:deep(.board__count) {
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--sqb-accent-soft);
-  color: var(--sqb-accent);
-  font: 600 12px/1.2 var(--sqb-sans);
-}
-
-:deep(.list) {
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-:deep(.list__item),
-:deep(.cards__item) {
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--sqb-surface);
-  border: 1px solid var(--sqb-border);
-}
-
-:deep(.list__meta),
-:deep(.cards__item span) {
-  color: var(--sqb-text-muted);
-  font: 13px/1.4 var(--sqb-sans);
-}
-
-:deep(.list__main) {
-  display: grid;
-  gap: 8px;
-}
-
-:deep(.list__meta) {
-  display: block;
-  margin: 0;
-  padding-left: 1px;
-}
-
-:deep(.cards) {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
-
-:deep(.cards__item strong) {
-  display: block;
-  margin-bottom: 4px;
-  font: 700 22px/1.1 var(--sqb-serif);
-  color: var(--sqb-primary-strong);
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
 }
 
 @media (max-width: 720px) {
@@ -1019,10 +612,6 @@ h3 {
 
   .section-toggle {
     align-self: flex-end;
-  }
-
-  .tabs__item {
-    flex: 1 1 calc(50% - 6px);
   }
 }
 </style>

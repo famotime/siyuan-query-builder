@@ -1,19 +1,23 @@
 <template>
   <button
+    v-sqb-tooltip="title"
     class="delete-icon-button"
     type="button"
     :title="title"
     :aria-label="ariaLabel || title"
   >
     <Trash2
-      :size="17"
+      class="sqb-wireframe-icon"
+      style="fill: none !important;"
+      :size="16"
       :stroke-width="1.75"
     />
   </button>
 </template>
 
 <script setup lang="ts">
-import { Trash2 } from 'lucide-vue-next'
+import { Trash2 } from "lucide-vue-next"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{
   title: string
@@ -29,16 +33,19 @@ defineProps<{
   width: 28px;
   height: 28px;
   padding: 0;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
   background: transparent;
   color: var(--sqb-text-muted);
   cursor: pointer;
   flex: 0 0 auto;
-  transition: color 140ms ease, opacity 140ms ease;
+  transition: all 140ms ease;
 }
 
 .delete-icon-button:hover {
   color: var(--sqb-danger);
+  background: var(--sqb-danger-soft);
+  border-color: var(--sqb-danger-soft);
 }
 
 .delete-icon-button:focus-visible {
@@ -52,11 +59,13 @@ defineProps<{
   opacity: 0.45;
 }
 
-.delete-icon-button :deep(svg) {
+.delete-icon-button :deep(svg),
+.sqb-wireframe-icon {
   fill: none !important;
 }
 
-.delete-icon-button :deep(svg *) {
+.delete-icon-button :deep(svg *),
+.sqb-wireframe-icon * {
   fill: none !important;
   stroke: currentColor;
 }

@@ -3,7 +3,12 @@
     <!-- 左侧分类指示与参数过滤器 -->
     <div class="tuning-bar__controls">
       <div class="tuning-bar__lead">
-        <SlidersHorizontal class="wireframe-icon" :size="14" />
+        <SlidersHorizontal
+          class="sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="14"
+          :stroke-width="1.75"
+        />
         <span class="tuning-bar__title">{{ definition.title }}</span>
         <span class="tuning-bar__badge">{{ categoryLabel }}</span>
       </div>
@@ -72,22 +77,32 @@
     <!-- 右侧操作区：直观线框图标 + Tooltip -->
     <div class="tuning-bar__actions">
       <button
+        v-sqb-tooltip="'根据当前参数重新计算并刷新'"
         class="tuning-bar__icon-btn tuning-bar__icon-btn--primary"
         type="button"
-        title="根据当前参数重新计算并刷新"
         aria-label="根据当前参数重新计算并刷新"
         @click="$emit('refresh')"
       >
-        <RotateCw class="wireframe-icon" :size="15" />
+        <RotateCw
+          class="sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="14"
+          :stroke-width="1.75"
+        />
       </button>
       <button
+        v-sqb-tooltip="'将当前大盘另存为可复用查询模板'"
         class="tuning-bar__icon-btn"
         type="button"
-        title="将当前大盘另存为可复用查询模板"
         aria-label="将当前大盘另存为可复用查询模板"
         @click="$emit('saveAsTemplate')"
       >
-        <BookmarkPlus class="wireframe-icon" :size="15" />
+        <BookmarkPlus
+          class="sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="14"
+          :stroke-width="1.75"
+        />
       </button>
     </div>
   </header>
@@ -97,6 +112,7 @@
 import { computed } from "vue"
 import { BookmarkPlus, RotateCw, SlidersHorizontal } from "lucide-vue-next"
 import type { DashboardDefinition } from "@/core/dashboard/types"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 const props = defineProps<{
   definition: DashboardDefinition
@@ -119,7 +135,7 @@ const categoryLabels: Record<string, string> = {
 }
 
 const categoryLabel = computed(() => {
-  return categoryLabels[props.definition.category] || "场景化大盘"
+  return categoryLabels[props.definition.category] || "场景大盘"
 })
 
 function onParamChange(id: string, val: any) {
@@ -133,11 +149,11 @@ function onParamChange(id: string, val: any) {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 8px 14px;
+  gap: 10px;
+  padding: 8px 12px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: var(--sqb-shadow-soft);
   backdrop-filter: blur(16px);
   margin-bottom: 8px;
@@ -147,7 +163,7 @@ function onParamChange(id: string, val: any) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .tuning-bar__lead {
@@ -166,11 +182,11 @@ function onParamChange(id: string, val: any) {
 
 .tuning-bar__badge {
   display: inline-flex;
-  padding: 2px 8px;
-  font-size: 11px;
+  padding: 1px 7px;
+  font-size: 10px;
   font-weight: 600;
   border-radius: 999px;
-  background: var(--sqb-primary-soft, rgba(45, 106, 79, 0.12));
+  background: var(--sqb-primary-soft);
   color: var(--sqb-primary);
 }
 
@@ -196,7 +212,7 @@ function onParamChange(id: string, val: any) {
   background: var(--sqb-surface-strong);
   color: var(--sqb-text);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: all 120ms ease;
 }
 
 .tuning-bar__input:focus {
@@ -205,15 +221,15 @@ function onParamChange(id: string, val: any) {
 }
 
 .tuning-bar__select {
-  min-width: 110px;
+  min-width: 100px;
 }
 
 .tuning-bar__number {
-  width: 72px;
+  width: 68px;
 }
 
 .tuning-bar__text {
-  min-width: 100px;
+  min-width: 90px;
 }
 
 .tuning-bar__actions {
@@ -234,7 +250,7 @@ function onParamChange(id: string, val: any) {
   background: var(--sqb-surface-strong);
   color: var(--sqb-text-muted);
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: all 120ms ease;
 }
 
 .tuning-bar__icon-btn:hover {
@@ -251,16 +267,12 @@ function onParamChange(id: string, val: any) {
   background: var(--sqb-primary-soft);
 }
 
-.wireframe-icon {
-  fill: none !important;
-  stroke: currentColor;
-  stroke-width: 1.75;
-}
-
+.sqb-wireframe-icon,
 :deep(svg) {
   fill: none !important;
 }
 
+.sqb-wireframe-icon *,
 :deep(svg *) {
   fill: none !important;
   stroke: currentColor;

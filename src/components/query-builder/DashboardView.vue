@@ -78,7 +78,7 @@
       class="dashboard-view__calendar-section"
     >
       <h3 class="dashboard-view__section-title">
-        <CalendarDays class="wireframe-icon" :size="16" />
+        <CalendarDays class="wireframe-icon sqb-wireframe-icon" style="fill: none !important;" :size="16" />
         <span>事项月历总览</span>
       </h3>
       <ResultsCalendarView
@@ -94,7 +94,7 @@
       class="dashboard-view__board-section"
     >
       <h3 class="dashboard-view__section-title">
-        <Kanban class="wireframe-icon" :size="16" />
+        <Kanban class="wireframe-icon sqb-wireframe-icon" style="fill: none !important;" :size="16" />
         <span>阶段推进流转看板</span>
       </h3>
       <div class="dashboard-view__board">
@@ -128,7 +128,7 @@
       class="dashboard-view__list-section"
     >
       <h3 class="dashboard-view__section-title">
-        <ListTodo class="wireframe-icon" :size="16" />
+        <ListTodo class="wireframe-icon sqb-wireframe-icon" style="fill: none !important;" :size="16" />
         <span>待办与核心明细清单</span>
       </h3>
       <ul class="dashboard-view__list">

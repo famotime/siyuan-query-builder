@@ -7,9 +7,6 @@
       <div class="embed-card__copy">
         <span class="embed-card__eyebrow">Embed</span>
         <h4>嵌入到文档</h4>
-        <p class="muted">
-          选择目标文档或父块 ID，生成可插入到当前内容流中的查询嵌入块。
-        </p>
       </div>
     </div>
 
@@ -28,6 +25,7 @@
             @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
           >
           <button
+            v-sqb-tooltip="'快速选取已打开文档或历史 ID'"
             class="embed-target-picker__toggle"
             data-embed-target-toggle
             type="button"
@@ -36,7 +34,8 @@
             @click="toggleEmbedTargetMenu"
           >
             <ChevronDown
-              class="embed-target-picker__chevron"
+              class="embed-target-picker__chevron sqb-wireframe-icon"
+              style="fill: none !important;"
               :class="{ 'is-open': embedTargetMenuOpen }"
               :size="14"
               :stroke-width="1.75"
@@ -95,7 +94,7 @@
               v-if="!currentDocumentTarget && !otherOpenDocumentOptions.length && !recentTargetOptions.length"
               class="embed-target-menu__empty"
             >
-              暂无当前文档、已打开文档或历史 ID，可直接输入。
+              暂无可识别目标，可直接输入文档或块 ID。
             </p>
           </div>
         </div>
@@ -105,12 +104,15 @@
       </div>
 
       <button
+        v-sqb-tooltip="'生成并插入当前查询的动态嵌入块'"
         class="btn btn--embed"
+        aria-label="生成嵌入块"
         @click="emit('insert')"
       >
         <Sparkles
-          class="btn__icon"
-          :size="16"
+          class="btn__icon sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="15"
           :stroke-width="1.75"
         />
         生成嵌入块
@@ -124,6 +126,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { ChevronDown, Sparkles } from "lucide-vue-next"
 
 import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 const props = defineProps<{
   currentDocumentTarget: ActiveDocumentTarget | null
@@ -186,8 +189,8 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .embed-card {
-  padding: 20px;
-  border-radius: 20px;
+  padding: 16px;
+  border-radius: 12px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-soft);
@@ -195,47 +198,47 @@ onBeforeUnmount(() => {
 }
 
 .embed-card__head {
-  padding-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--sqb-border);
 }
 
 .embed-card__copy {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .embed-card__eyebrow {
   color: var(--sqb-primary);
-  font: 700 11px/1.2 var(--sqb-sans);
-  letter-spacing: 0.14em;
+  font: 700 10px/1.1 var(--sqb-sans);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .embed-card__copy h4 {
   margin: 0;
-  font: 700 18px/1.2 var(--sqb-serif);
+  font: 600 15px/1.2 var(--sqb-sans);
   color: var(--sqb-text);
 }
 
 .embed-card__body {
-  margin-top: 18px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .embed-targets {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   flex: 1 1 auto;
   min-width: 0;
 }
 
 .embed-targets__label {
   color: var(--sqb-primary);
-  font: 700 11px/1.2 var(--sqb-sans);
+  font: 700 10px/1.2 var(--sqb-sans);
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
 }
 
 .embed-target-picker {
@@ -247,13 +250,21 @@ onBeforeUnmount(() => {
   top: 4px;
   right: 4px;
   bottom: 4px;
-  width: 38px;
+  width: 32px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   color: var(--sqb-text-muted);
   cursor: pointer;
-  font: 600 16px/1 var(--sqb-sans);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 120ms ease;
+
+  &:hover {
+    color: var(--sqb-primary);
+    background: var(--sqb-surface-soft);
+  }
 }
 
 .embed-target-picker__chevron {
@@ -272,9 +283,9 @@ onBeforeUnmount(() => {
   right: 0;
   z-index: 20;
   display: grid;
-  gap: 6px;
-  padding: 8px;
-  border-radius: 12px;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 8px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-strong);
   box-shadow: var(--sqb-shadow-strong);
@@ -283,35 +294,36 @@ onBeforeUnmount(() => {
 .embed-target-menu__section {
   padding: 4px 6px 0;
   color: var(--sqb-text-muted);
-  font: 600 12px/1.4 var(--sqb-sans);
+  font: 600 11px/1.3 var(--sqb-sans);
 }
 
 .embed-target-menu__item {
   display: grid;
   gap: 2px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--sqb-surface-soft);
   color: var(--sqb-text);
   cursor: pointer;
   text-align: left;
-}
+  transition: background 120ms ease;
 
-.embed-target-menu__item:hover {
-  background: var(--sqb-primary-soft);
+  &:hover {
+    background: var(--sqb-primary-soft);
+  }
 }
 
 .embed-target-menu__item strong {
-  font: 600 13px/1.4 var(--sqb-sans);
+  font: 600 12px/1.35 var(--sqb-sans);
 }
 
 .embed-target-menu__item small,
 .embed-target-menu__eyebrow,
 .embed-target-menu__empty {
   color: var(--sqb-text-muted);
-  font: 12px/1.4 var(--sqb-sans);
+  font: 11px/1.35 var(--sqb-sans);
 }
 
 .embed-target-menu__eyebrow {
@@ -326,7 +338,7 @@ onBeforeUnmount(() => {
 .muted {
   margin: 0;
   color: var(--sqb-text-muted);
-  font: 13px/1.55 var(--sqb-sans);
+  font: 12px/1.45 var(--sqb-sans);
 }
 
 .muted--embed-target {
@@ -340,33 +352,24 @@ onBeforeUnmount(() => {
   width: 100%;
   box-sizing: border-box;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--sqb-border);
   background-color: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
   font: 13px/1.4 var(--sqb-sans);
   transition: border-color 140ms ease, box-shadow 140ms ease;
-}
 
-.control::placeholder {
-  color: var(--sqb-text-muted);
-  opacity: 0.6;
-}
-
-.control:hover {
-  border-color: var(--sqb-border-strong);
+  &:focus {
+    outline: none;
+    border-color: var(--sqb-primary);
+    box-shadow: 0 0 0 2px var(--sqb-primary-soft);
+  }
 }
 
 .control--embed-merged {
-  min-width: 320px;
-  padding-right: 50px;
-}
-
-.control:focus {
-  outline: none;
-  border-color: var(--sqb-primary);
-  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+  min-width: 280px;
+  padding-right: 42px;
 }
 
 .btn {
@@ -375,30 +378,45 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 6px;
   height: 32px;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+  transition: all 120ms ease;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 0 12px;
   background: transparent;
   cursor: pointer;
-  font: 600 13px/1.2 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
   white-space: nowrap;
 }
 
 .btn__icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   flex: 0 0 auto;
 }
 
 .btn--embed {
   flex: 0 0 auto;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 10px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
   background: var(--sqb-primary);
   color: #ffffff;
   border: none;
+
+  &:hover {
+    background: var(--sqb-primary-strong);
+  }
+}
+
+.sqb-wireframe-icon,
+:deep(svg) {
+  fill: none !important;
+}
+
+.sqb-wireframe-icon *,
+:deep(svg *) {
+  fill: none !important;
+  stroke: currentColor;
 }
 
 @media (max-width: 720px) {

@@ -8,6 +8,8 @@
     <component
       :is="iconComponent"
       v-if="iconComponent"
+      class="sqb-wireframe-icon"
+      style="fill: none !important;"
       :size="numericSize"
       :stroke-width="strokeWidth"
     />

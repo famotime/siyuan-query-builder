@@ -4,19 +4,26 @@
     <template v-if="store.activeDashboardViewModel">
       <div class="topbar__draft-line">
         <button
+          v-sqb-tooltip="sidebarVisible ? '折叠侧边栏' : '展开侧边栏'"
           class="btn btn--ghost btn--icon-only"
           type="button"
-          :title="sidebarVisible ? '折叠侧边栏' : '展开侧边栏'"
           :aria-label="sidebarVisible ? '折叠侧边栏' : '展开侧边栏'"
           @click="toggleSidebar?.()"
         >
           <LayoutPanelLeft
+            class="sqb-wireframe-icon"
+            style="fill: none !important;"
             :size="16"
             :stroke-width="1.75"
           />
         </button>
         <div class="topbar__dashboard-badge">
-          <Sparkles class="topbar__sparkle-icon" :size="15" />
+          <Sparkles
+            class="topbar__sparkle-icon sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="14"
+            :stroke-width="1.75"
+          />
           <span class="topbar__badge-label">场景仪表板</span>
         </div>
         <select
@@ -36,41 +43,44 @@
       </div>
       <div class="actions">
         <button
+          v-sqb-tooltip="'返回常规查询构建'"
           class="btn btn--ghost btn--icon-only"
           type="button"
-          title="返回常规查询构建"
           aria-label="返回常规查询构建"
           @click="store.closeDashboard?.()"
         >
           <ArrowLeft
-            class="btn__icon wireframe-icon"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
             :size="16"
             :stroke-width="1.75"
           />
         </button>
         <button
+          v-sqb-tooltip="'保存为定制模板'"
           class="btn btn--ghost btn--icon-only"
           type="button"
-          title="保存为定制模板"
           aria-label="保存为定制模板"
           @click="store.saveDashboardAsTemplate?.()"
         >
           <BookmarkPlus
-            class="btn__icon wireframe-icon"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
             :size="16"
             :stroke-width="1.75"
           />
         </button>
         <button
+          v-sqb-tooltip="'重新计算并刷新大盘'"
           class="btn btn--solid btn--icon-only"
           :disabled="store.activeDashboardLoading"
           type="button"
-          title="重新计算并刷新大盘"
           aria-label="重新计算并刷新大盘"
           @click="store.runActiveDashboard?.()"
         >
           <RotateCw
-            class="btn__icon wireframe-icon"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
             :class="{ 'is-spinning': store.activeDashboardLoading }"
             :size="16"
             :stroke-width="1.75"
@@ -83,20 +93,19 @@
     <template v-else>
       <div class="topbar__draft-line">
         <button
+          v-sqb-tooltip="sidebarVisible ? '折叠侧边栏' : '展开侧边栏'"
           class="btn btn--ghost btn--icon-only"
           type="button"
-          :title="sidebarVisible ? '折叠侧边栏' : '展开侧边栏'"
           :aria-label="sidebarVisible ? '折叠侧边栏' : '展开侧边栏'"
           @click="toggleSidebar?.()"
         >
           <LayoutPanelLeft
+            class="sqb-wireframe-icon"
+            style="fill: none !important;"
             :size="16"
             :stroke-width="1.75"
           />
         </button>
-        <h2 class="topbar__title">
-          查询草稿
-        </h2>
         <input
           v-model="store.draft.template.name"
           class="title-input"
@@ -104,10 +113,12 @@
         >
       </div>
       <div class="actions">
+        <!-- 场景仪表板直达选择 -->
         <div class="topbar__dashboard-jump">
           <select
             class="dashboard-jump-select"
             value=""
+            aria-label="场景仪表板直达"
             @change="(e) => {
               const val = (e.target as HTMLSelectElement).value
               if (val) {
@@ -121,7 +132,7 @@
               disabled
               selected
             >
-              🌟 场景仪表板直达...
+              场景仪表板...
             </option>
             <option
               v-for="d in store.dashboards"
@@ -132,47 +143,70 @@
             </option>
           </select>
         </div>
-        <span
-          class="dirty-indicator"
-          :class="{ 'dirty-indicator--saved': !store.isDirty }"
-        >{{ store.isDirty ? store.t("dirtyUnsaved") : store.t("dirtySaved") }}</span>
+
+        <!-- 状态指示器 -->
+        <div
+          v-sqb-tooltip="store.isDirty ? '有未保存变更' : '已保存'"
+          class="dirty-indicator-wrap"
+        >
+          <span
+            class="dirty-dot"
+            :class="{ 'dirty-dot--active': store.isDirty }"
+          />
+          <span
+            class="dirty-indicator"
+            :class="{ 'dirty-indicator--saved': !store.isDirty }"
+          >{{ store.isDirty ? store.t("dirtyUnsaved") : store.t("dirtySaved") }}</span>
+        </div>
+
         <button
+          v-sqb-tooltip="'新建空白查询草稿'"
           class="btn btn--ghost"
           data-topbar-reset
           type="button"
+          aria-label="新建查询"
           @click="store.resetDraft"
         >
           <Plus
-            class="btn__icon"
-            :size="16"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="15"
             :stroke-width="1.75"
           />
-          新建查询
+          <span class="btn__label">新建查询</span>
         </button>
+
         <button
+          v-sqb-tooltip="'保存当前条件为模板 (Ctrl+S)'"
           class="btn btn--ghost"
           :disabled="store.saving"
           type="button"
+          aria-label="保存模板"
           @click="store.saveTemplate"
         >
-          <Save
-            class="btn__icon"
-            :size="16"
+          <BookmarkPlus
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="15"
             :stroke-width="1.75"
           />
-          {{ store.saving ? "保存中..." : "保存模板" }}
+          <span class="btn__label">{{ store.saving ? "保存中..." : "保存模板" }}</span>
         </button>
+
         <button
+          v-sqb-tooltip="'运行当前查询 (Ctrl+Enter)'"
           class="btn btn--solid"
           :disabled="store.loading"
+          aria-label="运行查询"
           @click="store.runQuery"
         >
           <Play
-            class="btn__icon"
-            :size="16"
+            class="btn__icon sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="15"
             :stroke-width="1.75"
           />
-          {{ store.loading ? "运行中..." : "运行查询" }}
+          <span class="btn__label">{{ store.loading ? "运行中..." : "运行查询" }}</span>
         </button>
       </div>
     </template>
@@ -180,8 +214,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Ref } from 'vue'
-import { inject, ref } from 'vue'
+import type { Ref } from "vue"
+import { inject, ref } from "vue"
 import {
   ArrowLeft,
   BookmarkPlus,
@@ -189,14 +223,14 @@ import {
   Play,
   Plus,
   RotateCw,
-  Save,
   Sparkles,
-} from 'lucide-vue-next'
+} from "lucide-vue-next"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import { vSqbTooltip } from "@/ui/tooltip"
 
 const store = useQueryBuilderStore()
-const toggleSidebar = inject<() => void>('toggleSidebar', () => {})
-const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
+const toggleSidebar = inject<() => void>("toggleSidebar", () => {})
+const sidebarVisible = inject<Ref<boolean>>("sidebarVisible", ref(true))
 </script>
 
 <style lang="scss" scoped>
@@ -205,16 +239,16 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
 .topbar {
-  padding: 14px 18px;
-  border-radius: 24px;
+  padding: 10px 16px;
+  border-radius: 12px;
   background: var(--sqb-surface);
   border: 1px solid var(--sqb-border);
   box-shadow: var(--sqb-shadow-soft);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(16px);
 }
 
 .topbar__draft-line {
@@ -222,31 +256,29 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
-  gap: 18px;
-}
-
-.topbar__title {
-  margin: 0;
-  flex: 0 0 auto;
-  color: var(--sqb-primary);
-  font: 700 18px/1.2 var(--sqb-serif);
-  white-space: nowrap;
+  gap: 12px;
 }
 
 .title-input {
   width: 100%;
   box-sizing: border-box;
   flex: 1 1 360px;
-  min-width: 220px;
-  max-width: 680px;
+  min-width: 180px;
+  max-width: 540px;
   height: 32px;
   background: var(--sqb-surface-strong);
   border: 1px solid var(--sqb-border);
   padding: 0 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--sqb-text);
-  font: 13px/1.4 var(--sqb-sans);
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  font: 600 13px/1.4 var(--sqb-sans);
+  transition: all 140ms ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--sqb-primary);
+    box-shadow: 0 0 0 2px var(--sqb-primary-soft);
+  }
 }
 
 .topbar__dashboard-badge {
@@ -255,9 +287,9 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--sqb-primary-soft, rgba(74, 124, 89, 0.12));
+  background: var(--sqb-primary-soft);
   color: var(--sqb-primary);
-  font: 700 12px/1.2 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
   flex-shrink: 0;
 }
 
@@ -268,12 +300,12 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
 .dashboard-select,
 .dashboard-jump-select {
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--sqb-border);
   background: var(--sqb-surface-strong);
   color: var(--sqb-text);
   padding: 0 10px;
-  font: 600 13px/1.4 var(--sqb-sans);
+  font: 500 12px/1.4 var(--sqb-sans);
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s ease;
@@ -285,9 +317,14 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
 }
 
 .dashboard-jump-select {
-  border-color: var(--sqb-primary);
-  color: var(--sqb-primary);
-  background: var(--sqb-primary-soft, rgba(74, 124, 89, 0.08));
+  border-color: var(--sqb-border);
+  color: var(--sqb-text-muted);
+  background: var(--sqb-surface-soft);
+
+  &:hover {
+    color: var(--sqb-primary);
+    border-color: var(--sqb-primary);
+  }
 }
 
 .topbar__desc-hint {
@@ -308,16 +345,35 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   to { transform: rotate(360deg); }
 }
 
+.dirty-indicator-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.dirty-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sqb-primary);
+  transition: all 140ms ease;
+  flex-shrink: 0;
+
+  &--active {
+    background: var(--sqb-accent);
+    box-shadow: 0 0 0 2px var(--sqb-accent-soft);
+  }
+}
+
 .dirty-indicator {
   flex: 0 0 auto;
   font: 600 11px/1.2 var(--sqb-sans);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--sqb-primary);
-}
 
-.dirty-indicator--saved {
-  color: var(--sqb-text-muted);
+  &--saved {
+    color: var(--sqb-text-muted);
+  }
 }
 
 .btn {
@@ -327,13 +383,13 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
   gap: 6px;
   height: 32px;
   flex: 0 0 auto;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+  transition: all 120ms ease;
   cursor: pointer;
   white-space: nowrap;
-  border-radius: 8px;
-  padding: 0 12px;
+  border-radius: 6px;
+  padding: 0 10px;
   border: 1px solid transparent;
-  font: 600 13px/1.2 var(--sqb-sans);
+  font: 600 12px/1.2 var(--sqb-sans);
 
   &--icon-only {
     width: 32px;
@@ -346,41 +402,38 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
 .btn--solid {
   background: var(--sqb-primary);
   color: #ffffff;
-}
+  border-color: var(--sqb-primary);
 
-.btn--solid:hover {
-  background: var(--sqb-primary-strong);
+  &:hover {
+    background: var(--sqb-primary-strong);
+    border-color: var(--sqb-primary-strong);
+  }
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--sqb-text-muted);
-  border-color: transparent;
-}
+  border-color: var(--sqb-border);
 
-.btn--ghost:hover {
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text);
+  &:hover {
+    background: var(--sqb-bg-strong);
+    color: var(--sqb-text);
+    border-color: var(--sqb-border-strong);
+  }
 }
 
 .btn__icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   flex: 0 0 auto;
-  fill: none !important;
-  stroke: currentColor;
 }
 
-.wireframe-icon {
-  fill: none !important;
-  stroke: currentColor;
-  stroke-width: 1.75;
-}
-
+.sqb-wireframe-icon,
 :deep(svg) {
   fill: none !important;
 }
 
+.sqb-wireframe-icon *,
 :deep(svg *) {
   fill: none !important;
   stroke: currentColor;
@@ -389,14 +442,14 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
 .actions {
   flex: 0 0 auto;
   flex-wrap: nowrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .actions > * {
   flex-shrink: 0;
 }
 
-@media (max-width: 1260px) {
+@media (max-width: 900px) {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
@@ -409,35 +462,6 @@ const sidebarVisible = inject<Ref<boolean>>('sidebarVisible', ref(true))
 
   .actions {
     justify-content: flex-end;
-  }
-}
-
-@media (max-width: 720px) {
-  .topbar,
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .topbar {
-    padding: 16px;
-  }
-
-  .topbar__draft-line {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .title-input {
-    min-width: 100%;
-    max-width: none;
-    font-size: 16px;
-  }
-
-  .btn--solid,
-  .btn--ghost {
-    width: 100%;
   }
 }
 </style>
