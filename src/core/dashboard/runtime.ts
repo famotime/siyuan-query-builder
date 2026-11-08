@@ -1,11 +1,10 @@
-import type { FieldMappings, ResultRow } from "@/core/query/types"
+import type { ResultRow } from "@/core/query/types"
 import type { KernelAdapter } from "@/core/runtime/kernel-adapter"
 import type { DashboardViewModel } from "./types"
 import { getDashboardDefinition } from "./catalog"
 
 export interface DashboardRuntimeOptions {
   kernelAdapter: KernelAdapter
-  fieldMappings?: FieldMappings
 }
 
 export async function executeDashboard(
@@ -18,23 +17,14 @@ export async function executeDashboard(
     throw new Error(`未找到仪表板定义: ${dashboardId}`)
   }
 
-  const mappings = options.fieldMappings || {
-    status: "status",
-    dueDate: "due",
-    priority: "priority",
-    project: "project",
-    owner: "owner",
-  }
-
-  const sqlQuery = def.buildSql(parameters, mappings)
-  let rawRows: ResultRow[] = []
+  const sqlQuery = def.buildSql(parameters)
 
   if (typeof sqlQuery === "string") {
-    rawRows = await options.kernelAdapter.sql(sqlQuery)
-  } else if (Array.isArray(sqlQuery)) {
-    const results = await Promise.all(sqlQuery.map(q => options.kernelAdapter.sql(q)))
-    return def.computeViewModel(results, parameters, mappings)
+    const rows = await options.kernelAdapter.sql(sqlQuery)
+    return def.computeViewModel(rows, parameters)
   }
 
-  return def.computeViewModel(rawRows, parameters, mappings)
+  // 多条 SQL:并发执行后归一为扁平 rows 再交给场景计算
+  const results = await Promise.all(sqlQuery.map(q => options.kernelAdapter.sql(q)))
+  return def.computeViewModel(results.flat() as ResultRow[], parameters)
 }

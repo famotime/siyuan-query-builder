@@ -145,8 +145,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import type { CalendarDayCell } from "@/core/view/calendar"
-import { buildMonthCalendarGrid } from "@/core/view/calendar"
+import type { CalendarDayCell, CalendarStatusFilter } from "@/core/view/calendar"
+import { addMonths, buildMonthCalendarGrid, filterCalendarTasks } from "@/core/view/calendar"
 import type { CalendarTaskItem, TaskStatus } from "@/core/dashboard/types"
 import { formatIsoDate } from "@/core/dashboard/calculator"
 
@@ -161,7 +161,7 @@ defineEmits<{
 
 const todayIso = formatIsoDate(new Date())
 const currentMonth = ref(props.initialMonth || todayIso.slice(0, 7))
-const currentFilter = ref<"all" | "open" | TaskStatus>("all")
+const currentFilter = ref<CalendarStatusFilter>("all")
 const activePopoverCell = ref<CalendarDayCell | null>(null)
 
 const filterOptions = [
@@ -185,18 +185,7 @@ const allCells = computed(() => {
 })
 
 function changeMonth(delta: number) {
-  const [yearStr, monthStr] = currentMonth.value.split("-")
-  let y = Number(yearStr)
-  let m = Number(monthStr) + delta
-  if (m < 1) {
-    y -= 1
-    m = 12
-  } else if (m > 12) {
-    y += 1
-    m = 1
-  }
-  const pad = (n: number) => String(n).padStart(2, "0")
-  currentMonth.value = `${y}-${pad(m)}`
+  currentMonth.value = addMonths(currentMonth.value, delta)
 }
 
 function goToday() {
@@ -208,12 +197,8 @@ function openPopover(cell: CalendarDayCell) {
 }
 
 function getDayTasks(iso: string): CalendarTaskItem[] {
-  return props.tasks.filter((t) => {
-    if (t.date !== iso) return false
-    if (currentFilter.value === "all") return true
-    if (currentFilter.value === "open") return t.status === "todo" || t.status === "doing"
-    return t.status === currentFilter.value
-  })
+  // 与网格共用 filterCalendarTasks,保证“+N”弹窗明细与格子计数一致
+  return filterCalendarTasks(props.tasks, currentFilter.value).filter(t => t.date === iso)
 }
 </script>
 

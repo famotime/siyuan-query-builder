@@ -2,6 +2,8 @@ import { mount } from "@vue/test-utils"
 import { describe, expect, it, vi } from "vitest"
 import { reactive } from "vue"
 
+import { formatSidebarViewTypeLabel } from "@/components/query-builder/sidebar-utils"
+
 let currentStore: any
 
 vi.mock("@/composables/query-builder-store", () => ({
@@ -280,5 +282,20 @@ describe("QueryBuilderSidebar", () => {
     await clearButton.trigger("click")
 
     expect(currentStore.clearQueryHistory).toHaveBeenCalled()
+  })
+})
+
+describe("formatSidebarViewTypeLabel", () => {
+  it("labels every supported view type including calendar and chart", () => {
+    expect(formatSidebarViewTypeLabel("table")).toBe("表格")
+    expect(formatSidebarViewTypeLabel("board")).toBe("看板")
+    expect(formatSidebarViewTypeLabel("list")).toBe("列表")
+    expect(formatSidebarViewTypeLabel("cards")).toBe("卡片")
+    expect(formatSidebarViewTypeLabel("calendar")).toBe("月历")
+    expect(formatSidebarViewTypeLabel("chart")).toBe("图表")
+  })
+
+  it("falls back to 表格 for unknown types", () => {
+    expect(formatSidebarViewTypeLabel("unknown")).toBe("表格")
   })
 })

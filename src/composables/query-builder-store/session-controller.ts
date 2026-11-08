@@ -11,7 +11,7 @@ import { showMessage } from "@/external/siyuan"
 import type { QueryBuilderSnapshot, QueryHistoryEntry, ViewConfig } from "@/core/query/types"
 import type { I18nHelper } from "@/utils/i18n"
 
-import { createSnapshot } from "./shared"
+import { buildScopeLabel, createSnapshot } from "./shared"
 
 interface QueryHistoryStore {
   list: () => Promise<QueryHistoryEntry[]>
@@ -41,20 +41,7 @@ interface QueryBuilderSessionControllerOptions {
 }
 
 function historyScopeLabel(snapshot: QueryBuilderSnapshot) {
-  switch (snapshot.template.scope.type) {
-    case "notebook":
-      return "笔记本"
-    case "document":
-      return "文档"
-    case "block_type":
-      return "块类型"
-    case "tag":
-      return "标签"
-    case "attribute":
-      return "属性"
-    default:
-      return "全部内容"
-  }
+  return buildScopeLabel(snapshot.template.scope.type, "history")
 }
 
 function historyViewLabel(type: ViewConfig["type"]) {

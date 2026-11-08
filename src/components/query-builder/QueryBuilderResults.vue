@@ -267,12 +267,12 @@ import ResultsSavedViewsPanel from "@/components/query-builder/ResultsSavedViews
 import ResultsSqlPreview from "@/components/query-builder/ResultsSqlPreview.vue"
 import ResultsTableView from "@/components/query-builder/ResultsTableView.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import { parseDateFromHPath, parseTaskStatus } from "@/core/dashboard/calculator"
 import type { CalendarTaskItem } from "@/core/dashboard/types"
 import type { ViewType } from "@/core/query/types"
-import { buildBarDistributionOption } from "@/core/view/chart"
+import { buildCalendarTaskItems, buildGroupDistributionChartOption } from "@/core/view/result-view-model"
 import { showMessage } from "@/external/siyuan"
 import { vSqbTooltip } from "@/ui/tooltip"
+import { writeClipboardText } from "@/utils/clipboard"
 
 const store = useQueryBuilderStore()
 
@@ -281,60 +281,16 @@ const hasResultRows = computed(() => Boolean(store.resultSet?.rows.length))
 const resultsCollapsed = ref(false)
 
 const calendarTasks = computed<CalendarTaskItem[]>(() => {
-  if (!store.resultSet?.rows) return []
-  return store.resultSet.rows.map(r => {
-    const text = String(r.markdown || r.content || "")
-    const status = parseTaskStatus(text)
-    const date = parseDateFromHPath(String(r.hpath || "")) || String(r.created || "").slice(0, 8).replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3")
-    return {
-      id: r.id,
-      content: text.replace(/^\[[^\]]*\]\s*/, "").trim() || "未命名块",
-      status,
-      date,
-      docTitle: r.hpath ? String(r.hpath).split("/").pop() : undefined,
-      docId: r.root_id,
-    }
-  })
+  return buildCalendarTaskItems(store.resultSet?.rows)
 })
 
 const defaultChartOption = computed(() => {
-  if (store.cardsSummary && store.cardsSummary.length > 1) {
-    const categories = store.cardsSummary.slice(1).map(c => c.label)
-    const values = store.cardsSummary.slice(1).map(c => Number(c.value) || 0)
-    return buildBarDistributionOption({
-      title: store.draft.template.name ? `${store.draft.template.name} - 分组统计` : "分组统计图表",
-      categories,
-      values,
-    })
-  }
-  return buildBarDistributionOption({
-    title: "统计图表",
-    categories: ["总结果数"],
-    values: [store.resultSet?.rows.length || 0],
+  return buildGroupDistributionChartOption({
+    title: store.draft.template.name || "",
+    summary: store.cardsSummary,
+    totalRows: store.resultSet?.rows.length || 0,
   })
 })
-
-async function writeClipboardText(text: string) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text)
-    return
-  }
-
-  const textarea = document.createElement("textarea")
-  textarea.value = text
-  textarea.setAttribute("readonly", "true")
-  textarea.style.position = "fixed"
-  textarea.style.opacity = "0"
-  document.body.appendChild(textarea)
-  textarea.select()
-
-  const copied = document.execCommand?.("copy")
-  document.body.removeChild(textarea)
-
-  if (!copied) {
-    throw new Error("clipboard unavailable")
-  }
-}
 
 async function copyAdvancedSql() {
   if (!hasAdvancedSql.value) {

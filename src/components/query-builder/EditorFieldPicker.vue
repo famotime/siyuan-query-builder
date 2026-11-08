@@ -69,84 +69,12 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
 </script>
 
 <style lang="scss" scoped>
-.actions,
-.actions--inline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.muted {
-  margin: 0;
-  color: var(--sqb-text-muted);
-  font: 13px/1.5 var(--sqb-sans);
-}
-
-.title-input,
-.control {
-  width: 100%;
-  box-sizing: border-box;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--sqb-border);
-  background-color: var(--sqb-surface-strong);
-  color: var(--sqb-text);
-  padding: 0 10px;
-  font: 13px/1.4 var(--sqb-sans);
-  transition: border-color 140ms ease, box-shadow 140ms ease;
-}
-
-.title-input::placeholder,
-.control::placeholder {
-  color: var(--sqb-text-muted);
-  opacity: 0.6;
-}
-
-.title-input:hover,
-.control:hover {
-  border-color: var(--sqb-border-strong);
-}
-
-.title-input:focus,
-.control:focus {
-  outline: none;
-  border-color: var(--sqb-primary);
-  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 32px;
-  flex: 0 0 auto;
-  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
-  cursor: pointer;
-  font: 600 13px/1.2 var(--sqb-sans);
-  white-space: nowrap;
-  border-radius: 8px;
-  padding: 0 12px;
-  border: 1px solid transparent;
-}
-
-.btn--small {
-  height: 26px;
-  padding: 0 8px;
-  font-size: 12px;
-}
-
-.btn--ghost {
-  background: transparent;
-  color: var(--sqb-text-muted);
-  border-color: var(--sqb-border-strong);
-}
-
-.btn--ghost:hover {
-  background: var(--sqb-bg-strong);
-  color: var(--sqb-text);
-}
+/*
+ * 共享版式(.actions/.muted/.title-input/.control/.btn 等)来自 editor-shared.scss
+ * (由 QueryBuilderEditor 的 :deep 规则迁移,此前以更高优先级覆盖本文件的同名规则,
+ * 被覆盖的声明已移除)。本文件仅保留字段选择器独有样式。
+ */
+@use "./editor-shared";
 
 .field-picker {
   margin-top: 0;
@@ -222,7 +150,6 @@ const selectedFieldSummary = computed(() => `已选 ${store.draft.template.field
   .actions,
   .actions--inline {
     flex-direction: column;
-    align-items: stretch;
   }
 }
 </style>

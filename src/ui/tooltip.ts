@@ -23,7 +23,8 @@ function ensureTooltipElement(): HTMLElement {
 
 export interface TooltipOptions {
   content: string
-  placement?: "top" | "bottom" | "left" | "right"
+  // 实现仅支持上下两个方向,类型与 showTooltip 保持一致
+  placement?: "top" | "bottom"
 }
 
 export function showTooltip(target: HTMLElement, content: string, placement: "top" | "bottom" = "top") {

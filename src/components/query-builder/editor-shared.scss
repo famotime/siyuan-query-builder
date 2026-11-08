@@ -1,0 +1,217 @@
+/*
+ * 编辑器四个分区(Scope/Mappings/Filters/ViewSettings)共享的版式与控件样式。
+ * 由 QueryBuilderEditor.vue 原有的 :deep() 规则迁移而来,数值保持逐字一致;
+ * 通过各分区 scoped style 的 @use 引入,规则随宿主组件的 scope 属性编译。
+ */
+
+.section-head,
+.section-head-actions,
+.actions,
+.actions--inline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.section-head,
+.actions,
+.actions--inline {
+  justify-content: space-between;
+}
+
+.section-head--top {
+  margin-top: 20px;
+}
+
+.section-head--compact {
+  margin-top: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gap-sm {
+  gap: 10px;
+}
+
+h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  font-family: var(--sqb-serif);
+}
+
+.section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sqb-border);
+  border-radius: 8px;
+  background: var(--sqb-surface-soft);
+  color: var(--sqb-text-muted);
+  cursor: pointer;
+}
+
+.section-toggle:hover {
+  background: var(--sqb-bg-strong);
+}
+
+.section-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 140ms ease;
+}
+
+.section-toggle svg.is-expanded {
+  transform: rotate(180deg);
+}
+
+.section-heading {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.section-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sqb-primary);
+  font: 700 11px/1.2 var(--sqb-sans);
+}
+
+.section-copy {
+  margin: 10px 0 0;
+  color: var(--sqb-text-muted);
+  font: 13px/1.55 var(--sqb-sans);
+}
+
+.control,
+.title-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--sqb-border);
+  background-color: var(--sqb-surface-strong);
+  color: var(--sqb-text);
+  padding: 0 10px;
+  font: 13px/1.4 var(--sqb-sans);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.control::placeholder,
+.title-input::placeholder {
+  color: var(--sqb-text-muted);
+  opacity: 0.6;
+}
+
+.control:hover,
+.title-input:hover {
+  border-color: var(--sqb-border-strong);
+}
+
+.control:focus,
+.title-input:focus {
+  outline: none;
+  border-color: var(--sqb-primary);
+  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  flex: 0 0 auto;
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+  cursor: pointer;
+  font: 600 13px/1.2 var(--sqb-sans);
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+}
+
+.btn--small {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.btn--solid {
+  background: var(--sqb-primary);
+  color: #ffffff;
+}
+
+.btn--solid:hover {
+  background: var(--sqb-primary-strong);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--sqb-text-muted);
+  border-color: transparent;
+}
+
+.btn--ghost:hover {
+  background: var(--sqb-bg-strong);
+  color: var(--sqb-text);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--sqb-text);
+  border-color: var(--sqb-border);
+}
+
+.btn--outline:hover {
+  border-color: var(--sqb-primary);
+  color: var(--sqb-primary);
+}
+
+.muted {
+  margin: 0;
+  color: var(--sqb-text-muted);
+  font: 14px/1.5 var(--sqb-sans);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.form-grid--scope {
+  grid-template-columns: 1fr;
+}
+
+.form-grid--aggregation {
+  margin-top: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field span {
+  font: 13px/1.25 var(--sqb-sans);
+  color: var(--sqb-secondary);
+  font-weight: 700;
+}
+
+.field-hint {
+  color: var(--sqb-text-muted);
+  font: 12px/1.45 var(--sqb-sans);
+  letter-spacing: 0.01em;
+}

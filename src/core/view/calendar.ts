@@ -22,6 +22,35 @@ export interface CalendarGridModel {
   doneTasks: number
 }
 
+export type CalendarStatusFilter = "all" | "open" | TaskStatus
+
+/**
+ * 网格与悬浮弹窗共享的任务状态过滤规则:
+ * "open"(未完成)包含 todo / doing / deferred。
+ */
+export function filterCalendarTasks(tasks: CalendarTaskItem[], statusFilter: CalendarStatusFilter): CalendarTaskItem[] {
+  return tasks.filter((task) => {
+    if (statusFilter === "all") return true
+    if (statusFilter === "open") {
+      return task.status === "todo" || task.status === "doing" || task.status === "deferred"
+    }
+    return task.status === statusFilter
+  })
+}
+
+/**
+ * 将 YYYY-MM 月份字符串前进/后退 delta 个月,自动跨年并保持两位月份。
+ */
+export function addMonths(yearMonth: string, delta: number): string {
+  const [yearStr, monthStr] = yearMonth.split("-")
+  let year = Number(yearStr)
+  let month = Number(monthStr) + delta
+  year += Math.floor((month - 1) / 12)
+  month = ((month - 1) % 12 + 12) % 12 + 1
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${year}-${pad(month)}`
+}
+
 export function buildMonthCalendarGrid(
   yearMonth: string,
   tasks: CalendarTaskItem[],
@@ -41,14 +70,8 @@ export function buildMonthCalendarGrid(
   const year = Number(yearStr)
   const month = Number(monthStr) // 1 - 12
 
-  // 过滤任务
-  const filteredTasks = tasks.filter((task) => {
-    if (statusFilter === "all") return true
-    if (statusFilter === "open") {
-      return task.status === "todo" || task.status === "doing" || task.status === "deferred"
-    }
-    return task.status === statusFilter
-  })
+  // 过滤任务(与弹窗明细共享同一规则)
+  const filteredTasks = filterCalendarTasks(tasks, statusFilter)
 
   // 按日期归类任务
   const tasksByDay = new Map<string, CalendarTaskItem[]>()

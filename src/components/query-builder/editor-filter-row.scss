@@ -1,0 +1,126 @@
+/*
+ * 编辑器筛选行(filter-row)系列样式,由 QueryBuilderEditor.vue 原有的 :deep() 规则迁移而来。
+ * EditorFiltersSection(条件行)与 EditorViewSettingsSection(排序行)共用。
+ */
+
+.filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.92fr) minmax(0, 1.65fr) auto;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--sqb-border);
+  background: linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%), var(--sqb-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  position: relative;
+  cursor: grab;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.filter-row:hover {
+  border-color: var(--sqb-border-strong);
+  background: linear-gradient(180deg, var(--sqb-primary-soft) 0%, rgba(0, 0, 0, 0) 100%), var(--sqb-surface-soft);
+}
+
+.filter-row--range {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 1.15fr) auto;
+}
+
+.filter-row--sort {
+  grid-template-columns: minmax(0, 1fr) 120px auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.filter-row--dragging {
+  opacity: 0.72;
+  cursor: grabbing;
+}
+
+.filter-row--drop-before::before,
+.filter-row--drop-after::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--sqb-primary);
+  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+}
+
+.filter-row--drop-before::before {
+  top: -2px;
+}
+
+.filter-row--drop-after::after {
+  bottom: -2px;
+}
+
+.filter-row__value {
+  min-width: 0;
+}
+
+.filter-row__actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-items: center;
+  justify-self: end;
+  gap: 8px;
+}
+
+.filter-row__logic,
+.filter-row__logic-spacer {
+  width: 74px;
+  height: 32px;
+}
+
+.filter-row__logic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid var(--sqb-border-strong);
+  background: var(--sqb-secondary-soft);
+  color: var(--sqb-secondary);
+  font: 700 11px/1 var(--sqb-sans);
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.filter-row__logic[data-state='and'] {
+  background: var(--sqb-primary-soft);
+  color: var(--sqb-primary-strong);
+}
+
+.filter-row__logic:hover {
+  border-color: var(--sqb-primary);
+  background: var(--sqb-surface-strong);
+  color: var(--sqb-primary);
+}
+
+.filter-row__logic:focus-visible {
+  outline: none;
+  border-color: var(--sqb-primary);
+  box-shadow: 0 0 0 3px var(--sqb-primary-soft);
+}
+
+.filter-row__logic:active {
+  transform: translateY(1px);
+}
+
+.filter-row__logic-spacer {
+  display: block;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.filter-row__delete {
+  justify-self: auto;
+}

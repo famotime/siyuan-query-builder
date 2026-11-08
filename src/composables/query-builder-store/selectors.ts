@@ -7,6 +7,7 @@ import { createResultPresentation } from "@/core/view/presentation"
 import type { I18nHelper } from "@/utils/i18n"
 
 import {
+  buildScopeLabel,
   createSnapshot,
   defaultAggregationFieldResult,
   mergeFieldOptions,
@@ -157,22 +158,7 @@ export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOption
   const blockingValidationIssues = computed(() => validationIssues.value.filter(issue => issue.level === "error"))
   const currentTemplateId = computed(() => draft.template.id)
   const currentViewId = computed(() => draft.view.id)
-  const scopeLabel = computed(() => {
-    switch (draft.template.scope.type) {
-      case "notebook":
-        return "笔记本"
-      case "document":
-        return "文档 ID"
-      case "block_type":
-        return "块类型"
-      case "tag":
-        return "标签"
-      case "attribute":
-        return "属性键"
-      default:
-        return "范围值"
-    }
-  })
+  const scopeLabel = computed(() => buildScopeLabel(draft.template.scope.type, "editor"))
   const scopePlaceholder = computed(() => {
     switch (draft.template.scope.type) {
       case "document":

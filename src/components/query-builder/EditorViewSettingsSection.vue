@@ -229,175 +229,22 @@ const aggregationModeProxy = computed({
 </script>
 
 <style lang="scss" scoped>
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
+/*
+ * 共享版式(section-head/control/btn/field/form-grid/filter-row 等)来自
+ * editor-shared.scss 与 editor-filter-row.scss(由 QueryBuilderEditor 的 :deep 规则迁移);
+ * 此前这些共享规则以更高优先级覆盖本文件的同名规则,被覆盖的声明已移除。
+ * 本文件仅保留本分区独有或此前实际生效的规则。
+ */
+@use "./editor-shared";
+@use "./editor-filter-row";
 
-.card {
-  padding: 16px;
-  border-radius: 12px;
-  background: var(--sqb-surface);
-  border: 1px solid var(--sqb-border);
-  box-shadow: var(--sqb-shadow-soft);
-}
-
-.card--full {
-  grid-column: 1 / -1;
-}
-
-h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.section-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border-radius: 6px;
-  border: 1px solid var(--sqb-border);
-  background: var(--sqb-surface-soft);
-  color: var(--sqb-text-muted);
-  cursor: pointer;
-  transition: all 120ms ease;
-
-  &:hover {
-    background: var(--sqb-bg-strong);
-    color: var(--sqb-primary);
-    border-color: var(--sqb-primary);
-  }
-}
-
-.section-toggle svg {
-  transition: transform 140ms ease;
-}
-
-.section-toggle svg.is-expanded {
-  transform: rotate(180deg);
-}
-
-.section-heading {
-  display: grid;
-  gap: 2px;
-  text-align: left;
-}
-
-.section-kicker {
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.section-toggle:hover {
   color: var(--sqb-primary);
-  font: 700 10px/1.1 var(--sqb-sans);
-}
-
-.control {
-  width: 100%;
-  box-sizing: border-box;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid var(--sqb-border);
-  background-color: var(--sqb-surface-strong);
-  color: var(--sqb-text);
-  padding: 0 10px;
-  font: 13px/1.4 var(--sqb-sans);
-  transition: border-color 140ms ease, box-shadow 140ms ease;
-}
-
-.control::placeholder {
-  color: var(--sqb-text-muted);
-  opacity: 0.6;
-}
-
-.control:hover {
-  border-color: var(--sqb-border-strong);
-}
-
-.control:focus {
-  outline: none;
   border-color: var(--sqb-primary);
-  box-shadow: 0 0 0 2px var(--sqb-primary-soft);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 32px;
-  flex: 0 0 auto;
-  transition: all 120ms ease;
-  cursor: pointer;
-  font: 600 12px/1.2 var(--sqb-sans);
-  white-space: nowrap;
-  border-radius: 6px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-}
-
-.btn--small {
-  height: 26px;
-  padding: 0 8px;
-  font-size: 11px;
-}
-
-.btn--ghost {
-  background: transparent;
-  color: var(--sqb-text-muted);
-  border-color: var(--sqb-border);
-
-  &:hover {
-    background: var(--sqb-bg-strong);
-    color: var(--sqb-text);
-    border-color: var(--sqb-border-strong);
-  }
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 14px;
 }
 
 .form-grid--top {
   align-items: end;
-}
-
-.form-grid--aggregation {
-  margin-top: 12px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field span {
-  color: var(--sqb-secondary);
-  font: 600 12px/1.2 var(--sqb-sans);
-}
-
-.filter-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
-  gap: 10px;
-  align-items: center;
-}
-
-.filter-row--sort {
-  grid-template-columns: minmax(0, 1fr) 120px auto;
-}
-
-.filter-row__delete {
-  justify-self: end;
 }
 
 .view-config-row {
@@ -436,15 +283,6 @@ h3 {
   font: 600 13px/1.2 var(--sqb-sans);
 }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-}
-
-.gap-sm {
-  gap: 8px;
-}
-
 .sqb-wireframe-icon,
 :deep(svg) {
   fill: none !important;
@@ -457,15 +295,12 @@ h3 {
 }
 
 @media (max-width: 1100px) {
-  .card--full,
   .view-config-panel {
     grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 900px) {
-  .form-grid,
-  .form-grid--aggregation,
   .view-config-row {
     grid-template-columns: 1fr;
   }

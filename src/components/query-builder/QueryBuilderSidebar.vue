@@ -339,18 +339,14 @@ import {
   ChevronDown,
   ChevronRight,
   Download,
-  Flame,
-  HeartPulse,
-  LayoutDashboard,
   Sparkles,
-  Target,
   Trash2,
-  TrendingUp,
   Upload,
 } from "lucide-vue-next"
 
 import pluginIconUrl from "../../../icon.png?url"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
+import { getDashboardIcon } from "@/components/query-builder/dashboard-icons"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import {
   buildPresetGroups,
@@ -363,22 +359,6 @@ import { vSqbTooltip } from "@/ui/tooltip"
 
 const store = useQueryBuilderStore()
 
-function getDashboardIcon(id: string) {
-  switch (id) {
-    case "daily-cockpit":
-      return LayoutDashboard
-    case "habit-tracker":
-      return Flame
-    case "kb-health":
-      return HeartPulse
-    case "writing-flow":
-      return TrendingUp
-    case "project-delivery":
-      return Target
-    default:
-      return LayoutDashboard
-  }
-}
 const dashboardsExpanded = ref(true)
 const presetsExpanded = ref(true)
 const historyExpanded = ref(true)

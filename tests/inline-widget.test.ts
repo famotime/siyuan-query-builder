@@ -93,4 +93,41 @@ describe("InlineQueryWidget", () => {
 
     expect(wrapper.get("th").text()).toBe("属性：source_url")
   })
+
+  it("renders calendar view tasks derived from row markdown", () => {
+    // 日历默认显示当月,任务日期需落在今天才会渲染出任务卡片
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, "0")
+    const created = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}093000`
+    const wrapper = mount(InlineQueryWidget, {
+      props: {
+        title: "任务概览",
+        viewType: "calendar",
+        result: {
+          rows: [
+            {
+              id: "block-1",
+              root_id: "doc-1",
+              content: "任务 A",
+              markdown: "[_] 完成周报",
+              created,
+            },
+          ],
+          total: 1,
+          executedAt: "2026-03-23T00:00:00.000Z",
+        },
+        fields: ["content"],
+        fieldMappings: {
+          status: "status",
+          dueDate: "dueDate",
+          priority: "priority",
+          project: "project",
+          owner: "owner",
+        },
+      },
+    })
+
+    const taskTexts = wrapper.findAll(".calendar-view__task-text").map(node => node.text())
+    expect(taskTexts).toContain("完成周报")
+  })
 })

@@ -167,9 +167,8 @@ import ResultsCalendarView from "@/components/query-builder/ResultsCalendarView.
 import ResultsChartView from "@/components/query-builder/ResultsChartView.vue"
 import { createResultPresentation } from "@/core/view/presentation"
 import type { FieldMappings, ResultSet, ViewType } from "@/core/query/types"
-import { parseDateFromHPath, parseTaskStatus } from "@/core/dashboard/calculator"
 import type { CalendarTaskItem } from "@/core/dashboard/types"
-import { buildBarDistributionOption } from "@/core/view/chart"
+import { buildCalendarTaskItems, buildGroupDistributionChartOption } from "@/core/view/result-view-model"
 
 const props = defineProps<{
   title: string
@@ -197,36 +196,14 @@ const listItems = computed(() => presentation.value.buildListItems(props.result.
 const boardColumns = computed(() => presentation.value.buildBoardColumns(props.result.rows, props.groupBy || `attr:${props.fieldMappings.status}`))
 
 const calendarTasks = computed<CalendarTaskItem[]>(() => {
-  if (!props.result?.rows) return []
-  return props.result.rows.map(r => {
-    const text = String(r.markdown || r.content || "")
-    const status = parseTaskStatus(text)
-    const date = parseDateFromHPath(String(r.hpath || "")) || String(r.created || "").slice(0, 8).replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3")
-    return {
-      id: r.id,
-      content: text.replace(/^\[[^\]]*\]\s*/, "").trim() || "未命名块",
-      status,
-      date,
-      docTitle: r.hpath ? String(r.hpath).split("/").pop() : undefined,
-      docId: r.root_id,
-    }
-  })
+  return buildCalendarTaskItems(props.result?.rows)
 })
 
 const chartOption = computed(() => {
-  if (cards.value && cards.value.length > 1) {
-    const categories = cards.value.slice(1).map(c => c.label)
-    const values = cards.value.slice(1).map(c => Number(c.value) || 0)
-    return buildBarDistributionOption({
-      title: props.title ? `${props.title} - 分组统计` : "统计图表",
-      categories,
-      values,
-    })
-  }
-  return buildBarDistributionOption({
-    title: props.title || "统计图表",
-    categories: ["总结果数"],
-    values: [props.result?.rows.length || 0],
+  return buildGroupDistributionChartOption({
+    title: props.title || "",
+    summary: cards.value,
+    totalRows: props.result?.rows.length || 0,
   })
 })
 

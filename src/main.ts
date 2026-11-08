@@ -10,9 +10,11 @@ import {
 } from "@/external/siyuan"
 import type { Plugin } from "@/external/siyuan"
 import { loadPluginSettings, type WorkspaceOpenMode } from "@/core/plugin-settings"
+import type { QueryBuilderSnapshot } from "@/core/query/types"
 import { SCENARIO_DASHBOARDS, getDashboardDefinition } from "@/core/dashboard/catalog"
 
 import { observeSiyuanTheme, syncSiyuanThemeMarkers } from "@/ui/theme"
+import { workspaceNavigationKey } from "@/ui/workspace-navigation"
 
 let pluginInstance: Plugin | null = null
 let dialog: Dialog | null = null
@@ -25,19 +27,32 @@ const tabThemeUnsubs = new WeakMap<Element, () => void>()
 const dockApps = new WeakMap<Element, VueApp>()
 const dockThemeUnsubs = new WeakMap<Element, () => void>()
 
-let pendingWorkspaceTarget: {
+export interface PendingWorkspaceTarget {
   dashboardId?: string
   snapshot?: any
   templateId?: string
-} | null = null
+}
 
-let activeWorkspaceStore: any = null
+let pendingWorkspaceTarget: PendingWorkspaceTarget | null = null
 
-export function setActiveWorkspaceStore(store: any) {
+/**
+ * main.ts 对工作台 store 的最小依赖面:打开路由只需要这几个方法。
+ */
+interface ActiveWorkspaceStoreRef {
+  activeDashboardId?: string | null
+  loadDashboard?: (id: string) => Promise<void> | void
+  applySnapshot?: (snapshot: QueryBuilderSnapshot) => void | Promise<void>
+  loadTemplate?: (templateId: string) => Promise<void> | void
+  runActiveDashboard?: () => Promise<void> | void
+}
+
+let activeWorkspaceStore: ActiveWorkspaceStoreRef | null = null
+
+export function setActiveWorkspaceStore(store: ActiveWorkspaceStoreRef | null) {
   activeWorkspaceStore = store
 }
 
-export function getActiveWorkspaceStore() {
+export function getActiveWorkspaceStore(): ActiveWorkspaceStoreRef | null {
   return activeWorkspaceStore
 }
 
@@ -151,16 +166,14 @@ function getWorkspaceTabId() {
   return `${pluginInstance.name}${WORKSPACE_TAB_TYPE}`
 }
 
-function registerWorkspaceTab() {
-  if (!pluginInstance || workspaceTabRegistered) {
-    return
-  }
-
-  pluginInstance.addTab({
-    type: WORKSPACE_TAB_TYPE,
+/**
+ * 工作台类宿主(workspace 页签 / 仪表板页签)共用的 addTab 生命周期回调。
+ */
+function createTabHostHandlers(hostKind: string, mountProps?: Record<string, unknown>) {
+  return {
     init(this: { element: Element }) {
       if (!(this.element instanceof HTMLElement)) {
-        throw new Error("Failed to create query builder tab host")
+        throw new Error(`Failed to create ${hostKind} host`)
       }
 
       const rootElement = document.createElement("div")
@@ -168,7 +181,7 @@ function registerWorkspaceTab() {
       rootElement.style.height = "100%"
       this.element.innerHTML = ""
       this.element.appendChild(rootElement)
-      tabApps.set(this.element, mountWorkspaceInto(rootElement))
+      tabApps.set(this.element, mountWorkspaceInto(rootElement, mountProps))
       tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement, onHostThemeChanged))
     },
     destroy(this: { element: Element }) {
@@ -177,6 +190,17 @@ function registerWorkspaceTab() {
     beforeDestroy(this: { element: Element }) {
       destroyTabMount(this.element)
     },
+  }
+}
+
+function registerWorkspaceTab() {
+  if (!pluginInstance || workspaceTabRegistered) {
+    return
+  }
+
+  pluginInstance.addTab({
+    type: WORKSPACE_TAB_TYPE,
+    ...createTabHostHandlers("query builder tab"),
   })
 
   workspaceTabRegistered = true
@@ -255,25 +279,7 @@ export function registerDashboardTab(dashboardId: string) {
 
   pluginInstance.addTab({
     type: tabType,
-    init(this: { element: Element }) {
-      if (!(this.element instanceof HTMLElement)) {
-        throw new Error("Failed to create dashboard tab host")
-      }
-
-      const rootElement = document.createElement("div")
-      rootElement.className = "siyuan-query-builder-tab-root"
-      rootElement.style.height = "100%"
-      this.element.innerHTML = ""
-      this.element.appendChild(rootElement)
-      tabApps.set(this.element, mountWorkspaceInto(rootElement, { initialDashboardId: dashboardId }))
-      tabThemeUnsubs.set(this.element, observeSiyuanTheme(rootElement, onHostThemeChanged))
-    },
-    destroy(this: { element: Element }) {
-      destroyTabMount(this.element)
-    },
-    beforeDestroy(this: { element: Element }) {
-      destroyTabMount(this.element)
-    },
+    ...createTabHostHandlers("dashboard tab host", { initialDashboardId: dashboardId }),
   })
 
   registeredDashboardTabTypes.add(tabType)
@@ -303,6 +309,27 @@ export async function openDashboardTab(dashboardId: string) {
   })
 }
 
+/**
+ * 打开路由的统一入口:写入 pendingTarget(供 App.vue 挂载时消费)
+ * → 打开面板 → store 已就绪时直接应用目标。
+ * dialog 模式下 store 往往已在挂载时消费 pendingTarget,这里的直调是幂等兜底。
+ */
+async function openWorkspaceToTarget(options: {
+  pendingTarget: PendingWorkspaceTarget
+  openMode?: WorkspaceOpenMode
+  applyToStore: (store: ActiveWorkspaceStoreRef) => void | Promise<void>
+}) {
+  if (!pluginInstance) {
+    return
+  }
+  const mode = options.openMode || (await loadPluginSettings(pluginInstance)).openMode
+  pendingWorkspaceTarget = options.pendingTarget
+  await openPanel(true, mode)
+  if (activeWorkspaceStore) {
+    await options.applyToStore(activeWorkspaceStore)
+  }
+}
+
 export async function openWorkspaceWithDashboard(dashboardId?: string, openMode?: WorkspaceOpenMode) {
   if (!pluginInstance) {
     return
@@ -311,11 +338,11 @@ export async function openWorkspaceWithDashboard(dashboardId?: string, openMode?
   // 点击场景仪表板时，默认在独立的页签中打开
   if (dashboardId) {
     if (openMode === "dialog") {
-      pendingWorkspaceTarget = { dashboardId }
-      await openPanel(true, "dialog")
-      if (activeWorkspaceStore?.loadDashboard) {
-        await activeWorkspaceStore.loadDashboard(dashboardId)
-      }
+      await openWorkspaceToTarget({
+        pendingTarget: { dashboardId },
+        openMode,
+        applyToStore: store => store.loadDashboard?.(dashboardId),
+      })
       return
     }
     await openDashboardTab(dashboardId)
@@ -327,33 +354,35 @@ export async function openWorkspaceWithDashboard(dashboardId?: string, openMode?
 }
 
 export async function openWorkspaceWithPreset(snapshot: any, openMode?: WorkspaceOpenMode) {
-  if (!pluginInstance) {
-    return
-  }
-  const mode = openMode || (await loadPluginSettings(pluginInstance)).openMode
-  pendingWorkspaceTarget = { snapshot }
-  await openPanel(true, mode)
-  if (activeWorkspaceStore?.applySnapshot) {
-    activeWorkspaceStore.applySnapshot(snapshot)
-  }
+  await openWorkspaceToTarget({
+    pendingTarget: { snapshot },
+    openMode,
+    applyToStore: (store) => {
+      if (store.applySnapshot) {
+        store.applySnapshot(snapshot)
+      }
+    },
+  })
 }
 
 export async function openWorkspaceWithTemplate(templateId: string, openMode?: WorkspaceOpenMode) {
-  if (!pluginInstance) {
-    return
-  }
-  const mode = openMode || (await loadPluginSettings(pluginInstance)).openMode
-  pendingWorkspaceTarget = { templateId }
-  await openPanel(true, mode)
-  if (activeWorkspaceStore?.loadTemplate) {
-    await activeWorkspaceStore.loadTemplate(templateId)
-  }
+  await openWorkspaceToTarget({
+    pendingTarget: { templateId },
+    openMode,
+    applyToStore: store => store.loadTemplate?.(templateId),
+  })
 }
 
 export function mountDock(hostElement: HTMLElement) {
   syncSiyuanThemeMarkers(hostElement)
   dockThemeUnsubs.set(hostElement, observeSiyuanTheme(hostElement))
   const app = createApp(QueryBuilderDock)
+  app.provide(workspaceNavigationKey, {
+    openWorkspaceWithDashboard,
+    openWorkspaceWithPreset,
+    openWorkspaceWithTemplate,
+    openDashboardTab,
+  })
   app.mount(hostElement)
   dockApps.set(hostElement, app)
   return app
@@ -381,5 +410,6 @@ export function destroy() {
   }
   workspaceTabRegistered = false
   registeredDashboardTabTypes.clear()
+  pendingWorkspaceTarget = null
   pluginInstance = null
 }

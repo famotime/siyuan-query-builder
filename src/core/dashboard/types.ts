@@ -1,4 +1,4 @@
-import type { FieldMappings, ResultRow, ViewType } from "@/core/query/types"
+import type { ResultRow } from "@/core/query/types"
 
 export type DashboardCategory = "daily" | "habit" | "assets" | "creative" | "project"
 
@@ -87,10 +87,7 @@ export interface DashboardDefinition {
   title: string
   description: string
   parameters: DashboardParameterDefinition[]
-  buildSql: (params: Record<string, any>, mappings: FieldMappings) => string | string[]
-  computeViewModel: (
-    rawRows: ResultRow[] | ResultRow[][],
-    params: Record<string, any>,
-    mappings: FieldMappings,
-  ) => DashboardViewModel
+  // 方法式声明:允许各场景以更窄的参数接口实现(参数由 runtime 层归一后传入)
+  buildSql(params: Record<string, any>): string | string[]
+  computeViewModel(rows: ResultRow[], params: Record<string, any>): DashboardViewModel
 }

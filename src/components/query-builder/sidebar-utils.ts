@@ -30,6 +30,10 @@ export function formatSidebarViewTypeLabel(type: string) {
       return "列表"
     case "cards":
       return "卡片"
+    case "calendar":
+      return "月历"
+    case "chart":
+      return "图表"
     default:
       return "表格"
   }

@@ -176,70 +176,43 @@ import {
   Bookmark,
   ChevronDown,
   Compass,
-  Flame,
-  HeartPulse,
   History,
   Layers,
-  LayoutDashboard,
   Maximize2,
   Plus,
   Sparkles,
-  Target,
-  TrendingUp,
 } from "lucide-vue-next"
 
+import { getDashboardIcon } from "@/components/query-builder/dashboard-icons"
 import pluginIconUrl from "../../../icon.png?url"
 import { SCENARIO_DASHBOARDS } from "@/core/dashboard/catalog"
 import { createPresets, DEFAULT_FIELD_MAPPINGS } from "@/core/query/catalog"
-import { QUERY_HISTORY_STORAGE_KEY } from "@/core/storage/query-history-store"
-import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
-import {
-  openDashboardTab,
-  openWorkspaceWithDashboard,
-  openWorkspaceWithPreset,
-  openWorkspaceWithTemplate,
-  usePlugin,
-} from "@/main"
+import type { QueryHistoryEntry, QueryTemplate } from "@/core/query/types"
+import { createQueryHistoryStore } from "@/core/storage/query-history-store"
+import { createQueryTemplateStore } from "@/core/storage/query-template-store"
+import { usePlugin } from "@/main"
 import { vSqbTooltip } from "@/ui/tooltip"
+import { useWorkspaceNavigation } from "@/ui/workspace-navigation"
+
+const navigation = useWorkspaceNavigation()
 
 const dashboards = ref(SCENARIO_DASHBOARDS)
 const allPresets = ref(createPresets(DEFAULT_FIELD_MAPPINGS))
-const savedTemplates = ref<Array<{ id: string, name: string, viewType?: string }>>([])
-const recentHistory = ref<Array<{ id: string, templateName: string, summary: string, snapshot: any }>>([])
+const savedTemplates = ref<QueryTemplate[]>([])
+const recentHistory = ref<QueryHistoryEntry[]>([])
 
 const dashboardsExpanded = ref(true)
 const presetsExpanded = ref(false)
 const templatesExpanded = ref(true)
 const historyExpanded = ref(false)
 
-function getDashboardIcon(id: string) {
-  switch (id) {
-    case "daily-cockpit":
-      return LayoutDashboard
-    case "habit-tracker":
-      return Flame
-    case "kb-health":
-      return HeartPulse
-    case "writing-flow":
-      return TrendingUp
-    case "project-delivery":
-      return Target
-    default:
-      return LayoutDashboard
-  }
-}
-
 async function loadStorageData() {
   try {
     const plugin = usePlugin()
-    const templates = await plugin.loadData(QUERY_TEMPLATE_STORAGE_KEY)
-    if (templates && typeof templates === "object") {
-      savedTemplates.value = Object.values(templates).filter(Boolean) as any[]
-    }
-    const history = await plugin.loadData(QUERY_HISTORY_STORAGE_KEY)
-    if (Array.isArray(history)) {
-      recentHistory.value = history.slice(0, 8)
-    }
+    const templates = await createQueryTemplateStore(plugin).list()
+    savedTemplates.value = templates
+    const history = await createQueryHistoryStore(plugin).list()
+    recentHistory.value = history.slice(0, 8)
   } catch (err) {
     console.debug("[SQB Dock] load storage data failed", err)
   }
@@ -250,19 +223,19 @@ onMounted(() => {
 })
 
 function openInWorkspace(mode?: "dialog" | "tab") {
-  void openWorkspaceWithDashboard("", mode)
+  void navigation.openWorkspaceWithDashboard("", mode)
 }
 
 function openDashboard(dashboardId: string) {
-  void openDashboardTab(dashboardId)
+  void navigation.openDashboardTab(dashboardId)
 }
 
 function openPreset(preset: { snapshot: any }) {
-  void openWorkspaceWithPreset(preset.snapshot)
+  void navigation.openWorkspaceWithPreset(preset.snapshot)
 }
 
 function openTemplate(templateId: string) {
-  void openWorkspaceWithTemplate(templateId)
+  void navigation.openWorkspaceWithTemplate(templateId)
 }
 </script>
 

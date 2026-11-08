@@ -9,8 +9,7 @@ import {
   createEmptyTemplate,
   type FieldOption,
 } from "@/core/query/catalog"
-import type { FieldId, FieldMappings, FilterOperator, QueryBuilderSnapshot, QueryFilter, QueryTemplate, ResultRow, ViewConfig } from "@/core/query/types"
-import { formatResultValue, resolveResultFieldLabel } from "@/core/view/presentation"
+import type { FieldId, FieldMappings, FilterOperator, QueryBuilderSnapshot, QueryFilter, QueryTemplate, ViewConfig } from "@/core/query/types"
 
 export type EditableField = keyof FieldMappings | `attr:${string}`
 
@@ -29,13 +28,30 @@ export interface EmbedTargetPrefs {
   recentParentIds?: string[]
 }
 
-interface DisplayValueOptions {
-  notebookNameById?: Record<string, string>
-}
+export type ScopeLabelVariant = "editor" | "history"
 
-interface FieldLabelOptions {
-  knownLabels?: Map<string, string> | Record<string, string>
-  fieldMappings?: FieldMappings
+/**
+ * 范围类型的展示文案。编辑器与历史摘要两处的措辞历史上略有差异,
+ * 通过 variant 保持各自原语义。
+ */
+export function buildScopeLabel(
+  scopeType: QueryBuilderSnapshot["template"]["scope"]["type"],
+  variant: ScopeLabelVariant,
+) {
+  switch (scopeType) {
+    case "notebook":
+      return "笔记本"
+    case "document":
+      return variant === "editor" ? "文档 ID" : "文档"
+    case "block_type":
+      return "块类型"
+    case "tag":
+      return "标签"
+    case "attribute":
+      return variant === "editor" ? "属性键" : "属性"
+    default:
+      return variant === "editor" ? "范围值" : "全部内容"
+  }
 }
 
 export function createDraft(): QueryBuilderSnapshot {
@@ -140,23 +156,6 @@ export function createSnapshot(draft: QueryBuilderSnapshot) {
   return cloneSnapshot({
     template,
     view: nextView,
-  })
-}
-
-export function displayValue(row: ResultRow, field: string, options: DisplayValueOptions = {}) {
-  return formatResultValue(row, field, options)
-}
-
-export function resolveFieldLabel(field: string, options: FieldLabelOptions = {}) {
-  return resolveResultFieldLabel(field, {
-    knownLabels: options.knownLabels,
-    fieldMappings: options.fieldMappings || {
-      dueDate: "dueDate",
-      owner: "owner",
-      priority: "priority",
-      project: "project",
-      status: "status",
-    },
   })
 }
 

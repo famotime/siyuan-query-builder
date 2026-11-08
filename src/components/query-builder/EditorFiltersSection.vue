@@ -196,7 +196,10 @@ function onFilterRowDragStart(filterId: string, event: DragEvent) {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "./editor-shared";
+@use "./editor-filter-row";
+
 .sqb-wireframe-icon,
 :deep(svg) {
   fill: none !important;

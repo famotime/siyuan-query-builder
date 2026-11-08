@@ -8,12 +8,10 @@ import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createMetricsStore } from "@/core/storage/metrics-store"
 import { createQueryHistoryStore } from "@/core/storage/query-history-store"
-import { SCENARIO_DASHBOARDS, getDashboardDefinition } from "@/core/dashboard/catalog"
-import { executeDashboard } from "@/core/dashboard/runtime"
-import type { DashboardViewModel } from "@/core/dashboard/types"
 import { usePlugin } from "@/main"
 import { createI18nHelper } from "@/utils/i18n"
 
+import { createQueryBuilderDashboardController } from "./query-builder-store/dashboard-controller"
 import { createQueryBuilderDraftActions } from "./query-builder-store/draft-actions"
 import { createEmbedTargetController } from "./query-builder-store/embed-target-controller"
 import { createQueryExecutionController } from "./query-builder-store/query-execution-controller"
@@ -152,78 +150,25 @@ export function createQueryBuilderStore() {
     rememberQueryHistory: session.rememberQueryHistory,
     t,
   })
-  const dashboards = ref(SCENARIO_DASHBOARDS)
-  const activeDashboardId = ref<string | null>(null)
-  const activeDashboardParams = reactive<Record<string, any>>({})
-  const activeDashboardViewModel = ref<DashboardViewModel | null>(null)
-  const activeDashboardLoading = ref(false)
-
-  async function runActiveDashboard() {
-    if (!activeDashboardId.value) return
-    activeDashboardLoading.value = true
-    try {
-      const vm = await executeDashboard(activeDashboardId.value, activeDashboardParams, {
-        kernelAdapter,
-        fieldMappings: draft.view.fieldMappings,
-      })
-      activeDashboardViewModel.value = vm
-    } catch (err) {
-      console.error("[SQB] execute dashboard failed", err)
-    } finally {
-      activeDashboardLoading.value = false
-    }
-  }
-
-  async function loadDashboard(id: string) {
-    const def = getDashboardDefinition(id)
-    if (!def) return
-    activeDashboardId.value = id
-    for (const k of Object.keys(activeDashboardParams)) {
-      delete activeDashboardParams[k]
-    }
-    for (const p of def.parameters) {
-      activeDashboardParams[p.id] = p.defaultValue
-    }
-    await runActiveDashboard()
-  }
-
-  function updateDashboardParam(key: string, val: any) {
-    activeDashboardParams[key] = val
-    void runActiveDashboard()
-  }
-
-  function closeDashboard() {
-    activeDashboardId.value = null
-    activeDashboardViewModel.value = null
-  }
-
-  async function saveDashboardAsTemplate() {
-    if (!activeDashboardViewModel.value || !activeDashboardId.value) return
-    const def = getDashboardDefinition(activeDashboardId.value)
-    if (!def) return
-    const sql = def.buildSql(activeDashboardParams, draft.view.fieldMappings)
-    const sqlStr = typeof sql === "string" ? sql : sql[0]
-    activeDashboardId.value = null
-    activeDashboardViewModel.value = null
-    advancedMode.value = true
-    advancedSql.value = sqlStr
-    draft.template.name = `${def.title} (定制)`
-    draft.template.viewType = "dashboard"
-    await templateViews.saveTemplate()
-  }
+  const dashboardController = createQueryBuilderDashboardController({
+    draft,
+    advancedMode,
+    advancedSql,
+    templateViews,
+  })
 
   function applySnapshotWithDashboard(snapshot: QueryBuilderSnapshot) {
-    closeDashboard()
+    dashboardController.closeDashboard()
     session.applySnapshot(snapshot)
   }
 
   async function loadTemplateWithDashboard(id: string) {
-    closeDashboard()
+    dashboardController.closeDashboard()
     await templateViews.loadTemplate(id)
   }
 
   function resetDraftWithDashboard() {
-    closeDashboard()
+    dashboardController.closeDashboard()
     templateViews.resetDraft()
   }
 
@@ -236,16 +181,16 @@ export function createQueryBuilderStore() {
   })
 
   return proxyRefs({
-    dashboards,
-    activeDashboardId,
-    activeDashboardParams,
-    activeDashboardViewModel,
-    activeDashboardLoading,
-    loadDashboard,
-    runActiveDashboard,
-    updateDashboardParam,
-    closeDashboard,
-    saveDashboardAsTemplate,
+    dashboards: dashboardController.dashboards,
+    activeDashboardId: dashboardController.activeDashboardId,
+    activeDashboardParams: dashboardController.activeDashboardParams,
+    activeDashboardViewModel: dashboardController.activeDashboardViewModel,
+    activeDashboardLoading: dashboardController.activeDashboardLoading,
+    loadDashboard: dashboardController.loadDashboard,
+    runActiveDashboard: dashboardController.runActiveDashboard,
+    updateDashboardParam: dashboardController.updateDashboardParam,
+    closeDashboard: dashboardController.closeDashboard,
+    saveDashboardAsTemplate: dashboardController.saveDashboardAsTemplate,
     advancedMode,
     advancedSql,
     addCustomField: draftActions.addCustomField,

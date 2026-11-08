@@ -123,7 +123,9 @@ defineEmits<{
 const store = useQueryBuilderStore()
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "./editor-shared";
+
 .sqb-wireframe-icon,
 :deep(svg) {
   fill: none !important;
