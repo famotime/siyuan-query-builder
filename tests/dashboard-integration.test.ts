@@ -1,5 +1,5 @@
 import { mount } from "@vue/test-utils"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 import DashboardView from "@/components/query-builder/DashboardView.vue"
 import ResultsCalendarView from "@/components/query-builder/ResultsCalendarView.vue"
 import { getDashboardDefinition } from "@/core/dashboard/catalog"

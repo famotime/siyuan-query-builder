@@ -22,7 +22,11 @@
           aria-label="在工作台页签中打开"
           @click="openInWorkspace('tab')"
         >
-          <Maximize2 class="sqb-wireframe-icon" style="fill: none !important;" :size="15" />
+          <Maximize2
+            class="sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="15"
+          />
         </button>
         <button
           v-sqb-tooltip="'在弹窗中打开'"
@@ -31,7 +35,11 @@
           aria-label="在弹窗中打开"
           @click="openInWorkspace('dialog')"
         >
-          <Layers class="sqb-wireframe-icon" style="fill: none !important;" :size="15" />
+          <Layers
+            class="sqb-wireframe-icon"
+            style="fill: none !important;"
+            :size="15"
+          />
         </button>
       </div>
     </header>
@@ -39,9 +47,15 @@
     <main class="sqb-dock__body">
       <!-- 场景仪表板专区 -->
       <section class="sqb-dock__section">
-        <div class="sqb-dock__section-head" @click="dashboardsExpanded = !dashboardsExpanded">
+        <div
+          class="sqb-dock__section-head"
+          @click="dashboardsExpanded = !dashboardsExpanded"
+        >
           <div class="sqb-dock__section-title">
-            <Sparkles class="sqb-dock__accent-icon" :size="15" />
+            <Sparkles
+              class="sqb-dock__accent-icon"
+              :size="15"
+            />
             <span>场景仪表板</span>
             <span class="sqb-dock__badge">{{ dashboards.length }}</span>
           </div>
@@ -51,10 +65,16 @@
             :size="15"
           />
         </div>
-        <p v-if="dashboardsExpanded" class="sqb-dock__section-desc">
+        <p
+          v-if="dashboardsExpanded"
+          class="sqb-dock__section-desc"
+        >
           开箱即用的工作台与多维大盘，点击直接在工作台打开。
         </p>
-        <div v-if="dashboardsExpanded" class="sqb-dock__list">
+        <div
+          v-if="dashboardsExpanded"
+          class="sqb-dock__list"
+        >
           <button
             v-for="d in dashboards"
             :key="d.id"
@@ -62,7 +82,10 @@
             @click="openDashboard(d.id)"
           >
             <div class="sqb-dock__item-icon-wrap">
-              <component :is="getDashboardIcon(d.id)" :size="16" />
+              <component
+                :is="getDashboardIcon(d.id)"
+                :size="16"
+              />
             </div>
             <div class="sqb-dock__item-text">
               <span class="sqb-dock__item-title">{{ d.title }}</span>
@@ -74,7 +97,10 @@
 
       <!-- 快速新建查询 -->
       <div class="sqb-dock__quick-create">
-        <button class="sqb-dock__create-btn" @click="openInWorkspace()">
+        <button
+          class="sqb-dock__create-btn"
+          @click="openInWorkspace()"
+        >
           <Plus :size="15" />
           <span>新建查询</span>
         </button>
@@ -82,7 +108,10 @@
 
       <!-- 预设场景 -->
       <section class="sqb-dock__section">
-        <div class="sqb-dock__section-head" @click="presetsExpanded = !presetsExpanded">
+        <div
+          class="sqb-dock__section-head"
+          @click="presetsExpanded = !presetsExpanded"
+        >
           <div class="sqb-dock__section-title">
             <Compass :size="15" />
             <span>预设场景</span>
@@ -94,7 +123,10 @@
             :size="15"
           />
         </div>
-        <div v-if="presetsExpanded" class="sqb-dock__list">
+        <div
+          v-if="presetsExpanded"
+          class="sqb-dock__list"
+        >
           <button
             v-for="preset in allPresets"
             :key="preset.id"
@@ -110,8 +142,14 @@
       </section>
 
       <!-- 已保存模板 -->
-      <section v-if="savedTemplates.length" class="sqb-dock__section">
-        <div class="sqb-dock__section-head" @click="templatesExpanded = !templatesExpanded">
+      <section
+        v-if="savedTemplates.length"
+        class="sqb-dock__section"
+      >
+        <div
+          class="sqb-dock__section-head"
+          @click="templatesExpanded = !templatesExpanded"
+        >
           <div class="sqb-dock__section-title">
             <Bookmark :size="15" />
             <span>已保存模板</span>
@@ -123,7 +161,10 @@
             :size="15"
           />
         </div>
-        <div v-if="templatesExpanded" class="sqb-dock__list">
+        <div
+          v-if="templatesExpanded"
+          class="sqb-dock__list"
+        >
           <button
             v-for="tmpl in savedTemplates"
             :key="tmpl.id"
@@ -139,8 +180,14 @@
       </section>
 
       <!-- 最近查询历史 -->
-      <section v-if="recentHistory.length" class="sqb-dock__section">
-        <div class="sqb-dock__section-head" @click="historyExpanded = !historyExpanded">
+      <section
+        v-if="recentHistory.length"
+        class="sqb-dock__section"
+      >
+        <div
+          class="sqb-dock__section-head"
+          @click="historyExpanded = !historyExpanded"
+        >
           <div class="sqb-dock__section-title">
             <History :size="15" />
             <span>最近查询</span>
@@ -152,7 +199,10 @@
             :size="15"
           />
         </div>
-        <div v-if="historyExpanded" class="sqb-dock__list">
+        <div
+          v-if="historyExpanded"
+          class="sqb-dock__list"
+        >
           <button
             v-for="h in recentHistory"
             :key="h.id"
@@ -171,7 +221,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import type {
+  QueryHistoryEntry,
+  QueryTemplate,
+} from "@/core/query/types"
 import {
   Bookmark,
   ChevronDown,
@@ -183,16 +236,22 @@ import {
   Sparkles,
 } from "lucide-vue-next"
 
+import {
+  onMounted,
+  ref,
+} from "vue"
 import { getDashboardIcon } from "@/components/query-builder/dashboard-icons"
-import pluginIconUrl from "../../../icon.png?url"
 import { SCENARIO_DASHBOARDS } from "@/core/dashboard/catalog"
-import { createPresets, DEFAULT_FIELD_MAPPINGS } from "@/core/query/catalog"
-import type { QueryHistoryEntry, QueryTemplate } from "@/core/query/types"
+import {
+  createPresets,
+  DEFAULT_FIELD_MAPPINGS,
+} from "@/core/query/catalog"
 import { createQueryHistoryStore } from "@/core/storage/query-history-store"
 import { createQueryTemplateStore } from "@/core/storage/query-template-store"
 import { usePlugin } from "@/main"
 import { vSqbTooltip } from "@/ui/tooltip"
 import { useWorkspaceNavigation } from "@/ui/workspace-navigation"
+import pluginIconUrl from "../../../icon.png?url"
 
 const navigation = useWorkspaceNavigation()
 

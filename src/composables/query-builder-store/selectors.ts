@@ -1,10 +1,20 @@
-import { computed, type Ref } from "vue"
+import type { Ref } from "vue"
 
-import { AGGREGATE_VALUE_FIELD, NUMERIC_FIELD_IDS, TAG_COUNT_FIELD, createFieldOptions, createPresets } from "@/core/query/catalog"
-import type { QueryBuilderSnapshot, ResultSet } from "@/core/query/types"
+import type {
+  QueryBuilderSnapshot,
+  ResultSet,
+} from "@/core/query/types"
+import type { I18nHelper } from "@/utils/i18n"
+import { computed } from "vue"
+import {
+  AGGREGATE_VALUE_FIELD,
+  createFieldOptions,
+  createPresets,
+  NUMERIC_FIELD_IDS,
+  TAG_COUNT_FIELD,
+} from "@/core/query/catalog"
 import { validateSnapshot } from "@/core/query/validation"
 import { createResultPresentation } from "@/core/view/presentation"
-import type { I18nHelper } from "@/utils/i18n"
 
 import {
   buildScopeLabel,
@@ -24,7 +34,12 @@ interface QueryBuilderSelectorsOptions {
 }
 
 export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOptions) {
-  const { draft, notebooks, resultSet, t } = options
+  const {
+    draft,
+    notebooks,
+    resultSet,
+    t,
+  } = options
 
   const presets = computed(() => createPresets(draft.view.fieldMappings))
   const fieldOptions = computed(() => mergeFieldOptions(
@@ -32,15 +47,15 @@ export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOption
     draft.template,
   ))
   const notebookNameById = computed(() => Object.fromEntries(
-    notebooks.value.map(notebook => [notebook.id, notebook.name]),
+    notebooks.value.map((notebook) => [notebook.id, notebook.name]),
   ))
   const presentation = computed(() => createResultPresentation({
     fieldMappings: draft.view.fieldMappings,
     notebookNameById: notebookNameById.value,
   }))
-  const selectableFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD))
-  const sortFieldOptions = computed(() => fieldOptions.value.filter(option => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
-  const statisticalFieldOptions = computed(() => fieldOptions.value.filter(option => NUMERIC_FIELD_IDS.includes(option.value)))
+  const selectableFieldOptions = computed(() => fieldOptions.value.filter((option) => option.value !== AGGREGATE_VALUE_FIELD))
+  const sortFieldOptions = computed(() => fieldOptions.value.filter((option) => option.value !== AGGREGATE_VALUE_FIELD || Boolean(draft.template.aggregation)))
+  const statisticalFieldOptions = computed(() => fieldOptions.value.filter((option) => NUMERIC_FIELD_IDS.includes(option.value)))
   const resultFields = computed(() => defaultAggregationFieldResult(draft.template))
   const boardColumns = computed(() => {
     if (!resultSet.value?.rows.length || !draft.template.groupBy) {
@@ -151,11 +166,11 @@ export function createQueryBuilderSelectors(options: QueryBuilderSelectorsOption
     }
     return `返回 ${resultSet.value.total} 条结果`
   })
-  const validationIssues = computed(() => validateSnapshot(createSnapshot(draft)).map(issue => ({
+  const validationIssues = computed(() => validateSnapshot(createSnapshot(draft)).map((issue) => ({
     ...issue,
     message: t(`validation.${issue.code}`),
   })))
-  const blockingValidationIssues = computed(() => validationIssues.value.filter(issue => issue.level === "error"))
+  const blockingValidationIssues = computed(() => validationIssues.value.filter((issue) => issue.level === "error"))
   const currentTemplateId = computed(() => draft.template.id)
   const currentViewId = computed(() => draft.view.id)
   const scopeLabel = computed(() => buildScopeLabel(draft.template.scope.type, "editor"))

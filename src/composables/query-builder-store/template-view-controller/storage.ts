@@ -1,6 +1,11 @@
 import type { Ref } from "vue"
 
-import type { QueryBuilderSnapshot, QueryTemplate, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
+import type {
+  QueryBuilderSnapshot,
+  QueryTemplate,
+  SavedTemplateSummary,
+  ViewConfig,
+} from "@/core/query/types"
 import { createMigrationGate } from "@/core/storage/migration-gate"
 import { migrateLegacyTemplateSnapshots } from "@/core/storage/migrations"
 import { createQueryTemplateStore } from "@/core/storage/query-template-store"
@@ -11,9 +16,9 @@ import { createViewConfigStore } from "@/core/storage/view-config-store"
 import { createSnapshot } from "../shared"
 
 interface StorageAdapter {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
-  removeData(key: string): Promise<void>
+  loadData: (key: string) => Promise<unknown>
+  saveData: (key: string, value: unknown) => Promise<void>
+  removeData: (key: string) => Promise<void>
 }
 
 interface TemplateViewStorageOptions {
@@ -62,9 +67,9 @@ export function createTemplateViewStorage(options: TemplateViewStorageOptions) {
       queryTemplateStore.list(),
       viewConfigStore.list(),
     ])
-    savedTemplateSummaries.value = templates.map(template => buildSavedTemplateSummary(
+    savedTemplateSummaries.value = templates.map((template) => buildSavedTemplateSummary(
       template,
-      views.filter(view => view.queryTemplateId === template.id),
+      views.filter((view) => view.queryTemplateId === template.id),
     ))
   }
 

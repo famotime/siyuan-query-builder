@@ -1,11 +1,18 @@
-import type { ComputedRef, Ref } from "vue"
+import type {
+  ComputedRef,
+  Ref,
+} from "vue"
 
-import { buildQuery } from "@/core/query/compiler"
-import type { QueryBuilderSnapshot, ResultRow, ResultSet } from "@/core/query/types"
-import { showMessage } from "@/external/siyuan"
+import type { EditableField } from "./shared"
+import type {
+  QueryBuilderSnapshot,
+  ResultRow,
+  ResultSet,
+} from "@/core/query/types"
 import type { I18nHelper } from "@/utils/i18n"
+import { buildQuery } from "@/core/query/compiler"
 
-import { type EditableField } from "./shared"
+import { showMessage } from "@/external/siyuan"
 
 interface QueryRuntime {
   execute: (compiled: ReturnType<typeof buildQuery>) => Promise<ResultSet>
@@ -66,7 +73,7 @@ export function createQueryExecutionController(options: QueryExecutionController
   async function runQuery() {
     error.value = ""
     if (blockingValidationIssues.value.length) {
-      const message = blockingValidationIssues.value.map(issue => issue.message).join("；")
+      const message = blockingValidationIssues.value.map((issue) => issue.message).join("；")
       error.value = message
       showMessage(t("queryValidationBlocked", { message }), 5000, "error")
       return
@@ -89,7 +96,7 @@ export function createQueryExecutionController(options: QueryExecutionController
   async function quickEdit(rowId: string, field: EditableField, value: string) {
     try {
       await runtime.updateField(rowId, field, value, draft.view.fieldMappings)
-      const row = resultSet.value?.rows.find(item => item.id === rowId)
+      const row = resultSet.value?.rows.find((item) => item.id === rowId)
       if (row) {
         const attrName = field.startsWith("attr:")
           ? field.slice("attr:".length).trim()

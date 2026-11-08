@@ -15,101 +15,105 @@
  * 调用方以 `?.` / 空值兜底处理,不会抛出异常。
  */
 
-import { fetchSyncPost, IWebSocketData } from "siyuan";
+import {
+  fetchSyncPost,
+  IWebSocketData,
+} from "siyuan"
 
 async function request(url: string, data: any) {
-  let response: IWebSocketData = await fetchSyncPost(url, data);
-  let res = response.code === 0 ? response.data : null;
-  return res;
+  const response: IWebSocketData = await fetchSyncPost(url, data)
+  const res = response.code === 0 ? response.data : null
+  return res
 }
 
 // **************************************** Noteboook ****************************************
 
 export async function lsNotebooks(): Promise<IReslsNotebooks> {
-  let url = "/api/notebook/lsNotebooks";
-  return request(url, "");
+  const url = "/api/notebook/lsNotebooks"
+  return request(url, "")
 }
 
 export async function getNotebookConf(
-  notebook: NotebookId
+  notebook: NotebookId,
 ): Promise<IResGetNotebookConf> {
-  let data = { notebook: notebook };
-  let url = "/api/notebook/getNotebookConf";
-  return request(url, data);
+  const data = { notebook }
+  const url = "/api/notebook/getNotebookConf"
+  return request(url, data)
 }
 
 // **************************************** File Tree ****************************************
 export async function createDocWithMd(
   notebook: NotebookId,
   path: string,
-  markdown: string
+  markdown: string,
 ): Promise<DocumentId> {
-  let data = {
-    notebook: notebook,
-    path: path,
-    markdown: markdown,
-  };
-  let url = "/api/filetree/createDocWithMd";
-  return request(url, data);
+  const data = {
+    notebook,
+    path,
+    markdown,
+  }
+  const url = "/api/filetree/createDocWithMd"
+  return request(url, data)
 }
 
 export async function getChildBlocks(
-  id: BlockId
+  id: BlockId,
 ): Promise<IResGetChildBlock[]> {
-  let data = {
-    id: id,
-  };
-  let url = "/api/block/getChildBlocks";
-  return request(url, data);
+  const data = {
+    id,
+  }
+  const url = "/api/block/getChildBlocks"
+  return request(url, data)
 }
 
 // **************************************** Blocks ****************************************
 export async function appendBlock(
   dataType: DataType,
   data: string,
-  parentID: BlockId | DocumentId
+  parentID: BlockId | DocumentId,
 ): Promise<IResdoOperations[]> {
-  let payload = {
-    dataType: dataType,
-    data: data,
-    parentID: parentID,
-  };
-  let url = "/api/block/appendBlock";
-  return request(url, payload);
+  const payload = {
+    dataType,
+    data,
+    parentID,
+  }
+  const url = "/api/block/appendBlock"
+  return request(url, payload)
 }
 
 // **************************************** Attributes ****************************************
 export async function setBlockAttrs(
   id: BlockId,
-  attrs: { [key: string]: string }
+  attrs: { [key: string]: string },
 ) {
-  let data = {
-    id: id,
-    attrs: attrs,
-  };
-  let url = "/api/attr/setBlockAttrs";
-  return request(url, data);
+  const data = {
+    id,
+    attrs,
+  }
+  const url = "/api/attr/setBlockAttrs"
+  return request(url, data)
 }
 
 // **************************************** SQL ****************************************
 
 export async function sql(sql: string): Promise<Record<string, unknown>[]> {
-  let sqldata = {
+  const sqldata = {
     stmt: sql,
-  };
-  let url = "/api/query/sql";
-  return request(url, sqldata);
+  }
+  const url = "/api/query/sql"
+  return request(url, sqldata)
 }
 
 export async function getBlockByID(blockId: string): Promise<Block | undefined> {
-  let sqlScript = `select * from blocks where id ='${blockId}'`;
-  let data = await sql(sqlScript);
-  return data?.[0] as Block | undefined;
+  const sqlScript = `select * from blocks where id ='${blockId}'`
+  const data = await sql(sqlScript)
+  // 内核返回的行是动态数据,Record → Block 需经 unknown 中转
+  return (data?.[0] ?? undefined) as unknown as Block | undefined
 }
 
 // **************************************** Template ****************************************
 
 export async function renderSprig(template: string): Promise<string> {
-  let url = "/api/template/renderSprig";
-  return request(url, { template: template });
+  const url = "/api/template/renderSprig"
+  return request(url, { template })
 }

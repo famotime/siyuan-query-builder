@@ -1,5 +1,9 @@
+import type {
+  QueryBuilderSnapshot,
+  QueryTemplate,
+  ViewConfig,
+} from "@/core/query/types"
 import { applyViewConfigToTemplate } from "@/core/query/catalog"
-import type { QueryBuilderSnapshot, QueryTemplate, ViewConfig } from "@/core/query/types"
 
 import { pickTemplateViewById } from "./template-view"
 
@@ -29,9 +33,9 @@ export function createTemplateViewLoader(queryTemplateStore: QueryTemplateReader
         queryTemplateStore.list(),
         viewConfigStore.list(),
       ])
-      return templates.map(template => toSnapshot(
+      return templates.map((template) => toSnapshot(
         template,
-        views.filter(view => view.queryTemplateId === template.id),
+        views.filter((view) => view.queryTemplateId === template.id),
       ))
     },
     async getSnapshot(templateId: string, viewId?: string) {

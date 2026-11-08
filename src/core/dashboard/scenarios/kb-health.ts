@@ -1,6 +1,10 @@
+import type {
+  DashboardDefinition,
+  DashboardViewModel,
+  MetricCardModel,
+} from "../types"
 import type { ResultRow } from "@/core/query/types"
 import { buildBarDistributionOption } from "@/core/view/chart"
-import type { DashboardDefinition, DashboardViewModel, MetricCardModel } from "../types"
 
 export interface KbHealthParams {
   hubLimit?: number
@@ -57,8 +61,8 @@ export const kbHealthDashboard: DashboardDefinition = {
     ]
 
     // 核心枢纽文档柱状图
-    const hubNames = rows.slice(0, 8).map(r => String(r.content || "未命名").slice(0, 12))
-    const hubCounts = rows.slice(0, 8).map(r => Number(r.backlinkCount) || 0)
+    const hubNames = rows.slice(0, 8).map((r) => String(r.content || "未命名").slice(0, 12))
+    const hubCounts = rows.slice(0, 8).map((r) => Number(r.backlinkCount) || 0)
 
     const charts = [
       {
@@ -78,7 +82,7 @@ export const kbHealthDashboard: DashboardDefinition = {
     const listItems = rows.map((r, i) => ({
       id: r.id,
       title: `${i + 1}. ${r.content || "未命名文档"}`,
-      meta: [`${r.backlinkCount || 0} 次反链引用`, r.hpath || ""].filter(Boolean),
+      meta: [`${r.backlinkCount || 0} 次反链引用`, r.hpath ? String(r.hpath) : ""].filter(Boolean),
     }))
 
     return {

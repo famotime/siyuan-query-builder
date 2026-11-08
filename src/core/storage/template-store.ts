@@ -1,4 +1,8 @@
-import type { QueryBuilderSnapshot, QueryTemplate, ViewConfig } from "@/core/query/types"
+import type {
+  QueryBuilderSnapshot,
+  QueryTemplate,
+  ViewConfig,
+} from "@/core/query/types"
 
 import { createMigrationGate } from "./migration-gate"
 import { migrateLegacyTemplateSnapshots } from "./migrations"
@@ -7,9 +11,9 @@ import { createTemplateViewLoader } from "./template-view-loader"
 import { createViewConfigStore } from "./view-config-store"
 
 interface StorageAdapter {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
-  removeData(key: string): Promise<void>
+  loadData: (key: string) => Promise<unknown>
+  saveData: (key: string, value: unknown) => Promise<void>
+  removeData: (key: string) => Promise<void>
 }
 
 export function createTemplateStore(storage: StorageAdapter) {

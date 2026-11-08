@@ -7,8 +7,19 @@ import type {
   QuerySort,
   QueryTemplate,
 } from "./types"
-import { AGGREGATE_VALUE_FIELD, ASSET_COUNT_FIELD, BACKLINK_COUNT_FIELD, LINK_COUNT_FIELD, OUT_LINK_COUNT_FIELD, TAG_COUNT_FIELD, TEXT_LENGTH_FIELD } from "./catalog"
-import { CUSTOM_ATTR_PREFIX, toStorageAttrName } from "./attributes"
+import {
+  CUSTOM_ATTR_PREFIX,
+  toStorageAttrName,
+} from "./attributes"
+import {
+  AGGREGATE_VALUE_FIELD,
+  ASSET_COUNT_FIELD,
+  BACKLINK_COUNT_FIELD,
+  LINK_COUNT_FIELD,
+  OUT_LINK_COUNT_FIELD,
+  TAG_COUNT_FIELD,
+  TEXT_LENGTH_FIELD,
+} from "./catalog"
 
 const BASE_FIELD_MAP: Record<string, string> = {
   id: "blocks.id",
@@ -101,7 +112,7 @@ function getFieldAlias(field: FieldId) {
     return "agg_value"
   }
   if (isAttrField(field)) {
-    return `attr_${getAttrName(field).replaceAll(/[^a-zA-Z0-9_]/g, "_")}`
+    return `attr_${getAttrName(field).replaceAll(/\W/g, "_")}`
   }
   return field
 }
@@ -193,14 +204,14 @@ function buildFilterClause(filter: QueryFilter) {
     case "gt": {
       const number = Number(filter.value)
       if (!Number.isFinite(number)) {
-        throw new Error("gt requires a numeric value")
+        throw new TypeError("gt requires a numeric value")
       }
       return `CAST(COALESCE(${expression}, 0) AS REAL) > ${number}`
     }
     case "lt": {
       const number = Number(filter.value)
       if (!Number.isFinite(number)) {
-        throw new Error("lt requires a numeric value")
+        throw new TypeError("lt requires a numeric value")
       }
       return `CAST(COALESCE(${expression}, 0) AS REAL) < ${number}`
     }

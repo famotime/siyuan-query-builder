@@ -1,6 +1,11 @@
+import type {
+  DashboardDefinition,
+  DashboardViewModel,
+  MetricCardModel,
+} from "../types"
 import type { ResultRow } from "@/core/query/types"
 import { buildCalendarHeatmapOption } from "@/core/view/chart"
-import type { DashboardDefinition, DashboardViewModel, MetricCardModel } from "../types"
+import { escapeSqlLiteral } from "../calculator"
 
 export interface WritingFlowParams {
   year?: string
@@ -16,12 +21,13 @@ export const writingFlowDashboard: DashboardDefinition = {
       id: "year",
       label: "统计年份",
       type: "text",
-      defaultValue: String(new Date().getFullYear()),
+      // 惰性求值:避免长会话跨年后默认年份过期
+      defaultValue: () => String(new Date().getFullYear()),
       placeholder: "YYYY",
     },
   ],
   buildSql(params: WritingFlowParams) {
-    const year = params.year || String(new Date().getFullYear())
+    const year = escapeSqlLiteral(params.year || String(new Date().getFullYear()))
     return `
         SELECT b.id, b.content, b.hpath, b.created, b.updated, b.box,
                (SELECT a.value FROM attributes a WHERE a.block_id = b.id AND a.name = 'custom-status' LIMIT 1) AS status
@@ -88,26 +94,26 @@ export const writingFlowDashboard: DashboardDefinition = {
       {
         id: "reading",
         title: "待读 / 收集",
-        count: rows.filter(r => !r.status || r.status === "Unread" || r.status === "待读").length,
-        rows: rows.filter(r => !r.status || r.status === "Unread" || r.status === "待读").slice(0, 10),
+        count: rows.filter((r) => !r.status || r.status === "Unread" || r.status === "待读").length,
+        rows: rows.filter((r) => !r.status || r.status === "Unread" || r.status === "待读").slice(0, 10),
       },
       {
         id: "in_progress",
         title: "精读研读中",
-        count: rows.filter(r => r.status === "Reading" || r.status === "研读中").length,
-        rows: rows.filter(r => r.status === "Reading" || r.status === "研读中").slice(0, 10),
+        count: rows.filter((r) => r.status === "Reading" || r.status === "研读中").length,
+        rows: rows.filter((r) => r.status === "Reading" || r.status === "研读中").slice(0, 10),
       },
       {
         id: "output",
         title: "整理输出",
-        count: rows.filter(r => r.status === "Output" || r.status === "输出").length,
-        rows: rows.filter(r => r.status === "Output" || r.status === "输出").slice(0, 10),
+        count: rows.filter((r) => r.status === "Output" || r.status === "输出").length,
+        rows: rows.filter((r) => r.status === "Output" || r.status === "输出").slice(0, 10),
       },
       {
         id: "archived",
         title: "已归纳",
-        count: rows.filter(r => r.status === "Done" || r.status === "已完成").length,
-        rows: rows.filter(r => r.status === "Done" || r.status === "已完成").slice(0, 10),
+        count: rows.filter((r) => r.status === "Done" || r.status === "已完成").length,
+        rows: rows.filter((r) => r.status === "Done" || r.status === "已完成").slice(0, 10),
       },
     ]
 

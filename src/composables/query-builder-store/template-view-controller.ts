@@ -1,19 +1,35 @@
 import type { Ref } from "vue"
 
-import { applyViewConfigToTemplate, createId } from "@/core/query/catalog"
-import type { QueryBuilderSnapshot, QueryTemplate, QueryTemplateBundle, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
-import { showMessage } from "@/external/siyuan"
+import type {
+  QueryBuilderSnapshot,
+  QueryTemplate,
+  QueryTemplateBundle,
+  SavedTemplateSummary,
+  ViewConfig,
+} from "@/core/query/types"
 import type { I18nHelper } from "@/utils/i18n"
+import {
+  applyViewConfigToTemplate,
+  createId,
+} from "@/core/query/catalog"
+import { showMessage } from "@/external/siyuan"
 
 import { createSnapshot } from "./shared"
-import { createExportedTemplateBundle, createImportedTemplateBundle, isTemplateBundle } from "./template-view-controller/bundle"
-import { applyTemplateAndViewState, resetDraftState } from "./template-view-controller/draft-state"
+import {
+  createExportedTemplateBundle,
+  createImportedTemplateBundle,
+  isTemplateBundle,
+} from "./template-view-controller/bundle"
+import {
+  applyTemplateAndViewState,
+  resetDraftState,
+} from "./template-view-controller/draft-state"
 import { createTemplateViewStorage } from "./template-view-controller/storage"
 
 interface StorageAdapter {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
-  removeData(key: string): Promise<void>
+  loadData: (key: string) => Promise<unknown>
+  saveData: (key: string, value: unknown) => Promise<void>
+  removeData: (key: string) => Promise<void>
 }
 
 interface TemplateViewControllerOptions {
@@ -120,7 +136,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
         await storage.viewConfigStore.save(view)
       }
 
-      const defaultView = importedViews.find(view => view.defaultView) || importedViews[0]
+      const defaultView = importedViews.find((view) => view.defaultView) || importedViews[0]
       if (defaultView) {
         applyTemplateAndView(importedTemplate, defaultView)
       }
@@ -168,6 +184,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
         return false
       }
       const confirmed = typeof window.confirm === "function"
+        // eslint-disable-next-line no-alert -- 删除前需要用户确认,SiYuan 环境没有独立的确认对话框组件
         ? window.confirm(`确定删除模板“${template.name}”吗？相关已保存视图也会一并删除。`)
         : true
       if (!confirmed) {
@@ -192,7 +209,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
     try {
       const snapshot = createSnapshot(draft)
       snapshot.template.viewType = snapshot.view.type
-      const duplicateTypeView = savedViews.value.find(view =>
+      const duplicateTypeView = savedViews.value.find((view) =>
         view.queryTemplateId === snapshot.template.id
         && view.type === snapshot.view.type,
       )
@@ -223,9 +240,9 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
   }
 
   async function loadSavedView(viewId: string) {
-      const view = savedViews.value.find(item => item.id === viewId)
-      if (!view) {
-        return false
+    const view = savedViews.value.find((item) => item.id === viewId)
+    if (!view) {
+      return false
     }
     applyTemplateAndView(draft.template, view, {
       preserveResultState: true,
@@ -235,7 +252,7 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
   }
 
   async function setDefaultSavedView(viewId: string) {
-    const view = savedViews.value.find(item => item.id === viewId)
+    const view = savedViews.value.find((item) => item.id === viewId)
     if (!view) {
       return false
     }
@@ -268,13 +285,13 @@ export function createTemplateViewController(options: TemplateViewControllerOpti
       return false
     }
     try {
-      const deletedView = savedViews.value.find(item => item.id === viewId)
+      const deletedView = savedViews.value.find((item) => item.id === viewId)
       await storage.ensureStorageReady()
       await storage.viewConfigStore.remove(viewId)
       await refreshSavedViews(draft.template.id)
-      let replacement = savedViews.value.find(item => item.defaultView) || savedViews.value[0]
+      let replacement = savedViews.value.find((item) => item.defaultView) || savedViews.value[0]
 
-      if (!savedViews.value.some(item => item.defaultView) && replacement) {
+      if (!savedViews.value.some((item) => item.defaultView) && replacement) {
         replacement = {
           ...replacement,
           defaultView: true,

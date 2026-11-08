@@ -1,4 +1,7 @@
-import type { Directive, DirectiveBinding } from "vue"
+import type {
+  Directive,
+  DirectiveBinding,
+} from "vue"
 
 let tooltipElement: HTMLElement | null = null
 let currentTarget: HTMLElement | null = null

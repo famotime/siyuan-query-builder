@@ -1,6 +1,9 @@
 import type { CalendarTaskItem } from "@/core/dashboard/types"
-import { parseDateFromHPath, parseTaskStatus } from "@/core/dashboard/calculator"
 import type { ResultRow } from "@/core/query/types"
+import {
+  parseDateFromHPath,
+  parseTaskStatus,
+} from "@/core/dashboard/calculator"
 import { buildBarDistributionOption } from "@/core/view/chart"
 
 /**
@@ -20,7 +23,7 @@ export function buildCalendarTaskItems(rows: ResultRow[] | null | undefined): Ca
       status,
       date,
       docTitle: r.hpath ? String(r.hpath).split("/").pop() : undefined,
-      docId: r.root_id,
+      docId: r.root_id == null ? undefined : String(r.root_id),
     }
   })
 }
@@ -41,8 +44,8 @@ export function buildGroupDistributionChartOption(params: {
   if (summary.length > 1) {
     return buildBarDistributionOption({
       title,
-      categories: summary.slice(1).map(c => c.label),
-      values: summary.slice(1).map(c => Number(c.value) || 0),
+      categories: summary.slice(1).map((c) => c.label),
+      values: summary.slice(1).map((c) => Number(c.value) || 0),
     })
   }
 

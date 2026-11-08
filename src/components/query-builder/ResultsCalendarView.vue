@@ -40,7 +40,10 @@
 
       <div class="calendar-view__stats">
         <span>共 {{ gridModel.totalTasks }} 项</span>
-        <span v-if="gridModel.openTasks > 0" class="calendar-view__pending-badge">
+        <span
+          v-if="gridModel.openTasks > 0"
+          class="calendar-view__pending-badge"
+        >
           {{ gridModel.openTasks }} 待办
         </span>
       </div>
@@ -135,7 +138,10 @@
           >
             <span class="calendar-view__task-dot" />
             <span class="calendar-view__popover-text">{{ t.content }}</span>
-            <small v-if="t.docTitle" class="calendar-view__popover-meta">{{ t.docTitle }}</small>
+            <small
+              v-if="t.docTitle"
+              class="calendar-view__popover-meta"
+            >{{ t.docTitle }}</small>
           </article>
         </div>
       </div>
@@ -144,11 +150,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import type { CalendarDayCell, CalendarStatusFilter } from "@/core/view/calendar"
-import { addMonths, buildMonthCalendarGrid, filterCalendarTasks } from "@/core/view/calendar"
-import type { CalendarTaskItem, TaskStatus } from "@/core/dashboard/types"
+import type { CalendarTaskItem } from "@/core/dashboard/types"
+import type {
+  CalendarDayCell,
+  CalendarStatusFilter,
+} from "@/core/view/calendar"
+import {
+  computed,
+  ref,
+} from "vue"
 import { formatIsoDate } from "@/core/dashboard/calculator"
+import {
+  addMonths,
+  buildMonthCalendarGrid,
+  filterCalendarTasks,
+} from "@/core/view/calendar"
 
 const props = defineProps<{
   tasks: CalendarTaskItem[]
@@ -165,10 +181,22 @@ const currentFilter = ref<CalendarStatusFilter>("all")
 const activePopoverCell = ref<CalendarDayCell | null>(null)
 
 const filterOptions = [
-  { key: "all" as const, label: "全部" },
-  { key: "open" as const, label: "未完成" },
-  { key: "doing" as const, label: "进行中" },
-  { key: "done" as const, label: "已完成" },
+  {
+    key: "all" as const,
+    label: "全部",
+  },
+  {
+    key: "open" as const,
+    label: "未完成",
+  },
+  {
+    key: "doing" as const,
+    label: "进行中",
+  },
+  {
+    key: "done" as const,
+    label: "已完成",
+  },
 ]
 
 const gridModel = computed(() => {
@@ -198,7 +226,7 @@ function openPopover(cell: CalendarDayCell) {
 
 function getDayTasks(iso: string): CalendarTaskItem[] {
   // 与网格共用 filterCalendarTasks,保证“+N”弹窗明细与格子计数一致
-  return filterCalendarTasks(props.tasks, currentFilter.value).filter(t => t.date === iso)
+  return filterCalendarTasks(props.tasks, currentFilter.value).filter((t) => t.date === iso)
 }
 </script>
 

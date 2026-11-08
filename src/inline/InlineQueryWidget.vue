@@ -2,7 +2,10 @@
   <section class="inline-widget">
     <header class="inline-widget__header">
       <div class="inline-widget__heading">
-        <div class="inline-widget__icon" aria-hidden="true">
+        <div
+          class="inline-widget__icon"
+          aria-hidden="true"
+        >
           <Database
             :size="20"
             :stroke-width="1.75"
@@ -46,25 +49,25 @@
       v-else-if="viewType === 'list'"
       class="list"
     >
-        <li
-          v-for="item in listItems"
-          :key="item.id"
-          class="list__item"
-        >
-          <div class="list__main">
-            <button
-              class="link"
-              @click="openBlock(item.id)"
-            >
-              {{ item.title || "未命名块" }}
-            </button>
-            <small
-              v-if="item.meta.length"
-              class="list__meta"
-            >{{ item.meta.join(" · ") }}</small>
-          </div>
-        </li>
-      </ul>
+      <li
+        v-for="item in listItems"
+        :key="item.id"
+        class="list__item"
+      >
+        <div class="list__main">
+          <button
+            class="link"
+            @click="openBlock(item.id)"
+          >
+            {{ item.title || "未命名块" }}
+          </button>
+          <small
+            v-if="item.meta.length"
+            class="list__meta"
+          >{{ item.meta.join(" · ") }}</small>
+        </div>
+      </li>
+    </ul>
 
     <div
       v-else-if="viewType === 'board'"
@@ -149,7 +152,7 @@
               </button>
               <span
                 v-else
-                :class="{ 'table__muted': !displayValue(row, field) }"
+                :class="{ table__muted: !displayValue(row, field) }"
               >{{ displayValue(row, field) || "—" }}</span>
             </td>
           </tr>
@@ -160,15 +163,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { Database, Inbox } from "lucide-vue-next"
+import type { CalendarTaskItem } from "@/core/dashboard/types"
+import type {
+  FieldMappings,
+  ResultSet,
+  ViewType,
+} from "@/core/query/types"
 
+import {
+  Database,
+  Inbox,
+} from "lucide-vue-next"
+import { computed } from "vue"
 import ResultsCalendarView from "@/components/query-builder/ResultsCalendarView.vue"
 import ResultsChartView from "@/components/query-builder/ResultsChartView.vue"
 import { createResultPresentation } from "@/core/view/presentation"
-import type { FieldMappings, ResultSet, ViewType } from "@/core/query/types"
-import type { CalendarTaskItem } from "@/core/dashboard/types"
-import { buildCalendarTaskItems, buildGroupDistributionChartOption } from "@/core/view/result-view-model"
+import {
+  buildCalendarTaskItems,
+  buildGroupDistributionChartOption,
+} from "@/core/view/result-view-model"
 
 const props = defineProps<{
   title: string
@@ -181,7 +194,7 @@ const props = defineProps<{
 }>()
 
 const notebookNameById = computed(() => Object.fromEntries(
-  (props.notebooks || []).map(notebook => [notebook.id, notebook.name]),
+  (props.notebooks || []).map((notebook) => [notebook.id, notebook.name]),
 ))
 const presentation = computed(() => createResultPresentation({
   fieldMappings: props.fieldMappings,

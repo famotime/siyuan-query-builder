@@ -44,10 +44,10 @@
 - `runtime/` — 查询运行时与内核适配层(`kernel-adapter.ts` 汇聚 `@/api` 的 sql/块操作)。
 - `storage/` — 模板、视图、指标、历史与迁移存储;`collection-storage.ts` 提供带损坏防御的数组持久化 helper。
 - `dashboard/`
-  - `catalog.ts` — 聚合 5 个场景仪表板并暴露 `getDashboardDefinition`。
-  - `scenarios/` — 每个场景一个文件(daily-cockpit/habit-tracker/kb-health/writing-flow/project-delivery),各自带参数接口、`buildSql` 与 `computeViewModel`。
+  - `catalog.ts` — 聚合 5 个场景仪表板并暴露 `getDashboardDefinition` 与参数默认值解析 `resolveDashboardParamDefault`。
+  - `scenarios/` — 每个场景一个文件(daily-cockpit/habit-tracker/kb-health/writing-flow/project-delivery),各自带参数接口、`buildSql` 与 `computeViewModel`;时间相关默认参数(月份/年份)为惰性函数。
   - `runtime.ts` — 执行管道(构建 SQL → 内核查询 → rows 归一 → 视图模型)。
-  - `calculator.ts` — 纯日期/统计函数(streak、MA7、星期聚合、状态/日期解析)。
+  - `calculator.ts` — 纯日期/统计函数(streak、MA7、星期聚合、状态/日期解析、SQL 字面量转义 `escapeSqlLiteral`)。
 - `view/`
   - `chart.ts` — ECharts 运行时加载器与图表 option 构造。
   - `calendar.ts` — 月历网格、共享状态过滤 `filterCalendarTasks`、`addMonths`。
@@ -116,3 +116,8 @@
   - `api.ts` 瘦身至实际使用面(9 个函数),`sql()` 类型收紧,`getBlockByID` 空值安全。
   - 编辑器 `:deep()` 样式迁移为共享 partial 并归还各分区,死样式规则清理。
   - `scopeLabel`/`historyScopeLabel` 合并为 `buildScopeLabel`;侧边栏标签补月历/图表分支;tooltip 方向类型收窄。
+
+- 2026-11 第三轮(遗留项,RF-114~118,详见 `docs/refactor-plan.md`):
+  - 恢复类型检查门禁:tsconfig 现代化(bundler 解析、lib ES2022),`npm run typecheck` 全绿;修复 KernelAdapter 导入、DataType 声明、dock 回调签名等真实缺陷。
+  - 恢复 ESLint:清理失效的插件引用与非法规则选项,全量风格归一,`npm run lint` 0 error。
+  - 时间相关仪表板默认参数改为惰性求值(跨日/跨年不再过期);dirty 比较每次变更只做 1 次 stringify;场景 SQL 参数单引号转义(`escapeSqlLiteral`)。

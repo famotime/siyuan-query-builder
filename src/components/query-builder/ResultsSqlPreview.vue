@@ -11,7 +11,7 @@
         data-advanced-mode-toggle
         type="button"
         :aria-label="advancedMode ? '收起 SQL 预览' : '展开 SQL 预览'"
-        :aria-expanded="String(advancedMode)"
+        :aria-expanded="advancedMode"
         @click="$emit('toggle')"
       >
         <ChevronDown
@@ -66,7 +66,10 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, Copy } from "lucide-vue-next"
+import {
+  ChevronDown,
+  Copy,
+} from "lucide-vue-next"
 import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{

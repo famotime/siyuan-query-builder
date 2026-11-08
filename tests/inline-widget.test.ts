@@ -111,6 +111,7 @@ describe("InlineQueryWidget", () => {
               content: "任务 A",
               markdown: "[_] 完成周报",
               created,
+              attrs: {},
             },
           ],
           total: 1,

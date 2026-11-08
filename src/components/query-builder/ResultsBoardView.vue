@@ -37,7 +37,10 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldMappings, ResultRow } from "@/core/query/types"
+import type {
+  FieldMappings,
+  ResultRow,
+} from "@/core/query/types"
 import type { BoardColumn } from "@/core/view/board"
 import { truncatePreviewText } from "@/core/view/preview-text"
 

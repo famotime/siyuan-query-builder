@@ -1,6 +1,14 @@
 import type { TaskStatus } from "./types"
 
 /**
+ * 转义 SQL 字符串字面量中的单引号('' → ''),
+ * 防止场景仪表板参数中的引号破坏语句;LIKE 通配符(%、_)保持原样以尊重用户意图。
+ */
+export function escapeSqlLiteral(value: string): string {
+  return value.replaceAll("'", "''")
+}
+
+/**
  * 格式化 Date 为 YYYY-MM-DD
  */
 export function formatIsoDate(d: Date): string {
@@ -13,11 +21,11 @@ export function formatIsoDate(d: Date): string {
  */
 export function generateDateRange(startIso: string, endIso: string): string[] {
   const list: string[] = []
-  const dt = new Date(`${startIso}T00:00:00`)
+  let dt = new Date(`${startIso}T00:00:00`)
   const end = new Date(`${endIso}T00:00:00`)
   while (dt <= end) {
     list.push(formatIsoDate(dt))
-    dt.setDate(dt.getDate() + 1)
+    dt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1)
   }
   return list
 }
@@ -32,10 +40,13 @@ export function calculateStreak(
   dateCountMap: Record<string, number>,
   goal: number,
   todayIso: string,
-): { curStreak: number; maxStreak: number } {
+): { curStreak: number, maxStreak: number } {
   const dates = Object.keys(dateCountMap).sort()
   if (!dates.length) {
-    return { curStreak: 0, maxStreak: 0 }
+    return {
+      curStreak: 0,
+      maxStreak: 0,
+    }
   }
 
   // 计算当前连续天数：从今天或昨天倒序查找
@@ -44,7 +55,7 @@ export function calculateStreak(
 
   const refDate = new Date(`${todayIso}T00:00:00`)
   // 如果今天达标，从今天开始往前回溯；如果今天未达标，但昨天达标，则从昨天往前回溯
-  let checkDate = new Date(refDate)
+  const checkDate = new Date(refDate)
   if (todayVal < goal) {
     checkDate.setDate(checkDate.getDate() - 1)
   }
@@ -75,7 +86,10 @@ export function calculateStreak(
     }
   }
 
-  return { curStreak, maxStreak }
+  return {
+    curStreak,
+    maxStreak,
+  }
 }
 
 /**
@@ -111,7 +125,7 @@ export function aggregateByWeekday(
 ): WeekdayStatItem[] {
   const weekLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
   // 索引 0=周一 ... 6=周日
-  const agg = [0, 1, 2, 3, 4, 5, 6].map(i => ({
+  const agg = [0, 1, 2, 3, 4, 5, 6].map((i) => ({
     weekday: i + 1,
     label: weekLabels[i],
     total: 0,
@@ -129,7 +143,7 @@ export function aggregateByWeekday(
     if (val >= goal) agg[idx].reachCount++
   }
 
-  return agg.map(a => ({
+  return agg.map((a) => ({
     ...a,
     avg: a.days ? Math.round((a.total / a.days) * 10) / 10 : 0,
   }))
@@ -146,12 +160,12 @@ export interface FrequencyBucket {
  */
 export function calculateBuckets(
   values: number[],
-  definitions: Array<{ min: number; max: number; label: string; color?: string }>,
+  definitions: Array<{ min: number, max: number, label: string, color?: string }>,
 ): FrequencyBucket[] {
-  return definitions.map(def => ({
+  return definitions.map((def) => ({
     label: def.label,
     color: def.color,
-    count: values.filter(v => v >= def.min && v <= def.max).length,
+    count: values.filter((v) => v >= def.min && v <= def.max).length,
   }))
 }
 

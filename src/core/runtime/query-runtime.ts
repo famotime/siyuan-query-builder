@@ -1,5 +1,3 @@
-import { createEmbedBlockMarkdown } from "@/core/embed"
-import { toStorageAttrName } from "@/core/query/attributes"
 import type {
   CompiledQuery,
   FieldMappings,
@@ -7,11 +5,13 @@ import type {
   ResultSet,
   ViewType,
 } from "@/core/query/types"
+import { createEmbedBlockMarkdown } from "@/core/embed"
+import { toStorageAttrName } from "@/core/query/attributes"
 
-interface KernelAdapter {
-  sql(statement: string): Promise<Record<string, unknown>[]>
-  setBlockAttrs(id: string, attrs: Record<string, string>): Promise<unknown>
-  appendBlock(dataType: "markdown" | "dom", data: string, parentID: string): Promise<unknown>
+export interface KernelAdapter {
+  sql: (statement: string) => Promise<Record<string, unknown>[]>
+  setBlockAttrs: (id: string, attrs: Record<string, string>) => Promise<unknown>
+  appendBlock: (dataType: "markdown" | "dom", data: string, parentID: string) => Promise<unknown>
 }
 
 type EditableField = keyof FieldMappings | `attr:${string}`

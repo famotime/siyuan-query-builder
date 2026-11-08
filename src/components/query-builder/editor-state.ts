@@ -1,35 +1,93 @@
-import { reactive, ref, watch } from "vue"
-
 import type { QueryBuilderStore } from "@/composables/query-builder-store"
-import type { FilterOperator, QueryFilter } from "@/core/query/types"
+
+import type {
+  FilterOperator,
+  QueryFilter,
+} from "@/core/query/types"
+import {
+  reactive,
+  ref,
+  watch,
+} from "vue"
 
 const COMMON_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
-  { value: "eq", label: "等于" },
-  { value: "neq", label: "不等于" },
-  { value: "gt", label: "大于" },
-  { value: "lt", label: "小于" },
-  { value: "contains", label: "包含" },
-  { value: "not_contains", label: "不包含" },
-  { value: "empty", label: "为空" },
-  { value: "not_empty", label: "非空" },
+  {
+    value: "eq",
+    label: "等于",
+  },
+  {
+    value: "neq",
+    label: "不等于",
+  },
+  {
+    value: "gt",
+    label: "大于",
+  },
+  {
+    value: "lt",
+    label: "小于",
+  },
+  {
+    value: "contains",
+    label: "包含",
+  },
+  {
+    value: "not_contains",
+    label: "不包含",
+  },
+  {
+    value: "empty",
+    label: "为空",
+  },
+  {
+    value: "not_empty",
+    label: "非空",
+  },
 ]
 const DATE_COMPATIBLE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
-  { value: "eq", label: "等于" },
-  { value: "neq", label: "不等于" },
-  { value: "gt", label: "大于" },
-  { value: "lt", label: "小于" },
-  { value: "empty", label: "为空" },
-  { value: "not_empty", label: "非空" },
+  {
+    value: "eq",
+    label: "等于",
+  },
+  {
+    value: "neq",
+    label: "不等于",
+  },
+  {
+    value: "gt",
+    label: "大于",
+  },
+  {
+    value: "lt",
+    label: "小于",
+  },
+  {
+    value: "empty",
+    label: "为空",
+  },
+  {
+    value: "not_empty",
+    label: "非空",
+  },
 ]
 const DATE_FILTER_OPERATORS: Array<{ value: FilterOperator, label: string }> = [
-  { value: "date_between", label: "日期区间" },
-  { value: "next_days", label: "未来 N 天" },
-  { value: "last_days", label: "最近 N 天" },
+  {
+    value: "date_between",
+    label: "日期区间",
+  },
+  {
+    value: "next_days",
+    label: "未来 N 天",
+  },
+  {
+    value: "last_days",
+    label: "最近 N 天",
+  },
 ]
-const DATE_ONLY_OPERATORS = new Set<FilterOperator>(DATE_FILTER_OPERATORS.map(option => option.value))
+const DATE_ONLY_OPERATORS = new Set<FilterOperator>(DATE_FILTER_OPERATORS.map((option) => option.value))
 const DATE_COMPATIBLE_OPERATOR_VALUES = new Set<FilterOperator>([
-  ...DATE_COMPATIBLE_FILTER_OPERATORS.map(option => option.value),
-  ...DATE_FILTER_OPERATORS.map(option => option.value),
+  ...DATE_COMPATIBLE_FILTER_OPERATORS.map((option) => option.value),
+  ...DATE_FILTER_OPERATORS.map((option) => option.value),
 ])
 
 export const mappingHints: Record<"status" | "dueDate" | "priority" | "project" | "owner", string> = {
@@ -131,7 +189,7 @@ export function useQueryBuilderEditorState(store: QueryBuilderStore) {
   }
 
   watch(
-    () => store.draft.template.filters.map(filter => `${filter.id}:${filter.field}:${filter.operator}`),
+    () => store.draft.template.filters.map((filter) => `${filter.id}:${filter.field}:${filter.operator}`),
     () => {
       store.draft.template.filters.forEach(normalizeFilterOperator)
     },

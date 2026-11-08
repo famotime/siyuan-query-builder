@@ -1,7 +1,14 @@
+import type {
+  FieldId,
+  FieldMappings,
+  ResultRow,
+} from "@/core/query/types"
 import { createFieldOptions } from "@/core/query/catalog"
-import type { FieldId, FieldMappings, ResultRow } from "@/core/query/types"
 import { buildBoardColumns } from "@/core/view/board"
-import { buildCardsSummary, buildListItems } from "@/inline/view-models"
+import {
+  buildCardsSummary,
+  buildListItems,
+} from "@/inline/view-models"
 
 interface CreateResultPresentationOptions {
   fieldMappings: FieldMappings
@@ -40,7 +47,7 @@ function formatBlockType(value: unknown) {
 
 function createKnownLabels(fieldMappings: FieldMappings) {
   return new Map(
-    createFieldOptions(fieldMappings).map(option => [option.value, option.label]),
+    createFieldOptions(fieldMappings).map((option) => [option.value, option.label]),
   )
 }
 

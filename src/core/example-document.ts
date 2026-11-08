@@ -1,5 +1,8 @@
+import type {
+  FieldMappings,
+  QueryScope,
+} from "@/core/query/types"
 import { toStorageAttrName } from "@/core/query/attributes"
-import type { FieldMappings, QueryScope } from "@/core/query/types"
 
 interface ExampleBlock {
   content: string
@@ -173,13 +176,13 @@ export function buildDailyNoteExamplePath(dailyNoteSavePath: string | undefined,
 
 export function pickExampleNotebookId(notebooks: Notebook[], scope: QueryScope) {
   if (scope.type === "notebook" && scope.value) {
-    const matched = notebooks.find(notebook => notebook.id === scope.value)
+    const matched = notebooks.find((notebook) => notebook.id === scope.value)
     if (matched) {
       return matched.id
     }
   }
 
-  return notebooks.find(notebook => !notebook.closed)?.id || notebooks[0]?.id || ""
+  return notebooks.find((notebook) => !notebook.closed)?.id || notebooks[0]?.id || ""
 }
 
 export function buildPresetExampleDocument(now: Date, mappings: FieldMappings) {
@@ -214,6 +217,6 @@ export function buildPresetExampleDocument(now: Date, mappings: FieldMappings) {
       "",
       blocks[9]?.content || "",
     ].join("\n"),
-    blockAttrs: blocks.map(block => block.attrs),
+    blockAttrs: blocks.map((block) => block.attrs),
   }
 }

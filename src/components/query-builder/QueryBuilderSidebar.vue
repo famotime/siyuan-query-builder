@@ -26,7 +26,11 @@
         <div class="section-head-main">
           <div class="section-head-copy">
             <span class="section-kicker">
-              <Sparkles :size="12" class="section-kicker-icon sqb-wireframe-icon" style="fill: none !important;" /> Dashboards
+              <Sparkles
+                :size="12"
+                class="section-kicker-icon sqb-wireframe-icon"
+                style="fill: none !important;"
+              /> Dashboards
             </span>
             <h2>场景仪表板</h2>
           </div>
@@ -41,7 +45,7 @@
           class="section-toggle"
           type="button"
           :aria-label="dashboardsExpanded ? '收起场景仪表板' : '展开场景仪表板'"
-          :aria-expanded="String(dashboardsExpanded)"
+          :aria-expanded="dashboardsExpanded"
           @click="dashboardsExpanded = !dashboardsExpanded"
         >
           <ChevronDown
@@ -53,7 +57,10 @@
           />
         </button>
       </div>
-      <div v-if="dashboardsExpanded" class="preset-group__body">
+      <div
+        v-if="dashboardsExpanded"
+        class="preset-group__body"
+      >
         <button
           v-for="d in (store.dashboards || [])"
           :key="d.id"
@@ -94,7 +101,7 @@
           class="section-toggle"
           type="button"
           :aria-label="presetsExpanded ? '收起预设场景' : '展开预设场景'"
-          :aria-expanded="String(presetsExpanded)"
+          :aria-expanded="presetsExpanded"
           @click="presetsExpanded = !presetsExpanded"
         >
           <ChevronDown
@@ -118,7 +125,7 @@
             :data-preset-category-toggle="group.id"
             class="preset-group__toggle"
             type="button"
-            :aria-expanded="String(isPresetCategoryExpanded(group.id))"
+            :aria-expanded="isPresetCategoryExpanded(group.id)"
             @click="togglePresetCategory(group.id)"
           >
             <span class="preset-group__heading">
@@ -192,7 +199,7 @@
             class="section-toggle"
             type="button"
             :aria-label="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
-            :aria-expanded="String(savedTemplatesExpanded)"
+            :aria-expanded="savedTemplatesExpanded"
             @click="savedTemplatesExpanded = !savedTemplatesExpanded"
           >
             <ChevronDown
@@ -292,7 +299,7 @@
             class="section-toggle"
             type="button"
             :aria-label="historyExpanded ? '收起历史记录' : '展开历史记录'"
-            :aria-expanded="String(historyExpanded)"
+            :aria-expanded="historyExpanded"
             @click="historyExpanded = !historyExpanded"
           >
             <ChevronDown
@@ -334,7 +341,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue"
 import {
   ChevronDown,
   ChevronRight,
@@ -343,11 +349,14 @@ import {
   Trash2,
   Upload,
 } from "lucide-vue-next"
+import {
+  computed,
+  reactive,
+  ref,
+} from "vue"
 
-import pluginIconUrl from "../../../icon.png?url"
-import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { getDashboardIcon } from "@/components/query-builder/dashboard-icons"
-import { useQueryBuilderStore } from "@/composables/query-builder-store"
+import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import {
   buildPresetGroups,
   downloadTemplateBundle,
@@ -355,7 +364,9 @@ import {
   formatSidebarViewTypeLabel,
   readTemplateImportPayload,
 } from "@/components/query-builder/sidebar-utils"
+import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import { vSqbTooltip } from "@/ui/tooltip"
+import pluginIconUrl from "../../../icon.png?url"
 
 const store = useQueryBuilderStore()
 

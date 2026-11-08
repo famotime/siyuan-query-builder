@@ -214,8 +214,8 @@ describe("QueryBuilderResults", () => {
     expect(wrapper.find('[data-view-default="view-2"]').exists()).toBe(false)
     expect(firstBadge.attributes("data-state")).toBe("active")
     expect(secondBadge.attributes("data-state")).toBe("idle")
-    expect(secondMeta.get('[data-view-default-badge="view-2"]').exists()).toBe(true)
-    expect(secondMeta.get('[data-view-delete="view-2"]').exists()).toBe(true)
+    expect(secondMeta.find('[data-view-default-badge="view-2"]').exists()).toBe(true)
+    expect(secondMeta.find('[data-view-delete="view-2"]').exists()).toBe(true)
     expect(firstDescription.text()).toContain("适合核对明细")
     expect(secondDescription.text()).toContain("适合按阶段推进")
 
@@ -252,16 +252,16 @@ describe("QueryBuilderResults", () => {
     const previewToggle = wrapper.get("[data-results-preview-toggle]")
 
     expect(previewCard.find("[data-results-embed-panel]").exists()).toBe(false)
-    expect(wrapper.get("[data-results-preview-body]").exists()).toBe(true)
-    expect(wrapper.get("[data-results-embed-panel]").exists()).toBe(true)
-    expect(wrapper.get("[data-results-empty]").exists()).toBe(true)
+    expect(wrapper.find("[data-results-preview-body]").exists()).toBe(true)
+    expect(wrapper.find("[data-results-embed-panel]").exists()).toBe(true)
+    expect(wrapper.find("[data-results-empty]").exists()).toBe(true)
     expect(previewToggle.attributes("aria-expanded")).toBe("true")
 
     await previewToggle.trigger("click")
 
     expect(wrapper.find("[data-results-preview-body]").exists()).toBe(false)
     expect(wrapper.find("[data-results-empty]").exists()).toBe(false)
-    expect(wrapper.get("[data-results-embed-panel]").exists()).toBe(true)
+    expect(wrapper.find("[data-results-embed-panel]").exists()).toBe(true)
     expect(previewToggle.attributes("aria-expanded")).toBe("false")
     expect(previewToggle.attributes("aria-label")).toBe("展开查询结果预览")
   })
@@ -521,7 +521,7 @@ describe("QueryBuilderResults", () => {
     await wrapper.get("[data-embed-target-toggle]").trigger("click")
 
     expect(currentStore.refreshCurrentDocumentTarget).toHaveBeenCalled()
-    expect(wrapper.get("[data-embed-target-menu]").exists()).toBe(true)
+    expect(wrapper.find("[data-embed-target-menu]").exists()).toBe(true)
 
     await wrapper.get("[data-embed-target-current]").trigger("click")
     expect(currentStore.selectCurrentDocumentTarget).toHaveBeenCalled()

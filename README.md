@@ -115,6 +115,8 @@ Query & View 是思源笔记生态中另一款优秀的数据查询和展示插�
 pnpm install        # 安装依赖(仓库通过 only-allow 强制使用 pnpm)
 pnpm dev            # Vite 监听构建,用于本地插件开发
 pnpm test:run       # 运行完整 Vitest 测试套件
+pnpm typecheck      # vue-tsc 全量类型检查(src + tests)
+pnpm lint           # ESLint 检查 src
 pnpm build          # 生产构建到 dist/ 并执行包校验
 pnpm release        # 按默认流程打包发版(另有 release:patch/minor/major)
 ```

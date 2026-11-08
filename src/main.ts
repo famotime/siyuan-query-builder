@@ -1,20 +1,27 @@
 import type { App as VueApp } from "vue"
-import { createApp } from "vue"
+import type { WorkspaceOpenMode } from "@/core/plugin-settings"
 
-import App from "./App.vue"
+import type { QueryBuilderSnapshot } from "@/core/query/types"
+import type { Plugin } from "@/external/siyuan"
+import { createApp } from "vue"
 import QueryBuilderDock from "@/components/query-builder/QueryBuilderDock.vue"
+import {
+  getDashboardDefinition,
+  SCENARIO_DASHBOARDS,
+} from "@/core/dashboard/catalog"
+import { loadPluginSettings } from "@/core/plugin-settings"
 import {
   Dialog,
   openTab,
   showMessage,
 } from "@/external/siyuan"
-import type { Plugin } from "@/external/siyuan"
-import { loadPluginSettings, type WorkspaceOpenMode } from "@/core/plugin-settings"
-import type { QueryBuilderSnapshot } from "@/core/query/types"
-import { SCENARIO_DASHBOARDS, getDashboardDefinition } from "@/core/dashboard/catalog"
+import {
+  observeSiyuanTheme,
+  syncSiyuanThemeMarkers,
+} from "@/ui/theme"
 
-import { observeSiyuanTheme, syncSiyuanThemeMarkers } from "@/ui/theme"
 import { workspaceNavigationKey } from "@/ui/workspace-navigation"
+import App from "./App.vue"
 
 let pluginInstance: Plugin | null = null
 let dialog: Dialog | null = null
@@ -173,7 +180,7 @@ function createTabHostHandlers(hostKind: string, mountProps?: Record<string, unk
   return {
     init(this: { element: Element }) {
       if (!(this.element instanceof HTMLElement)) {
-        throw new Error(`Failed to create ${hostKind} host`)
+        throw new TypeError(`Failed to create ${hostKind} host`)
       }
 
       const rootElement = document.createElement("div")
@@ -341,7 +348,7 @@ export async function openWorkspaceWithDashboard(dashboardId?: string, openMode?
       await openWorkspaceToTarget({
         pendingTarget: { dashboardId },
         openMode,
-        applyToStore: store => store.loadDashboard?.(dashboardId),
+        applyToStore: (store) => store.loadDashboard?.(dashboardId),
       })
       return
     }
@@ -369,7 +376,7 @@ export async function openWorkspaceWithTemplate(templateId: string, openMode?: W
   await openWorkspaceToTarget({
     pendingTarget: { templateId },
     openMode,
-    applyToStore: store => store.loadTemplate?.(templateId),
+    applyToStore: (store) => store.loadTemplate?.(templateId),
   })
 }
 

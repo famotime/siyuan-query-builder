@@ -29,7 +29,7 @@ vi.mock("@/core/dashboard/catalog", async (importOriginal) => {
 })
 
 import { executeDashboard } from "@/core/dashboard/runtime"
-import type { KernelAdapter } from "@/core/runtime/kernel-adapter"
+import type { KernelAdapter } from "@/core/runtime/query-runtime"
 
 describe("dashboard runtime execution", () => {
   it("executes dashboard query and returns view model", async () => {

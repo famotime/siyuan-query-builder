@@ -13,7 +13,8 @@ export interface DashboardParameterDefinition {
   id: string
   label: string
   type: DashboardParamType
-  defaultValue: string | number
+  /** 静态默认值,或返回默认值的惰性函数(用于随当前日期变化的月份/年份) */
+  defaultValue: string | number | (() => string | number)
   options?: DashboardParamOption[]
   placeholder?: string
 }
@@ -88,6 +89,6 @@ export interface DashboardDefinition {
   description: string
   parameters: DashboardParameterDefinition[]
   // 方法式声明:允许各场景以更窄的参数接口实现(参数由 runtime 层归一后传入)
-  buildSql(params: Record<string, any>): string | string[]
-  computeViewModel(rows: ResultRow[], params: Record<string, any>): DashboardViewModel
+  buildSql: (params: Record<string, any>) => string | string[]
+  computeViewModel: (rows: ResultRow[], params: Record<string, any>) => DashboardViewModel
 }

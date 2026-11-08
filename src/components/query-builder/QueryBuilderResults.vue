@@ -11,7 +11,10 @@
       >
         <div class="summary">
           <div class="summary__header">
-            <div class="summary__icon" aria-hidden="true">
+            <div
+              class="summary__icon"
+              aria-hidden="true"
+            >
               <Database
                 class="sqb-wireframe-icon"
                 style="fill: none !important;"
@@ -128,7 +131,7 @@
             data-results-preview-toggle
             type="button"
             :aria-label="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
-            :aria-expanded="String(!resultsCollapsed)"
+            :aria-expanded="!resultsCollapsed"
             @click="resultsCollapsed = !resultsCollapsed"
           >
             <ChevronDown
@@ -254,9 +257,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import { BarChart3, Calendar, ChevronDown, Database, Inbox, Kanban, LayoutGrid, List, Table } from "lucide-vue-next"
+import type { CalendarTaskItem } from "@/core/dashboard/types"
+import type { ViewType } from "@/core/query/types"
 
+import {
+  BarChart3,
+  Calendar,
+  ChevronDown,
+  Database,
+  Inbox,
+  Kanban,
+  LayoutGrid,
+  List,
+  Table,
+} from "lucide-vue-next"
+import {
+  computed,
+  ref,
+} from "vue"
 import ResultsBoardView from "@/components/query-builder/ResultsBoardView.vue"
 import ResultsCalendarView from "@/components/query-builder/ResultsCalendarView.vue"
 import ResultsCardsView from "@/components/query-builder/ResultsCardsView.vue"
@@ -267,9 +285,10 @@ import ResultsSavedViewsPanel from "@/components/query-builder/ResultsSavedViews
 import ResultsSqlPreview from "@/components/query-builder/ResultsSqlPreview.vue"
 import ResultsTableView from "@/components/query-builder/ResultsTableView.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import type { CalendarTaskItem } from "@/core/dashboard/types"
-import type { ViewType } from "@/core/query/types"
-import { buildCalendarTaskItems, buildGroupDistributionChartOption } from "@/core/view/result-view-model"
+import {
+  buildCalendarTaskItems,
+  buildGroupDistributionChartOption,
+} from "@/core/view/result-view-model"
 import { showMessage } from "@/external/siyuan"
 import { vSqbTooltip } from "@/ui/tooltip"
 import { writeClipboardText } from "@/utils/clipboard"
@@ -306,7 +325,7 @@ async function copyAdvancedSql() {
 }
 
 async function selectResultViewType(type: ViewType) {
-  const matchingSavedView = store.savedViews?.find(view => view.type === type)
+  const matchingSavedView = store.savedViews?.find((view) => view.type === type)
   if (matchingSavedView) {
     await store.loadSavedView(matchingSavedView.id)
     return

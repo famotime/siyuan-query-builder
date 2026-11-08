@@ -54,12 +54,15 @@
 </template>
 
 <script setup lang="ts">
+import {
+  mappingHints,
+  useQueryBuilderEditorState,
+} from "@/components/query-builder/editor-state"
 import EditorFiltersSection from "@/components/query-builder/EditorFiltersSection.vue"
 import EditorMappingsSection from "@/components/query-builder/EditorMappingsSection.vue"
 import EditorScopeSection from "@/components/query-builder/EditorScopeSection.vue"
 import EditorViewSettingsSection from "@/components/query-builder/EditorViewSettingsSection.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import { mappingHints, useQueryBuilderEditorState } from "@/components/query-builder/editor-state"
 
 const store = useQueryBuilderStore()
 const {

@@ -34,7 +34,7 @@ function isTabLike(value: unknown): value is Record<string, any> {
   if (!value || typeof value !== "object") {
     return false
   }
-  return value.instance === "Tab" || "model" in value || "headElement" in value || "title" in value
+  return (value as Record<string, any>).instance === "Tab" || "model" in value || "headElement" in value || "title" in value
 }
 
 function getLayoutChildren(node: unknown): Record<string, any>[] {
@@ -73,7 +73,10 @@ function resolveTargetFromTab(tab: Record<string, any>): ActiveDocumentTarget | 
     return null
   }
   const title = String(tab.title || id).trim() || id
-  return { id, title }
+  return {
+    id,
+    title,
+  }
 }
 
 function getActiveDocumentTargetFromLayout(input: { siyuan?: any } | Window): ActiveDocumentTarget | null {
@@ -82,7 +85,7 @@ function getActiveDocumentTargetFromLayout(input: { siyuan?: any } | Window): Ac
     return null
   }
 
-  const activeTab = tabs.find(tab => tab.active) || tabs
+  const activeTab = tabs.find((tab) => tab.active) || tabs
     .slice()
     .sort((a, b) => Number(b.activeTime || 0) - Number(a.activeTime || 0))[0]
 
@@ -187,5 +190,8 @@ export function getActiveDocumentTarget(input: { siyuan?: { getActiveEditor?: ()
     || activeEditor?.tab?.title
     || id,
   ).trim() || id
-  return { id, title }
+  return {
+    id,
+    title,
+  }
 }

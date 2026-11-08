@@ -215,7 +215,6 @@
 
 <script setup lang="ts">
 import type { Ref } from "vue"
-import { inject, ref } from "vue"
 import {
   ArrowLeft,
   BookmarkPlus,
@@ -225,6 +224,10 @@ import {
   RotateCw,
   Sparkles,
 } from "lucide-vue-next"
+import {
+  inject,
+  ref,
+} from "vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import { vSqbTooltip } from "@/ui/tooltip"
 

@@ -1,5 +1,10 @@
 import type { QueryHistoryEntry } from "@/core/query/types"
-import { readArrayStorage, writeArrayStorage, type StorageAdapter } from "@/core/storage/collection-storage"
+import type { StorageAdapter } from "@/core/storage/collection-storage"
+import {
+  readArrayStorage,
+
+  writeArrayStorage,
+} from "@/core/storage/collection-storage"
 
 export const QUERY_HISTORY_STORAGE_KEY = "query-builder.history.v1"
 export const QUERY_HISTORY_LIMIT = 10

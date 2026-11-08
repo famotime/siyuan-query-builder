@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { getDashboardDefinition, SCENARIO_DASHBOARDS } from "@/core/dashboard/catalog"
+import { formatIsoDate } from "@/core/dashboard/calculator"
+import { getDashboardDefinition, resolveDashboardParamDefault, SCENARIO_DASHBOARDS } from "@/core/dashboard/catalog"
 
 describe("dashboard catalog & scenario presets", () => {
   it("contains all 5 scenario dashboards", () => {
@@ -66,5 +67,25 @@ describe("dashboard catalog & scenario presets", () => {
     const projectDef = getDashboardDefinition("project-delivery")
     const projectVm = projectDef!.computeViewModel([], {})
     expect(projectVm.boardColumns?.length).toBe(4)
+  })
+})
+
+describe("lazy dashboard parameter defaults", () => {
+  it("resolves time-dependent defaults at access time instead of module load", () => {
+    const daily = getDashboardDefinition("daily-cockpit")!
+    const monthParam = daily.parameters.find(p => p.id === "month")!
+    expect(typeof monthParam.defaultValue).toBe("function")
+    expect(resolveDashboardParamDefault(monthParam)).toBe(formatIsoDate(new Date()).slice(0, 7))
+
+    const writing = getDashboardDefinition("writing-flow")!
+    const yearParam = writing.parameters.find(p => p.id === "year")!
+    expect(typeof yearParam.defaultValue).toBe("function")
+    expect(resolveDashboardParamDefault(yearParam)).toBe(String(new Date().getFullYear()))
+  })
+
+  it("passes static defaults through unchanged", () => {
+    const daily = getDashboardDefinition("daily-cockpit")!
+    const notebookParam = daily.parameters.find(p => p.id === "notebook")!
+    expect(resolveDashboardParamDefault(notebookParam)).toBe("all")
   })
 })

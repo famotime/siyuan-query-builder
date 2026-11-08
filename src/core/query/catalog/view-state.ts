@@ -8,7 +8,10 @@ import type {
   ViewType,
 } from "../types"
 
-import { DEFAULT_FIELD_MAPPINGS, DEFAULT_VIEW_FIELDS } from "./constants"
+import {
+  DEFAULT_FIELD_MAPPINGS,
+  DEFAULT_VIEW_FIELDS,
+} from "./constants"
 
 export function createId(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -31,7 +34,7 @@ export function createEmptyTemplate(name = "未命名查询"): QueryTemplate {
 }
 
 function cloneSorts(sorts: QuerySort[] = []) {
-  return sorts.map(sort => ({
+  return sorts.map((sort) => ({
     ...sort,
   }))
 }
@@ -39,8 +42,8 @@ function cloneSorts(sorts: QuerySort[] = []) {
 function cloneAggregation(aggregation?: QueryAggregation) {
   return aggregation
     ? {
-      ...aggregation,
-    }
+        ...aggregation,
+      }
     : undefined
 }
 

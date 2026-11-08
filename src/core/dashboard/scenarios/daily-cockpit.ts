@@ -1,6 +1,12 @@
+import type {
+  CalendarTaskItem,
+  DashboardDefinition,
+  DashboardViewModel,
+  MetricCardModel,
+} from "../types"
 import type { ResultRow } from "@/core/query/types"
-import type { CalendarTaskItem, DashboardDefinition, DashboardViewModel, MetricCardModel } from "../types"
 import {
+  escapeSqlLiteral,
   formatIsoDate,
   parseDateFromHPath,
   parseTaskStatus,
@@ -30,21 +36,31 @@ export const dailyCockpitDashboard: DashboardDefinition = {
       type: "select",
       defaultValue: "all",
       options: [
-        { label: "全部事项", value: "all" },
-        { label: "仅未完成", value: "open" },
-        { label: "已完成", value: "done" },
+        {
+          label: "全部事项",
+          value: "all",
+        },
+        {
+          label: "仅未完成",
+          value: "open",
+        },
+        {
+          label: "已完成",
+          value: "done",
+        },
       ],
     },
     {
       id: "month",
       label: "目标月份",
       type: "text",
-      defaultValue: formatIsoDate(new Date()).slice(0, 7),
+      // 惰性求值:避免长会话跨日后默认月份过期
+      defaultValue: () => formatIsoDate(new Date()).slice(0, 7),
       placeholder: "YYYY-MM",
     },
   ],
   buildSql(params: DailyCockpitParams) {
-    const boxClause = params.notebook && params.notebook !== "all" ? `AND b.box = '${params.notebook}'` : ""
+    const boxClause = params.notebook && params.notebook !== "all" ? `AND b.box = '${escapeSqlLiteral(params.notebook)}'` : ""
     return `
         SELECT b.id, b.content, b.markdown, b.hpath, b.updated, b.created, b.box,
                (SELECT d.content FROM blocks d WHERE d.id = b.root_id) AS docTitle,
@@ -73,26 +89,26 @@ export const dailyCockpitDashboard: DashboardDefinition = {
         status,
         date,
         docTitle: String(r.docTitle || "无标题文档"),
-        docId: r.root_id,
+        docId: r.root_id == null ? undefined : String(r.root_id),
         priority,
       }
     })
 
     // 指标卡计算
-    const todayTasks = tasks.filter(t => t.date === todayIso)
-    const todayOpen = todayTasks.filter(t => t.status === "todo" || t.status === "doing").length
-    const todayDone = todayTasks.filter(t => t.status === "done").length
+    const todayTasks = tasks.filter((t) => t.date === todayIso)
+    const todayOpen = todayTasks.filter((t) => t.status === "todo" || t.status === "doing").length
+    const todayDone = todayTasks.filter((t) => t.status === "done").length
     const todayTotal = todayTasks.length
     const todayRate = todayTotal ? Math.round((todayDone / todayTotal) * 100) : 100
 
-    const overdueTasks = tasks.filter(t => t.date < todayIso && (t.status === "todo" || t.status === "doing"))
+    const overdueTasks = tasks.filter((t) => t.date < todayIso && (t.status === "todo" || t.status === "doing"))
 
     const metrics: MetricCardModel[] = [
       {
         id: "today_open",
         label: "今日待办",
         value: `${todayOpen} 项`,
-        subText: todayOpen === 0 ? "全部完成 🎉" : `进行中 ${todayTasks.filter(t => t.status === "doing").length} 项`,
+        subText: todayOpen === 0 ? "全部完成 🎉" : `进行中 ${todayTasks.filter((t) => t.status === "doing").length} 项`,
         accentColor: todayOpen > 0 ? "var(--b3-theme-primary)" : "#2fb36b",
         icon: "check-circle",
       },
@@ -116,21 +132,21 @@ export const dailyCockpitDashboard: DashboardDefinition = {
       {
         id: "month_total",
         label: "本月事项",
-        value: `${tasks.filter(t => t.date.startsWith(selectedMonth)).length} 项`,
-        subText: `已完成 ${tasks.filter(t => t.date.startsWith(selectedMonth) && t.status === "done").length} 项`,
+        value: `${tasks.filter((t) => t.date.startsWith(selectedMonth)).length} 项`,
+        subText: `已完成 ${tasks.filter((t) => t.date.startsWith(selectedMonth) && t.status === "done").length} 项`,
         icon: "calendar",
       },
     ]
 
     // 清单列表（展示今日待办与逾期待办）
     const listItems = [
-      ...todayTasks.map(t => ({
+      ...todayTasks.map((t) => ({
         id: t.id,
         title: t.content,
         meta: [t.date === todayIso ? "今日" : t.date, t.docTitle || "", t.priority || ""].filter(Boolean),
         status: t.status,
       })),
-      ...overdueTasks.slice(0, 10).map(t => ({
+      ...overdueTasks.slice(0, 10).map((t) => ({
         id: t.id,
         title: t.content,
         meta: [`逾期 (${t.date})`, t.docTitle || ""].filter(Boolean),

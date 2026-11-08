@@ -24,10 +24,12 @@
         <select
           v-if="param.type === 'notebook'"
           class="tuning-bar__input tuning-bar__select"
-          :value="modelParameters[param.id] ?? param.defaultValue"
+          :value="modelParameters[param.id] ?? resolveDashboardParamDefault(param)"
           @change="onParamChange(param.id, ($event.target as HTMLSelectElement).value)"
         >
-          <option value="all">全库笔记本</option>
+          <option value="all">
+            全库笔记本
+          </option>
           <option
             v-for="nb in notebooks"
             :key="nb.id"
@@ -41,7 +43,7 @@
         <select
           v-else-if="param.type === 'select'"
           class="tuning-bar__input tuning-bar__select"
-          :value="modelParameters[param.id] ?? param.defaultValue"
+          :value="modelParameters[param.id] ?? resolveDashboardParamDefault(param)"
           @change="onParamChange(param.id, ($event.target as HTMLSelectElement).value)"
         >
           <option
@@ -58,7 +60,7 @@
           v-else-if="param.type === 'number'"
           type="number"
           class="tuning-bar__input tuning-bar__number"
-          :value="modelParameters[param.id] ?? param.defaultValue"
+          :value="modelParameters[param.id] ?? resolveDashboardParamDefault(param)"
           @input="onParamChange(param.id, Number(($event.target as HTMLInputElement).value))"
         />
 
@@ -68,7 +70,7 @@
           type="text"
           class="tuning-bar__input tuning-bar__text"
           :placeholder="param.placeholder || ''"
-          :value="modelParameters[param.id] ?? param.defaultValue"
+          :value="modelParameters[param.id] ?? resolveDashboardParamDefault(param)"
           @change="onParamChange(param.id, ($event.target as HTMLInputElement).value)"
         />
       </div>
@@ -109,15 +111,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { BookmarkPlus, RotateCw, SlidersHorizontal } from "lucide-vue-next"
 import type { DashboardDefinition } from "@/core/dashboard/types"
+import {
+  BookmarkPlus,
+  RotateCw,
+  SlidersHorizontal,
+} from "lucide-vue-next"
+import { computed } from "vue"
+import { resolveDashboardParamDefault } from "@/core/dashboard/catalog"
 import { vSqbTooltip } from "@/ui/tooltip"
 
 const props = defineProps<{
   definition: DashboardDefinition
   modelParameters: Record<string, any>
-  notebooks?: Array<{ id: string; name: string }>
+  notebooks?: Array<{ id: string, name: string }>
 }>()
 
 const emit = defineEmits<{

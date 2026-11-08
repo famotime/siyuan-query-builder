@@ -190,7 +190,10 @@ export function buildLineTrendOption(params: {
       smooth: true,
       showSymbol: params.dates.length <= 15,
       symbolSize: 6,
-      lineStyle: { width: 2.5, color: c.primary },
+      lineStyle: {
+        width: 2.5,
+        color: c.primary,
+      },
       itemStyle: { color: c.primary },
       areaStyle: {
         color: "rgba(59, 130, 246, 0.12)",
@@ -201,7 +204,10 @@ export function buildLineTrendOption(params: {
               symbol: "none",
               silent: true,
               data: [{ yAxis: params.goalValue }],
-              lineStyle: { color: c.danger, type: "dashed" },
+              lineStyle: {
+                color: c.danger,
+                type: "dashed",
+              },
               label: {
                 formatter: `目标 ${params.goalValue}${params.unit || ""}`,
                 position: "insideEndTop",
@@ -221,7 +227,11 @@ export function buildLineTrendOption(params: {
       data: params.ma7Values,
       smooth: true,
       showSymbol: false,
-      lineStyle: { width: 2, color: c.warning, type: "dashed" },
+      lineStyle: {
+        width: 2,
+        color: c.warning,
+        type: "dashed",
+      },
       itemStyle: { color: c.warning },
     })
   }
@@ -231,29 +241,51 @@ export function buildLineTrendOption(params: {
       text: params.title,
       left: 10,
       top: 8,
-      textStyle: { fontSize: 13, fontWeight: 600, color: c.text },
+      textStyle: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: c.text,
+      },
     },
     tooltip: {
       trigger: "axis",
       backgroundColor: "var(--b3-theme-background, #fff)",
       borderColor: "var(--b3-border-color, #eee)",
-      textStyle: { color: "var(--b3-theme-on-background, #333)", fontSize: 12 },
+      textStyle: {
+        color: "var(--b3-theme-on-background, #333)",
+        fontSize: 12,
+      },
     },
     legend: {
       right: 12,
       top: 8,
-      textStyle: { fontSize: 11, color: c.subText },
+      textStyle: {
+        fontSize: 11,
+        color: c.subText,
+      },
     },
-    grid: { left: 40, right: 24, top: 46, bottom: 28, containLabel: true },
+    grid: {
+      left: 40,
+      right: 24,
+      top: 46,
+      bottom: 28,
+      containLabel: true,
+    },
     xAxis: {
       type: "category",
-      data: params.dates.map(d => (d.length > 5 ? d.slice(5) : d)),
-      axisLabel: { fontSize: 10, color: c.subText },
+      data: params.dates.map((d) => (d.length > 5 ? d.slice(5) : d)),
+      axisLabel: {
+        fontSize: 10,
+        color: c.subText,
+      },
       axisLine: { lineStyle: { color: c.border } },
     },
     yAxis: {
       type: "value",
-      axisLabel: { fontSize: 10, color: c.subText },
+      axisLabel: {
+        fontSize: 10,
+        color: c.subText,
+      },
       splitLine: { lineStyle: { color: "rgba(128,128,128,0.12)" } },
     },
     series,
@@ -279,13 +311,19 @@ export function buildBarDistributionOption(params: {
   const categoryAxis = {
     type: "category",
     data: params.categories,
-    axisLabel: { fontSize: 10, color: c.subText },
+    axisLabel: {
+      fontSize: 10,
+      color: c.subText,
+    },
     axisLine: { lineStyle: { color: c.border } },
   }
   const valueAxis = {
     type: "value",
     minInterval: 1,
-    axisLabel: { fontSize: 10, color: c.subText },
+    axisLabel: {
+      fontSize: 10,
+      color: c.subText,
+    },
     splitLine: { lineStyle: { color: "rgba(128,128,128,0.12)" } },
   }
 
@@ -294,16 +332,29 @@ export function buildBarDistributionOption(params: {
       text: params.title,
       left: 10,
       top: 8,
-      textStyle: { fontSize: 13, fontWeight: 600, color: c.text },
+      textStyle: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: c.text,
+      },
     },
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" },
       backgroundColor: "var(--b3-theme-background, #fff)",
       borderColor: "var(--b3-border-color, #eee)",
-      textStyle: { color: "var(--b3-theme-on-background, #333)", fontSize: 12 },
+      textStyle: {
+        color: "var(--b3-theme-on-background, #333)",
+        fontSize: 12,
+      },
     },
-    grid: { left: 40, right: 30, top: 44, bottom: 26, containLabel: true },
+    grid: {
+      left: 40,
+      right: 30,
+      top: 44,
+      bottom: 26,
+      containLabel: true,
+    },
     xAxis: isH ? valueAxis : categoryAxis,
     yAxis: isH ? categoryAxis : valueAxis,
     series: [
@@ -342,7 +393,7 @@ export function buildCalendarHeatmapOption(params: {
 }): Record<string, any> {
   const isDark = params.isDarkTheme ?? (typeof document !== "undefined" && resolveSiyuanThemeMode() === "dark")
   const c = getSiYuanThemeColors()
-  const max = params.maxVal || Math.max(1, ...params.dateValuePairs.map(p => p[1]))
+  const max = params.maxVal || Math.max(1, ...params.dateValuePairs.map((p) => p[1]))
 
   const emptyCellColor = isDark ? "rgba(255, 255, 255, 0.05)" : "#ebedf0"
   const cellBorderColor = isDark ? "rgba(25, 30, 28, 0.95)" : "#ffffff"
@@ -355,13 +406,20 @@ export function buildCalendarHeatmapOption(params: {
       text: params.title,
       left: 12,
       top: 8,
-      textStyle: { fontSize: 13, fontWeight: 600, color: c.text },
+      textStyle: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: c.text,
+      },
     },
     tooltip: {
       formatter: (p: any) => `${p.value[0]} · 产出 ${p.value[1]} 篇/次`,
       backgroundColor: isDark ? "rgba(30, 36, 33, 0.95)" : "rgba(255, 255, 255, 0.96)",
       borderColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)",
-      textStyle: { color: isDark ? "#e8e4dc" : "#1a1d1b", fontSize: 12 },
+      textStyle: {
+        color: isDark ? "#e8e4dc" : "#1a1d1b",
+        fontSize: 12,
+      },
       padding: [6, 10],
     },
     visualMap: {
@@ -375,7 +433,10 @@ export function buildCalendarHeatmapOption(params: {
       textGap: 6,
       itemWidth: 10,
       itemHeight: 10,
-      textStyle: { fontSize: 10, color: c.subText },
+      textStyle: {
+        fontSize: 10,
+        color: c.subText,
+      },
       inRange: {
         color: colorScale,
       },
@@ -394,7 +455,11 @@ export function buildCalendarHeatmapOption(params: {
         color: emptyCellColor,
       },
       yearLabel: { show: false },
-      monthLabel: { nameMap: "ZH", color: c.subText, fontSize: 10 },
+      monthLabel: {
+        nameMap: "ZH",
+        color: c.subText,
+        fontSize: 10,
+      },
       dayLabel: {
         nameMap: ["日", "一", "二", "三", "四", "五", "六"],
         firstDay: 1,
@@ -417,7 +482,7 @@ export function buildCalendarHeatmapOption(params: {
  */
 export function buildPieCompositionOption(params: {
   title: string
-  data: Array<{ name: string; value: number; color?: string }>
+  data: Array<{ name: string, value: number, color?: string }>
   isDonut?: boolean
 }): Record<string, any> {
   const c = getSiYuanThemeColors()
@@ -426,21 +491,31 @@ export function buildPieCompositionOption(params: {
       text: params.title,
       left: "center",
       top: 8,
-      textStyle: { fontSize: 13, fontWeight: 600, color: c.text },
+      textStyle: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: c.text,
+      },
     },
     tooltip: {
       trigger: "item",
       formatter: "{b}：{c} ({d}%)",
       backgroundColor: "var(--b3-theme-background, #fff)",
       borderColor: "var(--b3-border-color, #eee)",
-      textStyle: { color: "var(--b3-theme-on-background, #333)", fontSize: 12 },
+      textStyle: {
+        color: "var(--b3-theme-on-background, #333)",
+        fontSize: 12,
+      },
     },
     legend: {
       bottom: 4,
       icon: "circle",
       itemWidth: 10,
       itemHeight: 10,
-      textStyle: { fontSize: 11, color: c.subText },
+      textStyle: {
+        fontSize: 11,
+        color: c.subText,
+      },
     },
     series: [
       {
@@ -456,7 +531,7 @@ export function buildPieCompositionOption(params: {
             formatter: "{b}\n{d}%",
           },
         },
-        data: params.data.map(d => ({
+        data: params.data.map((d) => ({
           ...d,
           itemStyle: d.color ? { color: d.color } : undefined,
         })),

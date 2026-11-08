@@ -1,17 +1,32 @@
 import type { Ref } from "vue"
 
-import { createDocWithMd, getBlockByID, getChildBlocks, getNotebookConf, lsNotebooks, renderSprig, setBlockAttrs } from "@/api"
+import type {
+  QueryBuilderSnapshot,
+  QueryHistoryEntry,
+  ViewConfig,
+} from "@/core/query/types"
+import type { I18nHelper } from "@/utils/i18n"
+import {
+  createDocWithMd,
+  getBlockByID,
+  getChildBlocks,
+  getNotebookConf,
+  lsNotebooks,
+  renderSprig,
+  setBlockAttrs,
+} from "@/api"
+import { getActiveDocumentTarget } from "@/core/embed-target"
 import {
   buildDailyNoteExamplePath,
   buildPresetExampleDocument,
   pickExampleNotebookId,
 } from "@/core/example-document"
-import { getActiveDocumentTarget } from "@/core/embed-target"
 import { showMessage } from "@/external/siyuan"
-import type { QueryBuilderSnapshot, QueryHistoryEntry, ViewConfig } from "@/core/query/types"
-import type { I18nHelper } from "@/utils/i18n"
 
-import { buildScopeLabel, createSnapshot } from "./shared"
+import {
+  buildScopeLabel,
+  createSnapshot,
+} from "./shared"
 
 interface QueryHistoryStore {
   list: () => Promise<QueryHistoryEntry[]>
@@ -36,7 +51,6 @@ interface QueryBuilderSessionControllerOptions {
   queryHistoryStore: QueryHistoryStore
   templateViews: TemplateViewsController
   embedTargets: EmbedTargetsController
-  resetResultState: () => void
   t: I18nHelper
 }
 
@@ -69,7 +83,6 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
     queryHistoryStore,
     templateViews,
     embedTargets,
-    resetResultState,
     t,
   } = options
 
@@ -98,7 +111,7 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
   }
 
   async function restoreQueryHistory(entryId: string) {
-    const entry = recentQueryHistory.value.find(item => item.id === entryId)
+    const entry = recentQueryHistory.value.find((item) => item.id === entryId)
     if (!entry) {
       return false
     }
@@ -159,7 +172,7 @@ export function createQueryBuilderSessionController(options: QueryBuilderSession
 
       const documentId = await createDocWithMd(notebookId, path, example.markdown)
       const childBlocks = await getChildBlocks(documentId)
-      const paragraphBlocks = childBlocks.filter(block => block.type === "p")
+      const paragraphBlocks = childBlocks.filter((block) => block.type === "p")
 
       await Promise.all(paragraphBlocks.map((block, index) => {
         const attrs = example.blockAttrs[index]

@@ -53,6 +53,7 @@ const dashboardMocks = vi.hoisted(() => ({
     parameters: [
       { id: "month", label: "月份", type: "text", defaultValue: "2026-03" },
       { id: "goal", label: "目标", type: "number", defaultValue: 8 },
+      { id: "lazy", label: "惰性参数", type: "text", defaultValue: () => "resolved-lazy" },
     ],
     buildSql: vi.fn((): string | string[] => "SELECT 1"),
     computeViewModel: vi.fn(),
@@ -98,6 +99,10 @@ vi.mock("@/core/runtime/query-runtime", () => ({
 vi.mock("@/core/dashboard/catalog", () => ({
   SCENARIO_DASHBOARDS: [dashboardMocks.definition],
   getDashboardDefinition: dashboardMocks.getDashboardDefinition,
+  resolveDashboardParamDefault: (param: { defaultValue: unknown }) =>
+    typeof param.defaultValue === "function"
+      ? (param.defaultValue as () => unknown)()
+      : param.defaultValue,
 }))
 
 vi.mock("@/core/dashboard/runtime", () => ({
@@ -135,7 +140,8 @@ describe("createQueryBuilderStore dashboard orchestration", () => {
     await store.loadDashboard("test-board")
 
     expect(store.activeDashboardId).toBe("test-board")
-    expect(store.activeDashboardParams).toEqual({ month: "2026-03", goal: 8 })
+    // 惰性默认值在 loadDashboard 时被求值,而非把函数存进参数
+    expect(store.activeDashboardParams).toEqual({ month: "2026-03", goal: 8, lazy: "resolved-lazy" })
     expect(dashboardMocks.executeDashboard).toHaveBeenCalledTimes(1)
     expect(dashboardMocks.executeDashboard).toHaveBeenCalledWith(
       "test-board",

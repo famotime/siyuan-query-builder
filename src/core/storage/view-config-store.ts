@@ -1,5 +1,10 @@
 import type { ViewConfig } from "@/core/query/types"
-import { readArrayStorage, writeArrayStorage, type StorageAdapter } from "@/core/storage/collection-storage"
+import type { StorageAdapter } from "@/core/storage/collection-storage"
+import {
+  readArrayStorage,
+
+  writeArrayStorage,
+} from "@/core/storage/collection-storage"
 
 export const VIEW_CONFIG_STORAGE_KEY = "query-builder.views.v2"
 
@@ -14,7 +19,7 @@ export function createViewConfigStore(storage: StorageAdapter) {
     },
     async listByTemplate(templateId: string) {
       const views = await readAll(storage)
-      return views.filter(item => item.queryTemplateId === templateId)
+      return views.filter((item) => item.queryTemplateId === templateId)
     },
     async save(view: ViewConfig) {
       const views = await readAll(storage)
@@ -27,7 +32,7 @@ export function createViewConfigStore(storage: StorageAdapter) {
         }
         return item
       })
-      const existingIndex = next.findIndex(item => item.id === view.id)
+      const existingIndex = next.findIndex((item) => item.id === view.id)
       if (existingIndex >= 0) {
         next.splice(existingIndex, 1, view)
       } else {
@@ -37,12 +42,12 @@ export function createViewConfigStore(storage: StorageAdapter) {
     },
     async remove(viewId: string) {
       const views = await readAll(storage)
-      const next = views.filter(item => item.id !== viewId)
+      const next = views.filter((item) => item.id !== viewId)
       await writeArrayStorage(storage, VIEW_CONFIG_STORAGE_KEY, next)
     },
     async removeByTemplate(templateId: string) {
       const views = await readAll(storage)
-      const next = views.filter(item => item.queryTemplateId !== templateId)
+      const next = views.filter((item) => item.queryTemplateId !== templateId)
       await writeArrayStorage(storage, VIEW_CONFIG_STORAGE_KEY, next)
     },
   }

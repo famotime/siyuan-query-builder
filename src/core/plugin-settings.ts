@@ -11,8 +11,8 @@ export const DEFAULT_PLUGIN_SETTINGS: QueryBuilderPluginSettings = {
 }
 
 interface SettingsStorage {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
+  loadData: (key: string) => Promise<unknown>
+  saveData: (key: string, value: unknown) => Promise<void>
 }
 
 export function normalizePluginSettings(value: unknown): QueryBuilderPluginSettings {

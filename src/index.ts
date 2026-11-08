@@ -1,28 +1,37 @@
+import type { Dock } from "siyuan"
+import type { WorkspaceOpenMode } from "@/core/plugin-settings"
+
 import {
+  getFrontend,
   Plugin,
   Setting,
-  getFrontend,
   showMessage,
 } from "siyuan"
-
 import pluginInfoJson from "@/../plugin.json"
-import "@/index.scss"
+import { EMBED_TARGET_PREFS_KEY } from "@/composables/query-builder-store/shared"
 import {
   DEFAULT_PLUGIN_SETTINGS,
-  PLUGIN_SETTINGS_STORAGE_KEY,
   loadPluginSettings,
+  PLUGIN_SETTINGS_STORAGE_KEY,
   savePluginSettings,
-  type WorkspaceOpenMode,
+
 } from "@/core/plugin-settings"
+import { METRICS_STORAGE_KEY } from "@/core/storage/metrics-store"
+import { LEGACY_TEMPLATE_STORAGE_KEY } from "@/core/storage/migrations"
 import { QUERY_HISTORY_STORAGE_KEY } from "@/core/storage/query-history-store"
 import { QUERY_TEMPLATE_STORAGE_KEY } from "@/core/storage/query-template-store"
-import { METRICS_STORAGE_KEY } from "@/core/storage/metrics-store"
 import { VIEW_CONFIG_STORAGE_KEY } from "@/core/storage/view-config-store"
-import { LEGACY_TEMPLATE_STORAGE_KEY } from "@/core/storage/migrations"
-import { EMBED_TARGET_PREFS_KEY } from "@/composables/query-builder-store/shared"
 import { createInlineBlockRenderer } from "@/inline/service"
-import { DEBUG_LOG_STORAGE_KEY, destroy, init, mountDock, openPanel, unmountDock } from "@/main"
+import {
+  DEBUG_LOG_STORAGE_KEY,
+  destroy,
+  init,
+  mountDock,
+  openPanel,
+  unmountDock,
+} from "@/main"
 import { createI18nHelper } from "@/utils/i18n"
+import "@/index.scss"
 
 const pluginInfo = pluginInfoJson as { version?: string }
 let inlineRenderer: ReturnType<typeof createInlineBlockRenderer> | null = null
@@ -83,7 +92,10 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       this.addDock({
         config: {
           position: "RightTop",
-          size: { width: 320, height: 0 },
+          size: {
+            width: 320,
+            height: 0,
+          },
           icon: "iconQueryBuilder",
           title: "易搭",
         },
@@ -92,8 +104,8 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
         init: (dock) => {
           mountDock(dock.element)
         },
-        destroy: (dock) => {
-          unmountDock(dock.element)
+        destroy(this: Dock) {
+          unmountDock(this.element)
         },
       })
 
@@ -139,7 +151,7 @@ export default class SiyuanQueryBuilderPlugin extends Plugin {
       DEBUG_LOG_STORAGE_KEY,
     ]
     try {
-      await Promise.all(storageKeys.map(key => this.removeData(key)))
+      await Promise.all(storageKeys.map((key) => this.removeData(key)))
     } catch (error) {
       console.error("[siyuan-query-builder] uninstall removeData failed", error)
     }

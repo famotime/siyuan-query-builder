@@ -211,8 +211,8 @@ describe("QueryBuilderEditor", () => {
     const wrapper = mount(QueryBuilderEditor)
 
     const compactRow = wrapper.get('[data-view-config-row]')
-    expect(compactRow.get('[data-sort-panel]').exists()).toBe(true)
-    expect(compactRow.get('[data-field-panel]').exists()).toBe(true)
+    expect(compactRow.find('[data-sort-panel]').exists()).toBe(true)
+    expect(compactRow.find('[data-field-panel]').exists()).toBe(true)
 
     const toggle = wrapper.get('[data-field-picker-toggle]')
     expect(toggle.text()).toContain('已选 2 项')
@@ -281,9 +281,9 @@ describe("QueryBuilderEditor", () => {
     const wrapper = mount(QueryBuilderEditor)
     const firstActions = wrapper.get('[data-filter-actions="filter-1"]')
     const actions = wrapper.get('[data-filter-actions="filter-2"]')
-    const firstDeleteButton = firstActions.get('[data-filter-delete="filter-1"]')
-    const relation = actions.get('[data-filter-condition-toggle="filter-2"]')
-    const deleteButton = actions.get('[data-filter-delete="filter-2"]')
+    const firstDeleteButton = firstActions.find('[data-filter-delete="filter-1"]')
+    const relation = actions.find('[data-filter-condition-toggle="filter-2"]')
+    const deleteButton = actions.find('[data-filter-delete="filter-2"]')
 
     expect(firstDeleteButton.exists()).toBe(true)
     expect(firstActions.find('[data-filter-condition-toggle="filter-1"]').exists()).toBe(false)

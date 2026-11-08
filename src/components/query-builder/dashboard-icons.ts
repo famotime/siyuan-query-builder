@@ -1,4 +1,10 @@
-import { Flame, HeartPulse, LayoutDashboard, Target, TrendingUp } from "lucide-vue-next"
+import {
+  Flame,
+  HeartPulse,
+  LayoutDashboard,
+  Target,
+  TrendingUp,
+} from "lucide-vue-next"
 
 /**
  * 场景仪表板图标的单一映射来源(Dock 与 Sidebar 共用)。

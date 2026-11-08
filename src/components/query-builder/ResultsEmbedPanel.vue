@@ -122,10 +122,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue"
-import { ChevronDown, Sparkles } from "lucide-vue-next"
+import type {
+  ActiveDocumentTarget,
+  EmbedTargetPreview,
+} from "@/core/embed-target"
+import {
+  ChevronDown,
+  Sparkles,
+} from "lucide-vue-next"
 
-import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue"
 import { vSqbTooltip } from "@/ui/tooltip"
 
 const props = defineProps<{
@@ -137,19 +148,19 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  insert: []
-  refresh: []
-  selectCurrent: []
-  selectTarget: [targetId: string]
+  "insert": []
+  "refresh": []
+  "selectCurrent": []
+  "selectTarget": [targetId: string]
   "update:modelValue": [value: string]
 }>()
 
 const embedTargetMenuOpen = ref(false)
 const embedTargetPickerRef = ref<HTMLElement | null>(null)
-const otherOpenDocumentOptions = computed(() => props.openDocumentTargets.filter(target => target.id !== props.currentDocumentTarget?.id))
+const otherOpenDocumentOptions = computed(() => props.openDocumentTargets.filter((target) => target.id !== props.currentDocumentTarget?.id))
 const recentTargetOptions = computed(() => {
-  const excludedIds = new Set(props.openDocumentTargets.map(target => target.id))
-  return props.recentTargets.filter(target => !excludedIds.has(target.id))
+  const excludedIds = new Set(props.openDocumentTargets.map((target) => target.id))
+  return props.recentTargets.filter((target) => !excludedIds.has(target.id))
 })
 
 async function toggleEmbedTargetMenu() {

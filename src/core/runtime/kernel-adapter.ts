@@ -1,4 +1,8 @@
-import { appendBlock, setBlockAttrs, sql } from "@/api"
+import {
+  appendBlock,
+  setBlockAttrs,
+  sql,
+} from "@/api"
 
 export const kernelAdapter = {
   sql,

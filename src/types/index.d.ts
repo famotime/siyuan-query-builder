@@ -5,28 +5,29 @@
 /**
  * Frequently used data structures in SiYuan
  */
-type DocumentId = string;
-type BlockId = string;
-type NotebookId = string;
-type PreviousID = BlockId;
-type ParentID = BlockId | DocumentId;
+type DocumentId = string
+type BlockId = string
+type NotebookId = string
+type DataType = "markdown" | "dom"
+type PreviousID = BlockId
+type ParentID = BlockId | DocumentId
 
-type Notebook = {
-  id: NotebookId;
-  name: string;
-  icon: string;
-  sort: number;
-  closed: boolean;
-};
+interface Notebook {
+  id: NotebookId
+  name: string
+  icon: string
+  sort: number
+  closed: boolean
+}
 
-type NotebookConf = {
-  name: string;
-  closed: boolean;
-  refCreateSavePath: string;
-  createDocNameTemplate: string;
-  dailyNoteSavePath: string;
-  dailyNoteTemplatePath: string;
-};
+interface NotebookConf {
+  name: string
+  closed: boolean
+  refCreateSavePath: string
+  createDocNameTemplate: string
+  dailyNoteSavePath: string
+  dailyNoteTemplatePath: string
+}
 
 type BlockType =
   | "d"
@@ -38,7 +39,7 @@ type BlockType =
   | "f"
   | "audio"
   | "video"
-  | "other";
+  | "other"
 
 type BlockSubType =
   | "d1"
@@ -73,66 +74,68 @@ type BlockSubType =
   | "image"
   | "audio"
   | "video"
-  | "other";
+  | "other"
 
-type Block = {
-  id: BlockId;
-  parent_id?: BlockId;
-  root_id: DocumentId;
-  hash: string;
-  box: string;
-  path: string;
-  hpath: string;
-  name: string;
-  alias: string;
-  memo: string;
-  tag: string;
-  content: string;
-  fcontent?: string;
-  markdown: string;
-  length: number;
-  type: BlockType;
-  subtype: BlockSubType;
-  /** string of { [key: string]: string }
+interface Block {
+  id: BlockId
+  parent_id?: BlockId
+  root_id: DocumentId
+  hash: string
+  box: string
+  path: string
+  hpath: string
+  name: string
+  alias: string
+  memo: string
+  tag: string
+  content: string
+  fcontent?: string
+  markdown: string
+  length: number
+  type: BlockType
+  subtype: BlockSubType
+  /**
+   * string of { [key: string]: string }
    * For instance: "{: custom-type=\"query-code\" id=\"20230613234017-zkw3pr0\" updated=\"20230613234509\"}"
    */
-  ial?: string;
-  sort: number;
-  created: string;
-  updated: string;
-};
+  ial?: string
+  sort: number
+  created: string
+  updated: string
+}
 
-type doOperation = {
-  action: string;
-  data: string;
-  id: BlockId;
-  parentID: BlockId | DocumentId;
-  previousID: BlockId;
-  retData: null;
-};
+interface doOperation {
+  action: string
+  data: string
+  id: BlockId
+  parentID: BlockId | DocumentId
+  previousID: BlockId
+  retData: null
+}
 
 interface Window {
   siyuan: {
-    notebooks: any;
-    menus: any;
-    dialogs: any;
-    blockPanels: any;
-    storage: any;
-    user: any;
-    ws: any;
-    languages: any;
-    getActiveEditor?: () => any;
-  };
+    notebooks?: any
+    menus?: any
+    dialogs?: any
+    blockPanels?: any
+    storage?: any
+    user?: any
+    ws?: any
+    languages?: any
+    config?: any
+    getActiveEditor?: () => any
+  }
   _sy_plugin_sample: {
-    [key: string]: any;
-  };
+    [key: string]: any
+  }
   __siyuanQueryBuilderBridge?: {
     renderHost: (element: HTMLElement, payload: {
-      templateId: string;
-      viewType: "table" | "board" | "list" | "cards";
-      title?: string;
-    }) => Promise<void> | void;
-  };
+      templateId: string
+      viewType: "table" | "board" | "list" | "cards" | "calendar" | "chart" | "dashboard"
+      title?: string
+    }) => Promise<void> | void
+  }
 }
 
 

@@ -1,4 +1,9 @@
-import type { FieldMappings, QueryBuilderSnapshot, QueryTemplate, ViewType } from "../types"
+import type {
+  FieldMappings,
+  QueryBuilderSnapshot,
+  QueryTemplate,
+  ViewType,
+} from "../types"
 
 import {
   ASSET_COUNT_FIELD,
@@ -8,7 +13,10 @@ import {
   TAG_COUNT_FIELD,
   TEXT_LENGTH_FIELD,
 } from "./constants"
-import { createDefaultViewConfig, createId } from "./view-state"
+import {
+  createDefaultViewConfig,
+  createId,
+} from "./view-state"
 
 export interface PresetDefinition {
   id: string

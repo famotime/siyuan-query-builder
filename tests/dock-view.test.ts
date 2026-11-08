@@ -32,10 +32,10 @@ class FakeDockPluginStorage {
 let currentPlugin = new FakeDockPluginStorage()
 
 const navigationMocks = {
-  openWorkspaceWithDashboard: vi.fn(async () => {}),
-  openWorkspaceWithPreset: vi.fn(async () => {}),
-  openWorkspaceWithTemplate: vi.fn(async () => {}),
-  openDashboardTab: vi.fn(async () => {}),
+  openWorkspaceWithDashboard: vi.fn(async (..._args: any[]) => {}),
+  openWorkspaceWithPreset: vi.fn(async (..._args: any[]) => {}),
+  openWorkspaceWithTemplate: vi.fn(async (..._args: any[]) => {}),
+  openDashboardTab: vi.fn(async (..._args: any[]) => {}),
 }
 
 vi.mock("@/main", () => ({

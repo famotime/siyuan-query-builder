@@ -54,7 +54,7 @@ describe("QueryBuilderSidebar", () => {
     const wrapper = mount(QueryBuilderSidebar)
     const deleteButton = wrapper.get('[data-template-delete="template-1"]')
 
-    expect(deleteButton.get("svg").exists()).toBe(true)
+    expect(deleteButton.find("svg").exists()).toBe(true)
 
     await deleteButton.trigger("click")
 
@@ -89,8 +89,8 @@ describe("QueryBuilderSidebar", () => {
     ]
 
     const wrapper = mount(QueryBuilderSidebar)
-    expect(wrapper.get('[data-section-toggle="presets"]').get("svg").exists()).toBe(true)
-    expect(wrapper.get('[data-section-toggle="saved-templates"]').get("svg").exists()).toBe(true)
+    expect(wrapper.get('[data-section-toggle="presets"]').find("svg").exists()).toBe(true)
+    expect(wrapper.get('[data-section-toggle="saved-templates"]').find("svg").exists()).toBe(true)
     expect(wrapper.get('[data-presets-count]').text()).toBe("3")
 
     expect(wrapper.text()).toContain("日常管理")
@@ -100,7 +100,7 @@ describe("QueryBuilderSidebar", () => {
     expect(wrapper.text()).toContain("高反链核心笔记")
     expect(wrapper.text()).toContain("项目看板")
     expect(wrapper.get('[data-preset-category-toggle="daily"]').classes()).toContain("preset-group__toggle")
-    expect(wrapper.get('[data-preset-category-icon="daily"]').exists()).toBe(true)
+    expect(wrapper.find('[data-preset-category-icon="daily"]').exists()).toBe(true)
     expect(wrapper.get('[data-preset-category="links"]').classes()).toContain("preset-group--separated")
 
     await wrapper.get('[data-preset-category-toggle="daily"]').trigger("click")
@@ -225,7 +225,7 @@ describe("QueryBuilderSidebar", () => {
     const exportButton = wrapper.get('[data-template-export="template-1"]')
 
     expect(exportButton.text()).toBe("")
-    expect(exportButton.get("svg").exists()).toBe(true)
+    expect(exportButton.find("svg").exists()).toBe(true)
     expect(exportButton.classes()).toContain("item-action--borderless")
 
     await exportButton.trigger("click")
@@ -246,7 +246,7 @@ describe("QueryBuilderSidebar", () => {
     const input = wrapper.get('[data-template-import-input]').element as HTMLInputElement
 
     expect(importButton.text()).toBe("")
-    expect(importButton.get("svg").exists()).toBe(true)
+    expect(importButton.find("svg").exists()).toBe(true)
 
     Object.defineProperty(input, "files", {
       configurable: true,

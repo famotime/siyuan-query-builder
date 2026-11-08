@@ -10,7 +10,7 @@
         class="field-picker__toggle control"
         data-field-picker-toggle
         type="button"
-        :aria-expanded="String(fieldPickerOpen)"
+        :aria-expanded="fieldPickerOpen"
         @click="fieldPickerOpen = !fieldPickerOpen"
       >
         <span class="field-picker__summary">{{ selectedFieldSummary }}</span>
@@ -58,8 +58,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
 import { ChevronDown } from "lucide-vue-next"
+import {
+  computed,
+  ref,
+} from "vue"
 
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 

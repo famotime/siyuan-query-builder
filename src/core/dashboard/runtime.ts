@@ -1,6 +1,6 @@
-import type { ResultRow } from "@/core/query/types"
-import type { KernelAdapter } from "@/core/runtime/kernel-adapter"
 import type { DashboardViewModel } from "./types"
+import type { ResultRow } from "@/core/query/types"
+import type { KernelAdapter } from "@/core/runtime/query-runtime"
 import { getDashboardDefinition } from "./catalog"
 
 export interface DashboardRuntimeOptions {
@@ -21,10 +21,10 @@ export async function executeDashboard(
 
   if (typeof sqlQuery === "string") {
     const rows = await options.kernelAdapter.sql(sqlQuery)
-    return def.computeViewModel(rows, parameters)
+    return def.computeViewModel(rows as ResultRow[], parameters)
   }
 
   // 多条 SQL:并发执行后归一为扁平 rows 再交给场景计算
-  const results = await Promise.all(sqlQuery.map(q => options.kernelAdapter.sql(q)))
+  const results = await Promise.all(sqlQuery.map((q) => options.kernelAdapter.sql(q)))
   return def.computeViewModel(results.flat() as ResultRow[], parameters)
 }

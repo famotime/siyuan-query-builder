@@ -1,5 +1,8 @@
 <template>
-  <div class="chart-view" :style="{ height: height || '320px' }">
+  <div
+    class="chart-view"
+    :style="{ height: height || '320px' }"
+  >
     <div
       v-if="!isUnavailable && !isLoading"
       ref="chartEl"
@@ -10,14 +13,20 @@
       class="chart-view__loading"
     >
       <div class="chart-view__spinner" />
-      <p class="chart-view__loading-desc">正在载入图表引擎...</p>
+      <p class="chart-view__loading-desc">
+        正在载入图表引擎...
+      </p>
     </div>
     <div
       v-else
       class="chart-view__fallback"
     >
-      <div class="chart-view__fallback-icon">📊</div>
-      <p class="chart-view__fallback-title">{{ option?.title?.text || '图表视图' }}</p>
+      <div class="chart-view__fallback-icon">
+        📊
+      </div>
+      <p class="chart-view__fallback-title">
+        {{ option?.title?.text || '图表视图' }}
+      </p>
       <p class="chart-view__fallback-desc">
         思源环境中通过 window.echarts 渲染交互图表；当前环境暂未检测到 ECharts 引擎。
       </p>
@@ -33,7 +42,13 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import {
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue"
 import { getEChartsInstance } from "@/core/view/chart"
 import { useSiyuanTheme } from "@/ui/theme"
 

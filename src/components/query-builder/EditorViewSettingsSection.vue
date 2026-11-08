@@ -11,7 +11,7 @@
         type="button"
         data-section-toggle="view"
         :aria-label="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
-        :aria-expanded="String(!collapsed)"
+        :aria-expanded="!collapsed"
         @click="emit('toggle')"
       >
         <ChevronDown
@@ -197,8 +197,11 @@
 </template>
 
 <script setup lang="ts">
+import {
+  ChevronDown,
+  Plus,
+} from "lucide-vue-next"
 import { computed } from "vue"
-import { ChevronDown, Plus } from "lucide-vue-next"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorFieldPicker from "@/components/query-builder/EditorFieldPicker.vue"

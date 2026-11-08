@@ -1,15 +1,24 @@
-import { toRaw } from "vue"
+import type { FieldOption } from "@/core/query/catalog"
 
+import type {
+  FieldId,
+  FieldMappings,
+  FilterOperator,
+  QueryBuilderSnapshot,
+  QueryFilter,
+  QueryTemplate,
+  ViewConfig,
+} from "@/core/query/types"
+import { toRaw } from "vue"
 import {
   AGGREGATE_VALUE_FIELD,
-  TAG_COUNT_FIELD,
   cloneSnapshot,
-  createId,
   createDefaultViewConfig,
   createEmptyTemplate,
-  type FieldOption,
+  createId,
+
+  TAG_COUNT_FIELD,
 } from "@/core/query/catalog"
-import type { FieldId, FieldMappings, FilterOperator, QueryBuilderSnapshot, QueryFilter, QueryTemplate, ViewConfig } from "@/core/query/types"
 
 export type EditableField = keyof FieldMappings | `attr:${string}`
 
@@ -79,11 +88,11 @@ function createDynamicFieldOption(field: string): FieldOption {
 }
 
 export function mergeFieldOptions(baseOptions: FieldOption[], template: QueryTemplate): FieldOption[] {
-  const seen = new Set(baseOptions.map(option => option.value))
+  const seen = new Set(baseOptions.map((option) => option.value))
   const extraFields = new Set<string>([
     ...template.fields,
-    ...template.filters.map(filter => filter.field),
-    ...template.sorts.map(sort => sort.field),
+    ...template.filters.map((filter) => filter.field),
+    ...template.sorts.map((sort) => sort.field),
     template.groupBy || "",
     template.aggregation?.field || "",
   ].filter(Boolean))
@@ -91,7 +100,7 @@ export function mergeFieldOptions(baseOptions: FieldOption[], template: QueryTem
   return [
     ...baseOptions,
     ...Array.from(extraFields)
-      .filter(field => !seen.has(field))
+      .filter((field) => !seen.has(field))
       .map(createDynamicFieldOption),
   ]
 }
@@ -116,7 +125,7 @@ export function syncAggregateTemplate(template: QueryTemplate, resultFields: Fie
     AGGREGATE_VALUE_FIELD,
     ...(template.groupBy ? [template.groupBy] : []),
   ])
-  const nextSorts = template.sorts.filter(sort => sort.direction === "random" || allowedSortFields.has(sort.field))
+  const nextSorts = template.sorts.filter((sort) => sort.direction === "random" || allowedSortFields.has(sort.field))
 
   template.sorts = nextSorts.length
     ? nextSorts
@@ -148,7 +157,7 @@ export function createSnapshot(draft: QueryBuilderSnapshot) {
     ...toRaw(draft.view),
     type: template.viewType,
     fields: [...template.fields],
-    sorts: template.sorts.map(sort => ({ ...sort })),
+    sorts: template.sorts.map((sort) => ({ ...sort })),
     groupBy: template.groupBy || null,
     aggregation: template.aggregation ? { ...template.aggregation } : null,
   } satisfies ViewConfig

@@ -147,7 +147,7 @@ describe("createInlineBlockRenderer", () => {
     vi.stubGlobal("cancelAnimationFrame", vi.fn())
     document.body.className = ""
     document.documentElement.className = ""
-    delete (window as Record<string, unknown>)[SQB_EMBED_BRIDGE_KEY]
+    delete (window as unknown as Record<string, unknown>)[SQB_EMBED_BRIDGE_KEY]
   })
 
   it("starts only once and registers bridge and event listeners once", () => {

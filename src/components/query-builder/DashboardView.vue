@@ -31,7 +31,10 @@
             :style="{ color: m.accentColor || 'var(--sqb-primary)' }"
           >
             <span class="metric-num">{{ splitMetricValue(m.value).num }}</span>
-            <span v-if="splitMetricValue(m.value).unit" class="metric-unit">{{ splitMetricValue(m.value).unitWithSpace }}</span>
+            <span
+              v-if="splitMetricValue(m.value).unit"
+              class="metric-unit"
+            >{{ splitMetricValue(m.value).unitWithSpace }}</span>
           </strong>
           <!-- 环形/条形进度指示 -->
           <div
@@ -47,7 +50,10 @@
             />
           </div>
         </div>
-        <small v-if="m.subText" class="dashboard-view__metric-sub">
+        <small
+          v-if="m.subText"
+          class="dashboard-view__metric-sub"
+        >
           {{ m.subText }}
         </small>
       </article>
@@ -78,7 +84,11 @@
       class="dashboard-view__calendar-section"
     >
       <h3 class="dashboard-view__section-title">
-        <CalendarDays class="wireframe-icon sqb-wireframe-icon" style="fill: none !important;" :size="16" />
+        <CalendarDays
+          class="wireframe-icon sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="16"
+        />
         <span>事项月历总览</span>
       </h3>
       <ResultsCalendarView
@@ -94,7 +104,11 @@
       class="dashboard-view__board-section"
     >
       <h3 class="dashboard-view__section-title">
-        <Kanban class="wireframe-icon sqb-wireframe-icon" style="fill: none !important;" :size="16" />
+        <Kanban
+          class="wireframe-icon sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="16"
+        />
         <span>阶段推进流转看板</span>
       </h3>
       <div class="dashboard-view__board">
@@ -115,7 +129,10 @@
               @click="$emit('openBlock', row.id)"
             >
               <span class="dashboard-view__board-card-title">{{ row.content || '未命名' }}</span>
-              <small v-if="row.hpath" class="dashboard-view__board-card-meta">{{ row.hpath }}</small>
+              <small
+                v-if="row.hpath"
+                class="dashboard-view__board-card-meta"
+              >{{ row.hpath }}</small>
             </article>
           </div>
         </div>
@@ -128,7 +145,11 @@
       class="dashboard-view__list-section"
     >
       <h3 class="dashboard-view__section-title">
-        <ListTodo class="wireframe-icon sqb-wireframe-icon" style="fill: none !important;" :size="16" />
+        <ListTodo
+          class="wireframe-icon sqb-wireframe-icon"
+          style="fill: none !important;"
+          :size="16"
+        />
         <span>待办与核心明细清单</span>
       </h3>
       <ul class="dashboard-view__list">
@@ -144,7 +165,10 @@
             :class="`dashboard-view__status-dot--${item.status}`"
           />
           <span class="dashboard-view__list-text">{{ item.title }}</span>
-          <div v-if="item.meta && item.meta.length" class="dashboard-view__list-meta">
+          <div
+            v-if="item.meta && item.meta.length"
+            class="dashboard-view__list-meta"
+          >
             <span
               v-for="m in item.meta"
               :key="m"
@@ -160,17 +184,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { CalendarDays, Kanban, ListTodo } from "lucide-vue-next"
 import type { DashboardViewModel } from "@/core/dashboard/types"
+import {
+  CalendarDays,
+  Kanban,
+  ListTodo,
+} from "lucide-vue-next"
+import { computed } from "vue"
 import { getDashboardDefinition } from "@/core/dashboard/catalog"
 import DashboardTuningBar from "./DashboardTuningBar.vue"
-import ResultsChartView from "./ResultsChartView.vue"
 import ResultsCalendarView from "./ResultsCalendarView.vue"
+import ResultsChartView from "./ResultsChartView.vue"
 
 const props = defineProps<{
   viewModel: DashboardViewModel
-  notebooks?: Array<{ id: string; name: string }>
+  notebooks?: Array<{ id: string, name: string }>
 }>()
 
 const emit = defineEmits<{
@@ -189,7 +217,7 @@ function onUpdateParam(id: string, val: any) {
   emit("updateParam", id, val)
 }
 
-function splitMetricValue(val: string | number): { num: string; unit: string; unitWithSpace: string } {
+function splitMetricValue(val: string | number): { num: string, unit: string, unitWithSpace: string } {
   const str = String(val).trim()
   const match = str.match(/^([0-9.,+-]+)(\s*)(.*)$/)
   if (match && match[1]) {
@@ -199,7 +227,11 @@ function splitMetricValue(val: string | number): { num: string; unit: string; un
       unitWithSpace: (match[2] || "") + (match[3] || ""),
     }
   }
-  return { num: str, unit: "", unitWithSpace: "" }
+  return {
+    num: str,
+    unit: "",
+    unitWithSpace: "",
+  }
 }
 </script>
 

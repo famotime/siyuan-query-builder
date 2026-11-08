@@ -1,4 +1,7 @@
-import type { CalendarTaskItem, TaskStatus } from "@/core/dashboard/types"
+import type {
+  CalendarTaskItem,
+  TaskStatus,
+} from "@/core/dashboard/types"
 import { formatIsoDate } from "@/core/dashboard/calculator"
 
 export interface CalendarDayCell {
@@ -106,7 +109,7 @@ export function buildMonthCalendarGrid(
     const prevDate = new Date(year, month - 2, prevMonthLastDay - i)
     const iso = formatIsoDate(prevDate)
     const dayTasks = tasksByDay.get(iso) || []
-    const hasPending = dayTasks.some(t => t.status === "todo" || t.status === "doing")
+    const hasPending = dayTasks.some((t) => t.status === "todo" || t.status === "doing")
     cells.push({
       iso,
       dayNumber: prevDate.getDate(),
@@ -124,7 +127,7 @@ export function buildMonthCalendarGrid(
     const curDate = new Date(year, month - 1, d)
     const iso = formatIsoDate(curDate)
     const dayTasks = tasksByDay.get(iso) || []
-    const hasPending = dayTasks.some(t => t.status === "todo" || t.status === "doing")
+    const hasPending = dayTasks.some((t) => t.status === "todo" || t.status === "doing")
     cells.push({
       iso,
       dayNumber: d,
@@ -143,7 +146,7 @@ export function buildMonthCalendarGrid(
     const nextDate = new Date(year, month, nextDay++)
     const iso = formatIsoDate(nextDate)
     const dayTasks = tasksByDay.get(iso) || []
-    const hasPending = dayTasks.some(t => t.status === "todo" || t.status === "doing")
+    const hasPending = dayTasks.some((t) => t.status === "todo" || t.status === "doing")
     cells.push({
       iso,
       dayNumber: nextDate.getDate(),
@@ -162,8 +165,8 @@ export function buildMonthCalendarGrid(
     weeks.push(cells.slice(i, i + 7))
   }
 
-  const openCount = tasks.filter(t => t.status === "todo" || t.status === "doing" || t.status === "deferred").length
-  const doneCount = tasks.filter(t => t.status === "done").length
+  const openCount = tasks.filter((t) => t.status === "todo" || t.status === "doing" || t.status === "deferred").length
+  const doneCount = tasks.filter((t) => t.status === "done").length
 
   return {
     yearMonth,

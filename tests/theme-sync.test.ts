@@ -3,7 +3,6 @@ import {
   resolveSiyuanThemeMode,
   syncSiyuanThemeMarkers,
   observeSiyuanTheme,
-  useSiyuanTheme,
   onSiyuanThemeChange,
 } from "@/ui/theme"
 
@@ -47,20 +46,13 @@ describe("theme sync and host adaptation", () => {
   })
 
   it("notifies listeners on theme change", () => {
-    let receivedTheme = ""
-    const unsub = onSiyuanThemeChange((theme) => {
-      receivedTheme = theme
-    })
-
-    const { currentTheme } = useSiyuanTheme()
+    const unsub = onSiyuanThemeChange(() => {})
 
     const host = document.createElement("div")
     document.body.appendChild(host)
     document.documentElement.className = "b3-theme-dark"
 
-    const cleanup = observeSiyuanTheme(host, (theme) => {
-      receivedTheme = theme
-    })
+    const cleanup = observeSiyuanTheme(host, () => {})
 
     // 切换宿主为亮色
     document.documentElement.className = "b3-theme-light"

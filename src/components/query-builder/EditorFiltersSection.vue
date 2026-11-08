@@ -27,7 +27,7 @@
           type="button"
           data-section-toggle="filters"
           :aria-label="props.collapsed ? '展开条件编辑器' : '收起条件编辑器'"
-          :aria-expanded="String(!props.collapsed)"
+          :aria-expanded="!props.collapsed"
           @click="$emit('toggle')"
         >
           <ChevronDown
@@ -153,15 +153,17 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, Plus } from "lucide-vue-next"
+import type {
+  FilterOperator,
+  QueryFilter,
+} from "@/core/query/types"
+import {
+  ChevronDown,
+  Plus,
+} from "lucide-vue-next"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import type { FilterOperator, QueryFilter } from "@/core/query/types"
 import { vSqbTooltip } from "@/ui/tooltip"
-
-defineEmits<{
-  toggle: []
-}>()
 
 const props = defineProps<{
   collapsed: boolean
@@ -176,6 +178,10 @@ const props = defineProps<{
   onFilterDragOver: (targetFilterId: string, event: DragEvent) => void
   onFilterDrop: (targetFilterId: string) => void
   clearFilterDrag: () => void
+}>()
+
+defineEmits<{
+  toggle: []
 }>()
 
 const store = useQueryBuilderStore()

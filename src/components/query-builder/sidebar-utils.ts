@@ -17,9 +17,9 @@ export function buildPresetGroups(presets: PresetDefinition[]) {
       id: category,
       index,
       label: presetCategoryMeta[category],
-      items: presets.filter(preset => preset.category === category),
+      items: presets.filter((preset) => preset.category === category),
     }))
-    .filter(group => group.items.length)
+    .filter((group) => group.items.length)
 }
 
 export function formatSidebarViewTypeLabel(type: string) {

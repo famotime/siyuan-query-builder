@@ -1,11 +1,18 @@
-import { reactive, ref } from "vue"
 import type { Ref } from "vue"
-
-import { SCENARIO_DASHBOARDS, getDashboardDefinition } from "@/core/dashboard/catalog"
-import { executeDashboard } from "@/core/dashboard/runtime"
 import type { DashboardViewModel } from "@/core/dashboard/types"
-import { kernelAdapter } from "@/core/runtime/kernel-adapter"
+
 import type { QueryBuilderSnapshot } from "@/core/query/types"
+import {
+  reactive,
+  ref,
+} from "vue"
+import {
+  getDashboardDefinition,
+  resolveDashboardParamDefault,
+  SCENARIO_DASHBOARDS,
+} from "@/core/dashboard/catalog"
+import { executeDashboard } from "@/core/dashboard/runtime"
+import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 
 interface TemplateViewsPort {
   saveTemplate: () => Promise<void>
@@ -19,7 +26,12 @@ interface QueryBuilderDashboardControllerOptions {
 }
 
 export function createQueryBuilderDashboardController(options: QueryBuilderDashboardControllerOptions) {
-  const { draft, advancedMode, advancedSql, templateViews } = options
+  const {
+    draft,
+    advancedMode,
+    advancedSql,
+    templateViews,
+  } = options
 
   const dashboards = ref(SCENARIO_DASHBOARDS)
   const activeDashboardId = ref<string | null>(null)
@@ -50,7 +62,8 @@ export function createQueryBuilderDashboardController(options: QueryBuilderDashb
       delete activeDashboardParams[k]
     }
     for (const p of def.parameters) {
-      activeDashboardParams[p.id] = p.defaultValue
+      // 惰性默认值在加载时求值,保证跨日/跨年长会话中的月份/年份默认值仍然有效
+      activeDashboardParams[p.id] = resolveDashboardParamDefault(p)
     }
     await runActiveDashboard()
   }

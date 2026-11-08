@@ -1,4 +1,7 @@
-import type { FieldId, ResultRow } from "@/core/query/types"
+import type {
+  FieldId,
+  ResultRow,
+} from "@/core/query/types"
 
 export interface BoardColumn {
   id: string

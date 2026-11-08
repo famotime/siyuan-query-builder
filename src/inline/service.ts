@@ -1,16 +1,13 @@
-import { createApp } from "vue"
+import type { InlineEmbedPayload } from "@/core/embed"
 
+import type { Plugin } from "@/external/siyuan"
+import { createApp } from "vue"
 import { lsNotebooks } from "@/api"
-import {
-  type InlineEmbedPayload,
-  parseInlineEmbedPayload,
-} from "@/core/embed"
 import { buildQuery } from "@/core/query/compiler"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createTemplateStore } from "@/core/storage/template-store"
 import { showMessage } from "@/external/siyuan"
-import type { Plugin } from "@/external/siyuan"
 import { createInlineBridgeRegistry } from "@/inline/bridge-registry"
 import InlineQueryWidget from "@/inline/InlineQueryWidget.vue"
 import { createInlineRenderController } from "@/inline/render-controller"
@@ -31,11 +28,9 @@ const EVENTS_TO_STOP = [
   "paste",
 ]
 
-type DisposeFn = () => void
-
 function shieldInlineElement(element: HTMLElement) {
   for (const eventName of EVENTS_TO_STOP) {
-    element.addEventListener(eventName, event => event.stopPropagation(), true)
+    element.addEventListener(eventName, (event) => event.stopPropagation(), true)
   }
 }
 
@@ -48,7 +43,7 @@ export function createInlineBlockRenderer(plugin: Plugin) {
   const templateStore = createTemplateStore(plugin)
   const runtime = createQueryRuntime(kernelAdapter)
   const notebooksPromise = lsNotebooks()
-    .then(result => result?.notebooks || [])
+    .then((result) => result?.notebooks || [])
     .catch(() => [])
   const mountPayload = async (element: HTMLElement, payload: InlineEmbedPayload) => {
     const snapshot = await templateStore.get(payload.templateId, payload.viewId)

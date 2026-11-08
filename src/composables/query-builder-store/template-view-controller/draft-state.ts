@@ -1,7 +1,15 @@
 import type { Ref } from "vue"
 
-import { applyViewConfigToTemplate, cloneSnapshot, hydrateViewConfig } from "@/core/query/catalog"
-import type { QueryBuilderSnapshot, QueryTemplate, ViewConfig } from "@/core/query/types"
+import type {
+  QueryBuilderSnapshot,
+  QueryTemplate,
+  ViewConfig,
+} from "@/core/query/types"
+import {
+  applyViewConfigToTemplate,
+  cloneSnapshot,
+  hydrateViewConfig,
+} from "@/core/query/catalog"
 
 import { createDraft } from "../shared"
 

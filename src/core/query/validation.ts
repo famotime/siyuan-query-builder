@@ -13,7 +13,10 @@ function hasText(value: unknown) {
 
 export function validateSnapshot(snapshot: QueryBuilderSnapshot): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const { template, view } = snapshot
+  const {
+    template,
+    view,
+  } = snapshot
   const statusField = `attr:${view.fieldMappings.status}`
 
   if (!["all_blocks", "attribute"].includes(template.scope.type) && !hasText(template.scope.value)) {

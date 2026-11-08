@@ -4,7 +4,6 @@ import {
   calculateBuckets,
   calculateMA7,
   calculateStreak,
-  formatIsoDate,
   generateDateRange,
   parseDateFromHPath,
   parseTaskStatus,

@@ -1,9 +1,19 @@
-import type { ComputedRef, Ref } from "vue"
+import type {
+  ComputedRef,
+  Ref,
+} from "vue"
 
+import type {
+  FieldId,
+  QueryBuilderSnapshot,
+  ViewConfig,
+} from "@/core/query/types"
 import { AGGREGATE_VALUE_FIELD } from "@/core/query/catalog"
-import type { FieldId, QueryBuilderSnapshot, ViewConfig } from "@/core/query/types"
 
-import { makeFilter, normalizeCustomField } from "./shared"
+import {
+  makeFilter,
+  normalizeCustomField,
+} from "./shared"
 
 interface QueryBuilderDraftActionsOptions {
   draft: QueryBuilderSnapshot
@@ -36,7 +46,7 @@ export function createQueryBuilderDraftActions(options: QueryBuilderDraftActions
   }
 
   function removeFilter(filterId: string) {
-    draft.template.filters = draft.template.filters.filter(filter => filter.id !== filterId)
+    draft.template.filters = draft.template.filters.filter((filter) => filter.id !== filterId)
     if (draft.template.filters[0]) {
       draft.template.filters[0].condition = "and"
     }
@@ -47,8 +57,8 @@ export function createQueryBuilderDraftActions(options: QueryBuilderDraftActions
       return
     }
 
-    const currentIndex = draft.template.filters.findIndex(filter => filter.id === filterId)
-    const targetIndex = draft.template.filters.findIndex(filter => filter.id === targetFilterId)
+    const currentIndex = draft.template.filters.findIndex((filter) => filter.id === filterId)
+    const targetIndex = draft.template.filters.findIndex((filter) => filter.id === targetFilterId)
 
     if (currentIndex < 0 || targetIndex < 0) {
       return
@@ -60,7 +70,7 @@ export function createQueryBuilderDraftActions(options: QueryBuilderDraftActions
       return
     }
 
-    const adjustedTargetIndex = nextFilters.findIndex(filter => filter.id === targetFilterId)
+    const adjustedTargetIndex = nextFilters.findIndex((filter) => filter.id === targetFilterId)
     if (adjustedTargetIndex < 0) {
       return
     }
@@ -89,7 +99,7 @@ export function createQueryBuilderDraftActions(options: QueryBuilderDraftActions
       return
     }
     if (draft.template.fields.includes(field)) {
-      draft.template.fields = draft.template.fields.filter(item => item !== field)
+      draft.template.fields = draft.template.fields.filter((item) => item !== field)
       return
     }
     draft.template.fields.push(field)

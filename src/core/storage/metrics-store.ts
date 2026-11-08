@@ -13,9 +13,9 @@ export interface QueryBuilderMetrics {
 }
 
 interface StorageAdapter {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
-  removeData(key: string): Promise<void>
+  loadData: (key: string) => Promise<unknown>
+  saveData: (key: string, value: unknown) => Promise<void>
+  removeData: (key: string) => Promise<void>
 }
 
 type MetricCounterKey = Exclude<keyof QueryBuilderMetrics, "viewSwitches">

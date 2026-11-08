@@ -1,5 +1,13 @@
-import { createDefaultViewConfig, createId, hydrateViewConfig } from "@/core/query/catalog"
-import type { QueryTemplate, QueryTemplateBundle, ViewConfig } from "@/core/query/types"
+import type {
+  QueryTemplate,
+  QueryTemplateBundle,
+  ViewConfig,
+} from "@/core/query/types"
+import {
+  createDefaultViewConfig,
+  createId,
+  hydrateViewConfig,
+} from "@/core/query/catalog"
 
 function cloneValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
@@ -23,7 +31,7 @@ export function createExportedTemplateBundle(template: QueryTemplate, views: Vie
     version: 1,
     exportedAt: new Date().toISOString(),
     template: cloneValue(template),
-    views: cloneValue(views.map(view => hydrateViewConfig(view, template))),
+    views: cloneValue(views.map((view) => hydrateViewConfig(view, template))),
   }
 }
 
@@ -36,7 +44,7 @@ export function createImportedTemplateBundle(bundle: QueryTemplateBundle) {
   const sourceViews = bundle.views.length
     ? bundle.views
     : [createDefaultViewConfig(importedTemplate.id, importedTemplate.viewType, importedTemplate)]
-  const defaultIndex = Math.max(sourceViews.findIndex(view => view.defaultView), 0)
+  const defaultIndex = Math.max(sourceViews.findIndex((view) => view.defaultView), 0)
   const importedViews = sourceViews.map((view, index) => ({
     ...hydrateViewConfig(view, importedTemplate),
     id: createId("view"),

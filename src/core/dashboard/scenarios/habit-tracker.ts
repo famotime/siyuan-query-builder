@@ -1,14 +1,23 @@
+import type {
+  DashboardDefinition,
+  DashboardViewModel,
+  MetricCardModel,
+} from "../types"
 import type { ResultRow } from "@/core/query/types"
-import { buildBarDistributionOption, buildCalendarHeatmapOption, buildLineTrendOption } from "@/core/view/chart"
+import {
+  buildBarDistributionOption,
+  buildCalendarHeatmapOption,
+  buildLineTrendOption,
+} from "@/core/view/chart"
 import {
   aggregateByWeekday,
   calculateMA7,
   calculateStreak,
+  escapeSqlLiteral,
   formatIsoDate,
   generateDateRange,
   parseDateFromHPath,
 } from "../calculator"
-import type { DashboardDefinition, DashboardViewModel, MetricCardModel } from "../types"
 
 export interface HabitTrackerParams {
   keyword?: string
@@ -41,14 +50,23 @@ export const habitTrackerDashboard: DashboardDefinition = {
       type: "select",
       defaultValue: "90",
       options: [
-        { label: "近 30 天", value: "30" },
-        { label: "近 90 天", value: "90" },
-        { label: "近 180 天", value: "180" },
+        {
+          label: "近 30 天",
+          value: "30",
+        },
+        {
+          label: "近 90 天",
+          value: "90",
+        },
+        {
+          label: "近 180 天",
+          value: "180",
+        },
       ],
     },
   ],
   buildSql(params: HabitTrackerParams) {
-    const keyword = params.keyword || "喝水"
+    const keyword = escapeSqlLiteral(params.keyword || "喝水")
     return `
         SELECT b.id, b.content, b.hpath, b.created, b.root_id,
                COALESCE(
@@ -83,7 +101,10 @@ export const habitTrackerDashboard: DashboardDefinition = {
     }
 
     // 连续达标天数与指标计算
-    const { curStreak, maxStreak } = calculateStreak(dateMap, goal, todayIso)
+    const {
+      curStreak,
+      maxStreak,
+    } = calculateStreak(dateMap, goal, todayIso)
     const todayVal = dateMap[todayIso] || 0
     const todayProgress = Math.min(100, Math.round((todayVal / goal) * 100))
 
@@ -91,12 +112,12 @@ export const habitTrackerDashboard: DashboardDefinition = {
     const startDt = new Date()
     startDt.setDate(startDt.getDate() - daysCount + 1)
     const daySeq = generateDateRange(formatIsoDate(startDt), todayIso)
-    const dailyVals = daySeq.map(d => dateMap[d] || 0)
+    const dailyVals = daySeq.map((d) => dateMap[d] || 0)
     const ma7Vals = calculateMA7(dailyVals)
 
     // 期间达标率
-    const recordedDays = daySeq.filter(d => (dateMap[d] || 0) > 0).length
-    const reachedDays = daySeq.filter(d => (dateMap[d] || 0) >= goal).length
+    const recordedDays = daySeq.filter((d) => (dateMap[d] || 0) > 0).length
+    const reachedDays = daySeq.filter((d) => (dateMap[d] || 0) >= goal).length
     const reachRate = recordedDays ? Math.round((reachedDays / recordedDays) * 100) : 0
 
     const metrics: MetricCardModel[] = [
@@ -155,8 +176,8 @@ export const habitTrackerDashboard: DashboardDefinition = {
         title: "周中习惯规律分析",
         option: buildBarDistributionOption({
           title: "周一至周日平均频次",
-          categories: weekdayStats.map(w => w.label),
-          values: weekdayStats.map(w => w.avg),
+          categories: weekdayStats.map((w) => w.label),
+          values: weekdayStats.map((w) => w.avg),
           goalValue: goal,
           accentColor: "var(--b3-theme-primary)",
         }),
@@ -169,7 +190,7 @@ export const habitTrackerDashboard: DashboardDefinition = {
           title: "逐日打卡分布热力图",
           startDate: daySeq[0],
           endDate: daySeq[daySeq.length - 1],
-          dateValuePairs: daySeq.map(d => [d, dateMap[d] || 0]),
+          dateValuePairs: daySeq.map((d) => [d, dateMap[d] || 0]),
           maxVal: goal,
         }),
       },

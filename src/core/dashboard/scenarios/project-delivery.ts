@@ -1,6 +1,11 @@
+import type {
+  DashboardDefinition,
+  DashboardViewModel,
+  MetricCardModel,
+} from "../types"
 import type { ResultRow } from "@/core/query/types"
 import { buildPieCompositionOption } from "@/core/view/chart"
-import type { DashboardDefinition, DashboardViewModel, MetricCardModel } from "../types"
+import { escapeSqlLiteral } from "../calculator"
 
 export interface ProjectDeliveryParams {
   scope?: string
@@ -21,7 +26,7 @@ export const projectDeliveryDashboard: DashboardDefinition = {
     },
   ],
   buildSql(params: ProjectDeliveryParams) {
-    const tagClause = params.scope ? `AND b.tag LIKE '%${params.scope}%'` : ""
+    const tagClause = params.scope ? `AND b.tag LIKE '%${escapeSqlLiteral(params.scope)}%'` : ""
     return `
         SELECT b.id, b.content, b.hpath, b.updated, b.created, b.box,
                (SELECT a.value FROM attributes a WHERE a.block_id = b.id AND a.name = 'custom-status' LIMIT 1) AS status,
@@ -35,15 +40,15 @@ export const projectDeliveryDashboard: DashboardDefinition = {
   },
   computeViewModel(rows: ResultRow[], params: ProjectDeliveryParams): DashboardViewModel {
     const statusMap = {
-      planning: rows.filter(r => !r.status || r.status === "Planning" || r.status === "规划中"),
-      doing: rows.filter(r => r.status === "Doing" || r.status === "开发中" || r.status === "进行中"),
-      testing: rows.filter(r => r.status === "Testing" || r.status === "测试中" || r.status === "验收"),
-      done: rows.filter(r => r.status === "Done" || r.status === "已完成"),
+      planning: rows.filter((r) => !r.status || r.status === "Planning" || r.status === "规划中"),
+      doing: rows.filter((r) => r.status === "Doing" || r.status === "开发中" || r.status === "进行中"),
+      testing: rows.filter((r) => r.status === "Testing" || r.status === "测试中" || r.status === "验收"),
+      done: rows.filter((r) => r.status === "Done" || r.status === "已完成"),
     }
 
-    const p0Count = rows.filter(r => r.priority === "P0" || r.priority === "紧急").length
-    const p1Count = rows.filter(r => r.priority === "P1" || r.priority === "重要").length
-    const p2Count = rows.filter(r => r.priority === "P2" || r.priority === "普通").length
+    const p0Count = rows.filter((r) => r.priority === "P0" || r.priority === "紧急").length
+    const p1Count = rows.filter((r) => r.priority === "P1" || r.priority === "重要").length
+    const p2Count = rows.filter((r) => r.priority === "P2" || r.priority === "普通").length
 
     const metrics: MetricCardModel[] = [
       {
@@ -77,21 +82,57 @@ export const projectDeliveryDashboard: DashboardDefinition = {
         option: buildPieCompositionOption({
           title: "优先级构成分布",
           data: [
-            { name: "P0 紧急", value: p0Count, color: "#ef4444" },
-            { name: "P1 重要", value: p1Count, color: "#f2a33c" },
-            { name: "P2 常规", value: p2Count, color: "var(--b3-theme-primary)" },
-            { name: "未设置", value: rows.length - p0Count - p1Count - p2Count, color: "#9ca3af" },
-          ].filter(d => d.value > 0),
+            {
+              name: "P0 紧急",
+              value: p0Count,
+              color: "#ef4444",
+            },
+            {
+              name: "P1 重要",
+              value: p1Count,
+              color: "#f2a33c",
+            },
+            {
+              name: "P2 常规",
+              value: p2Count,
+              color: "var(--b3-theme-primary)",
+            },
+            {
+              name: "未设置",
+              value: rows.length - p0Count - p1Count - p2Count,
+              color: "#9ca3af",
+            },
+          ].filter((d) => d.value > 0),
           isDonut: true,
         }),
       },
     ]
 
     const boardColumns = [
-      { id: "col_planning", title: "规划筹备", count: statusMap.planning.length, rows: statusMap.planning.slice(0, 8) },
-      { id: "col_doing", title: "推进开发中", count: statusMap.doing.length, rows: statusMap.doing.slice(0, 8) },
-      { id: "col_testing", title: "验收评审", count: statusMap.testing.length, rows: statusMap.testing.slice(0, 8) },
-      { id: "col_done", title: "已完成交付", count: statusMap.done.length, rows: statusMap.done.slice(0, 8) },
+      {
+        id: "col_planning",
+        title: "规划筹备",
+        count: statusMap.planning.length,
+        rows: statusMap.planning.slice(0, 8),
+      },
+      {
+        id: "col_doing",
+        title: "推进开发中",
+        count: statusMap.doing.length,
+        rows: statusMap.doing.slice(0, 8),
+      },
+      {
+        id: "col_testing",
+        title: "验收评审",
+        count: statusMap.testing.length,
+        rows: statusMap.testing.slice(0, 8),
+      },
+      {
+        id: "col_done",
+        title: "已完成交付",
+        count: statusMap.done.length,
+        rows: statusMap.done.slice(0, 8),
+      },
     ]
 
     return {

@@ -85,8 +85,8 @@
 </template>
 
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next"
 import type { ViewConfig } from "@/core/query/types"
+import { Plus } from "lucide-vue-next"
 
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { vSqbTooltip } from "@/ui/tooltip"

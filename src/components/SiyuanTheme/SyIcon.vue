@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
+import type { Component } from 'vue'
 import {
   Bookmark,
   Check,
@@ -50,6 +50,10 @@ import {
   Trash2,
   X,
 } from 'lucide-vue-next'
+import {
+
+  computed,
+} from 'vue'
 
 const props = defineProps<{
   name: string
@@ -59,49 +63,49 @@ const props = defineProps<{
 }>()
 
 const iconMap: Record<string, Component> = {
-  refresh: RefreshCw,
-  play: Play,
-  run: Play,
-  save: Save,
-  settings: Settings,
-  help: HelpCircle,
-  folder: Folder,
-  database: Database,
-  sparkles: Sparkles,
-  bookmark: Bookmark,
+  "refresh": RefreshCw,
+  "play": Play,
+  "run": Play,
+  "save": Save,
+  "settings": Settings,
+  "help": HelpCircle,
+  "folder": Folder,
+  "database": Database,
+  "sparkles": Sparkles,
+  "bookmark": Bookmark,
   'chevron-right': ChevronRight,
   'chevron-down': ChevronDown,
-  trash: Trash2,
-  delete: Trash2,
-  plus: Plus,
-  add: Plus,
-  search: Search,
-  filter: Filter,
-  sliders: SlidersHorizontal,
-  table: Table,
-  list: List,
-  kanban: Kanban,
-  board: Kanban,
-  cards: LayoutGrid,
-  grid: LayoutGrid,
-  copy: Copy,
-  code: Code,
-  check: Check,
-  close: X,
-  x: X,
-  eye: Eye,
-  tag: Tag,
-  grip: GripVertical,
-  inbox: Inbox,
-  layers: Layers,
-  file: FileText,
+  "trash": Trash2,
+  "delete": Trash2,
+  "plus": Plus,
+  "add": Plus,
+  "search": Search,
+  "filter": Filter,
+  "sliders": SlidersHorizontal,
+  "table": Table,
+  "list": List,
+  "kanban": Kanban,
+  "board": Kanban,
+  "cards": LayoutGrid,
+  "grid": LayoutGrid,
+  "copy": Copy,
+  "code": Code,
+  "check": Check,
+  "close": X,
+  "x": X,
+  "eye": Eye,
+  "tag": Tag,
+  "grip": GripVertical,
+  "inbox": Inbox,
+  "layers": Layers,
+  "file": FileText,
 }
 
 const numericSize = computed(() => {
   if (typeof props.size === 'number') return props.size
   if (typeof props.size === 'string') {
-    const parsed = parseInt(props.size, 10)
-    return isNaN(parsed) ? 16 : parsed
+    const parsed = Number.parseInt(props.size, 10)
+    return Number.isNaN(parsed) ? 16 : parsed
   }
   return 16
 })

@@ -28,7 +28,7 @@
           type="button"
           data-section-toggle="mappings"
           :aria-label="collapsed ? '展开字段映射' : '收起字段映射'"
-          :aria-expanded="String(!collapsed)"
+          :aria-expanded="!collapsed"
           @click="$emit('toggle')"
         >
           <ChevronDown
@@ -67,7 +67,10 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, Sparkles } from "lucide-vue-next"
+import {
+  ChevronDown,
+  Sparkles,
+} from "lucide-vue-next"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import { vSqbTooltip } from "@/ui/tooltip"
 

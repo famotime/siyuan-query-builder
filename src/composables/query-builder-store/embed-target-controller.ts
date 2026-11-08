@@ -1,24 +1,33 @@
-import { watch, type Ref } from "vue"
+import type { Ref } from "vue"
 
+import type { EmbedTargetPrefs } from "./shared"
+import type {
+  ActiveDocumentTarget,
+  EmbedTargetPreview,
+} from "@/core/embed-target"
+import type { I18nHelper } from "@/utils/i18n"
+import {
+
+  watch,
+} from "vue"
 import { getBlockByID } from "@/api"
 import {
+
   createEmbedTargetPreview,
+
   formatEmbedTargetHint,
   getOpenDocumentTargets,
   isLikelyBlockId,
   normalizeRecentEmbedTargetIds,
   summarizeBlockLabel,
-  type ActiveDocumentTarget,
-  type EmbedTargetPreview,
 } from "@/core/embed-target"
-import { showMessage } from "@/external/siyuan"
-import type { I18nHelper } from "@/utils/i18n"
 
-import { EMBED_TARGET_PREFS_KEY, type EmbedTargetPrefs } from "./shared"
+import { showMessage } from "@/external/siyuan"
+import { EMBED_TARGET_PREFS_KEY } from "./shared"
 
 interface StorageAdapter {
-  loadData(key: string): Promise<unknown>
-  saveData(key: string, value: unknown): Promise<void>
+  loadData: (key: string) => Promise<unknown>
+  saveData: (key: string, value: unknown) => Promise<void>
 }
 
 interface EmbedTargetControllerOptions {
@@ -184,7 +193,7 @@ export function createEmbedTargetController(options: EmbedTargetControllerOption
     return true
   }
 
-  watch(embedParentId, async value => {
+  watch(embedParentId, async (value) => {
     await persistEmbedTargetPrefs()
     await resolveEmbedTargetPreview(value)
   })

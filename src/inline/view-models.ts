@@ -1,4 +1,7 @@
-import type { FieldId, ResultRow } from "@/core/query/types"
+import type {
+  FieldId,
+  ResultRow,
+} from "@/core/query/types"
 
 export interface SummaryCard {
   label: string
@@ -38,7 +41,10 @@ export function buildCardsSummary(
   }
 
   return [
-    { label: "总结果", value: String(rows.length) },
+    {
+      label: "总结果",
+      value: String(rows.length),
+    },
     ...[...groups.entries()].map(([label, count]) => ({
       label,
       value: String(count),
@@ -51,7 +57,7 @@ export function buildListItems(
   metaFields: FieldId[],
   formatValue?: ResultValueFormatter,
 ): ListItemModel[] {
-  return rows.map(row => ({
+  return rows.map((row) => ({
     id: row.id,
     title: row.content,
     meta: metaFields

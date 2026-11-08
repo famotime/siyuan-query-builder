@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest'
 import type { QueryBuilderSnapshot } from '@/core/query/types'
 import { validateSnapshot } from '@/core/query/validation'
 
-function createSnapshot(overrides?: Partial<QueryBuilderSnapshot>): QueryBuilderSnapshot {
+function createSnapshot(overrides?: {
+  template?: Partial<QueryBuilderSnapshot["template"]>
+  view?: Partial<QueryBuilderSnapshot["view"]>
+}): QueryBuilderSnapshot {
   return {
     template: {
       id: 'template-1',

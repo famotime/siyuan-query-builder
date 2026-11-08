@@ -1,10 +1,10 @@
 export {
   Dialog,
-  Plugin,
-  Setting,
   fetchSyncPost,
   getFrontend,
   openTab,
+  Plugin,
+  Setting,
   showMessage,
 } from "siyuan"
 

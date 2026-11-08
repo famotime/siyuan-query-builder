@@ -239,4 +239,30 @@ describe("project-delivery computeViewModel branches", () => {
     expect(def.buildSql({ scope: "#项目" })).toContain("AND b.tag LIKE '%#项目%'")
     expect(def.buildSql({ scope: "" })).not.toContain("b.tag")
   })
+
+  it("escapes single quotes in the scope parameter", () => {
+    expect(def.buildSql({ scope: "#项'目" })).toContain("AND b.tag LIKE '%#项''目%'")
+  })
+})
+
+describe("dashboard SQL literal escaping", () => {
+  it("escapes single quotes in the daily-cockpit notebook clause", () => {
+    const def = getDashboardDefinition("daily-cockpit")!
+    expect(def.buildSql({ notebook: "box'1", statusFilter: "open", month: "2026-11" }))
+      .toContain("AND b.box = 'box''1'")
+  })
+
+  it("escapes single quotes in the habit keyword and writing year clauses", () => {
+    const habit = getDashboardDefinition("habit-tracker")!
+    expect(habit.buildSql({ keyword: "跑'步", goal: 1, days: "30" })).toContain("LIKE '%跑''步%'")
+
+    const writing = getDashboardDefinition("writing-flow")!
+    expect(writing.buildSql({ year: "2026'" })).toContain("LIKE '2026''%'")
+  })
+
+  it("leaves normal parameters byte-identical", () => {
+    const daily = getDashboardDefinition("daily-cockpit")!
+    expect(daily.buildSql({ notebook: "box123", statusFilter: "open", month: "2026-11" }))
+      .toContain("AND b.box = 'box123'")
+  })
 })

@@ -1,7 +1,7 @@
-import { inject } from "vue"
 import type { InjectionKey } from "vue"
-
 import type { WorkspaceOpenMode } from "@/core/plugin-settings"
+
+import { inject } from "vue"
 
 /**
  * 工作台导航动作的注入契约。

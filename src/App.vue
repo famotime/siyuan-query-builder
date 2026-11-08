@@ -1,5 +1,8 @@
 <template>
-  <section class="panel" :class="{ 'panel--no-sidebar': !sidebarVisible }">
+  <section
+    class="panel"
+    :class="{ 'panel--no-sidebar': !sidebarVisible }"
+  >
     <template v-if="bootError">
       <main class="workspace workspace--boot-error">
         <section class="boot-error">
@@ -38,15 +41,27 @@
 </template>
 
 <script setup lang="ts">
-import { onErrorCaptured, onMounted, onUnmounted, provide, ref } from "vue"
+import {
+  onErrorCaptured,
+  onMounted,
+  onUnmounted,
+  provide,
+  ref,
+} from "vue"
 
 import DashboardView from "@/components/query-builder/DashboardView.vue"
 import QueryBuilderEditor from "@/components/query-builder/QueryBuilderEditor.vue"
 import QueryBuilderResults from "@/components/query-builder/QueryBuilderResults.vue"
 import QueryBuilderSidebar from "@/components/query-builder/QueryBuilderSidebar.vue"
 import QueryBuilderTopbar from "@/components/query-builder/QueryBuilderTopbar.vue"
-import { createQueryBuilderStore, queryBuilderStoreKey } from "@/composables/query-builder-store"
-import { getPendingWorkspaceTarget, setActiveWorkspaceStore } from "@/main"
+import {
+  createQueryBuilderStore,
+  queryBuilderStoreKey,
+} from "@/composables/query-builder-store"
+import {
+  getPendingWorkspaceTarget,
+  setActiveWorkspaceStore,
+} from "@/main"
 
 import { onSiyuanThemeChange } from "@/ui/theme"
 

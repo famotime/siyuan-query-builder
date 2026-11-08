@@ -1,4 +1,7 @@
-import type { DashboardDefinition } from "./types"
+import type {
+  DashboardDefinition,
+  DashboardParameterDefinition,
+} from "./types"
 import { dailyCockpitDashboard } from "./scenarios/daily-cockpit"
 import { habitTrackerDashboard } from "./scenarios/habit-tracker"
 import { kbHealthDashboard } from "./scenarios/kb-health"
@@ -17,5 +20,12 @@ export const SCENARIO_DASHBOARDS: DashboardDefinition[] = [
 ]
 
 export function getDashboardDefinition(id: string): DashboardDefinition | undefined {
-  return SCENARIO_DASHBOARDS.find(d => d.id === id)
+  return SCENARIO_DASHBOARDS.find((d) => d.id === id)
+}
+
+/**
+ * 解析参数默认值:惰性函数在调用时求值,保证长会话中月份/年份默认值跟随当前时间。
+ */
+export function resolveDashboardParamDefault(param: DashboardParameterDefinition): string | number {
+  return typeof param.defaultValue === "function" ? param.defaultValue() : param.defaultValue
 }

@@ -1,9 +1,23 @@
-import { inject, proxyRefs, reactive, ref, watch } from "vue"
 import type { InjectionKey } from "vue"
+import type {
+  ActiveDocumentTarget,
+  EmbedTargetPreview,
+} from "@/core/embed-target"
 
-import type { ActiveDocumentTarget, EmbedTargetPreview } from "@/core/embed-target"
-import { cloneSnapshot } from "@/core/query/catalog"
-import type { QueryBuilderSnapshot, QueryHistoryEntry, ResultSet, SavedTemplateSummary, ViewConfig } from "@/core/query/types"
+import type {
+  QueryBuilderSnapshot,
+  QueryHistoryEntry,
+  ResultSet,
+  SavedTemplateSummary,
+  ViewConfig,
+} from "@/core/query/types"
+import {
+  inject,
+  proxyRefs,
+  reactive,
+  ref,
+  watch,
+} from "vue"
 import { kernelAdapter } from "@/core/runtime/kernel-adapter"
 import { createQueryRuntime } from "@/core/runtime/query-runtime"
 import { createMetricsStore } from "@/core/storage/metrics-store"
@@ -17,7 +31,6 @@ import { createEmbedTargetController } from "./query-builder-store/embed-target-
 import { createQueryExecutionController } from "./query-builder-store/query-execution-controller"
 import { createQueryBuilderSelectors } from "./query-builder-store/selectors"
 import { createQueryBuilderSessionController } from "./query-builder-store/session-controller"
-import { createTemplateViewController } from "./query-builder-store/template-view-controller"
 import {
   createDraft,
   dateRangeValue,
@@ -27,6 +40,7 @@ import {
   syncAggregateTemplate,
   updateDateRange,
 } from "./query-builder-store/shared"
+import { createTemplateViewController } from "./query-builder-store/template-view-controller"
 
 export type QueryBuilderStore = ReturnType<typeof createQueryBuilderStore>
 export const queryBuilderStoreKey: InjectionKey<QueryBuilderStore> = Symbol("query-builder-store")
@@ -48,19 +62,23 @@ export function createQueryBuilderStore() {
 
   const draft = reactive<QueryBuilderSnapshot>(createDraft())
   const isDirty = ref(false)
-  let cleanSnapshot = cloneSnapshot(draft)
+  // dirty 比较基于快照文本:markClean 时缓存一次,变更回调只需序列化 draft
+  let cleanSnapshotText = JSON.stringify(draft)
 
   function markClean() {
-    cleanSnapshot = cloneSnapshot(draft)
+    cleanSnapshotText = JSON.stringify(draft)
     isDirty.value = false
   }
 
   watch(
     draft,
     () => {
-      isDirty.value = JSON.stringify(draft) !== JSON.stringify(cleanSnapshot)
+      isDirty.value = JSON.stringify(draft) !== cleanSnapshotText
     },
-    { deep: true, flush: "sync" },
+    {
+      deep: true,
+      flush: "sync",
+    },
   )
   const notebooks = ref<Notebook[]>([])
   const recentQueryHistory = ref<QueryHistoryEntry[]>([])
@@ -131,7 +149,6 @@ export function createQueryBuilderStore() {
     queryHistoryStore,
     templateViews,
     embedTargets,
-    resetResultState,
     t,
   })
 

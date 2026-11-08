@@ -11,7 +11,7 @@
         type="button"
         data-section-toggle="scope"
         :aria-label="collapsed ? '展开查询范围' : '收起查询范围'"
-        :aria-expanded="String(!collapsed)"
+        :aria-expanded="!collapsed"
         @click="$emit('toggle')"
       >
         <ChevronDown
