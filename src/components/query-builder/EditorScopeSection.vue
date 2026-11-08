@@ -1,28 +1,19 @@
 <template>
   <article class="card card--scope">
-    <div class="section-head">
-      <div class="section-heading">
-        <span class="section-kicker">Scope</span>
-        <h3>查询范围</h3>
-      </div>
-      <button
-        v-sqb-tooltip="collapsed ? '展开查询范围' : '收起查询范围'"
-        class="section-toggle"
-        type="button"
-        data-section-toggle="scope"
-        :aria-label="collapsed ? '展开查询范围' : '收起查询范围'"
-        :aria-expanded="!collapsed"
-        @click="$emit('toggle')"
-      >
-        <ChevronDown
-          class="sqb-wireframe-icon"
-          style="fill: none !important;"
-          :class="{ 'is-expanded': !collapsed }"
-          :size="15"
-          :stroke-width="1.75"
-        />
-      </button>
-    </div>
+    <CollapsibleSection
+      :expanded="!collapsed"
+      :toggle-attrs="{ 'data-section-toggle': 'scope' }"
+      expand-label="展开查询范围"
+      collapse-label="收起查询范围"
+      @toggle="$emit('toggle')"
+    >
+      <template #lead>
+        <div class="section-heading">
+          <span class="section-kicker">Scope</span>
+          <h3>查询范围</h3>
+        </div>
+      </template>
+    </CollapsibleSection>
     <div
       v-if="!collapsed"
       class="form-grid form-grid--scope"
@@ -108,9 +99,8 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown } from "lucide-vue-next"
+import CollapsibleSection from "@/components/query-builder/CollapsibleSection.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
-import { vSqbTooltip } from "@/ui/tooltip"
 
 defineProps<{
   collapsed: boolean

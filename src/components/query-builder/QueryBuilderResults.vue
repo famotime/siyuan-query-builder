@@ -5,145 +5,142 @@
       :class="{ 'card--collapsed': resultsCollapsed }"
       data-results-preview-card
     >
-      <div
-        class="section-head"
+      <CollapsibleSection
+        :expanded="!resultsCollapsed"
+        hide-toggle
         :class="{ 'section-head--collapsed': resultsCollapsed }"
+        @toggle="resultsCollapsed = !resultsCollapsed"
       >
-        <div class="summary">
-          <div class="summary__header">
-            <div
-              class="summary__icon"
-              aria-hidden="true"
-            >
-              <Database
-                class="sqb-wireframe-icon"
-                style="fill: none !important;"
-                :size="18"
-                :stroke-width="1.75"
-              />
-            </div>
-            <div>
-              <h3>查询结果预览</h3>
-              <p class="muted">
-                {{ store.resultSet?.rows.length ? store.resultSummary : "等待运行查询" }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="section-head-actions">
-          <div class="view-switcher">
-            <div class="tabs">
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
-                data-view-type="table"
-                type="button"
-                @click="selectResultViewType('table')"
+        <template #lead>
+          <div class="summary">
+            <div class="summary__header">
+              <div
+                class="summary__icon"
+                aria-hidden="true"
               >
-                <Table
-                  class="tabs__icon sqb-wireframe-icon"
+                <Database
+                  class="sqb-wireframe-icon"
                   style="fill: none !important;"
-                  :size="14"
+                  :size="18"
                   :stroke-width="1.75"
                 />
-                表格
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
-                data-view-type="board"
-                type="button"
-                @click="selectResultViewType('board')"
-              >
-                <Kanban
-                  class="tabs__icon sqb-wireframe-icon"
-                  style="fill: none !important;"
-                  :size="14"
-                  :stroke-width="1.75"
-                />
-                看板
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
-                data-view-type="list"
-                type="button"
-                @click="selectResultViewType('list')"
-              >
-                <List
-                  class="tabs__icon sqb-wireframe-icon"
-                  style="fill: none !important;"
-                  :size="14"
-                  :stroke-width="1.75"
-                />
-                列表
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
-                data-view-type="cards"
-                type="button"
-                @click="selectResultViewType('cards')"
-              >
-                <LayoutGrid
-                  class="tabs__icon sqb-wireframe-icon"
-                  style="fill: none !important;"
-                  :size="14"
-                  :stroke-width="1.75"
-                />
-                卡片
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'calendar' }"
-                data-view-type="calendar"
-                type="button"
-                @click="selectResultViewType('calendar')"
-              >
-                <Calendar
-                  class="tabs__icon sqb-wireframe-icon"
-                  style="fill: none !important;"
-                  :size="14"
-                  :stroke-width="1.75"
-                />
-                月历
-              </button>
-              <button
-                class="tabs__item"
-                :class="{ 'tabs__item--active': store.draft.view.type === 'chart' }"
-                data-view-type="chart"
-                type="button"
-                @click="selectResultViewType('chart')"
-              >
-                <BarChart3
-                  class="tabs__icon sqb-wireframe-icon"
-                  style="fill: none !important;"
-                  :size="14"
-                  :stroke-width="1.75"
-                />
-                图表
-              </button>
+              </div>
+              <div>
+                <h3>查询结果预览</h3>
+                <p class="muted">
+                  {{ store.resultSet?.rows.length ? store.resultSummary : "等待运行查询" }}
+                </p>
+              </div>
             </div>
           </div>
-          <button
-            v-sqb-tooltip="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
-            class="section-toggle"
-            data-results-preview-toggle
-            type="button"
-            :aria-label="resultsCollapsed ? '展开查询结果预览' : '收起查询结果预览'"
-            :aria-expanded="!resultsCollapsed"
-            @click="resultsCollapsed = !resultsCollapsed"
-          >
-            <ChevronDown
-              class="sqb-wireframe-icon"
-              style="fill: none !important;"
-              :class="{ 'is-expanded': !resultsCollapsed }"
-              :size="15"
-              :stroke-width="1.75"
+        </template>
+        <template #actions>
+          <div class="section-head-actions">
+            <div class="view-switcher">
+              <div class="tabs">
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'table' }"
+                  data-view-type="table"
+                  type="button"
+                  @click="selectResultViewType('table')"
+                >
+                  <Table
+                    class="tabs__icon sqb-wireframe-icon"
+                    style="fill: none !important;"
+                    :size="14"
+                    :stroke-width="1.75"
+                  />
+                  表格
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'board' }"
+                  data-view-type="board"
+                  type="button"
+                  @click="selectResultViewType('board')"
+                >
+                  <Kanban
+                    class="tabs__icon sqb-wireframe-icon"
+                    style="fill: none !important;"
+                    :size="14"
+                    :stroke-width="1.75"
+                  />
+                  看板
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'list' }"
+                  data-view-type="list"
+                  type="button"
+                  @click="selectResultViewType('list')"
+                >
+                  <List
+                    class="tabs__icon sqb-wireframe-icon"
+                    style="fill: none !important;"
+                    :size="14"
+                    :stroke-width="1.75"
+                  />
+                  列表
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'cards' }"
+                  data-view-type="cards"
+                  type="button"
+                  @click="selectResultViewType('cards')"
+                >
+                  <LayoutGrid
+                    class="tabs__icon sqb-wireframe-icon"
+                    style="fill: none !important;"
+                    :size="14"
+                    :stroke-width="1.75"
+                  />
+                  卡片
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'calendar' }"
+                  data-view-type="calendar"
+                  type="button"
+                  @click="selectResultViewType('calendar')"
+                >
+                  <Calendar
+                    class="tabs__icon sqb-wireframe-icon"
+                    style="fill: none !important;"
+                    :size="14"
+                    :stroke-width="1.75"
+                  />
+                  月历
+                </button>
+                <button
+                  class="tabs__item"
+                  :class="{ 'tabs__item--active': store.draft.view.type === 'chart' }"
+                  data-view-type="chart"
+                  type="button"
+                  @click="selectResultViewType('chart')"
+                >
+                  <BarChart3
+                    class="tabs__icon sqb-wireframe-icon"
+                    style="fill: none !important;"
+                    :size="14"
+                    :stroke-width="1.75"
+                  />
+                  图表
+                </button>
+              </div>
+            </div>
+            <CollapsibleToggle
+              :expanded="!resultsCollapsed"
+              data-results-preview-toggle
+              expand-label="展开查询结果预览"
+              collapse-label="收起查询结果预览"
+              class="section-toggle"
+              @toggle="resultsCollapsed = !resultsCollapsed"
             />
-          </button>
-        </div>
-      </div>
+          </div>
+        </template>
+      </CollapsibleSection>
 
       <div
         v-if="!resultsCollapsed"
@@ -263,7 +260,6 @@ import type { ViewType } from "@/core/query/types"
 import {
   BarChart3,
   Calendar,
-  ChevronDown,
   Database,
   Inbox,
   Kanban,
@@ -275,6 +271,8 @@ import {
   computed,
   ref,
 } from "vue"
+import CollapsibleSection from "@/components/query-builder/CollapsibleSection.vue"
+import CollapsibleToggle from "@/components/query-builder/CollapsibleToggle.vue"
 import ResultsBoardView from "@/components/query-builder/ResultsBoardView.vue"
 import ResultsCalendarView from "@/components/query-builder/ResultsCalendarView.vue"
 import ResultsCardsView from "@/components/query-builder/ResultsCardsView.vue"
@@ -290,7 +288,6 @@ import {
   buildGroupDistributionChartOption,
 } from "@/core/view/result-view-model"
 import { showMessage } from "@/external/siyuan"
-import { vSqbTooltip } from "@/ui/tooltip"
 import { writeClipboardText } from "@/utils/clipboard"
 
 const store = useQueryBuilderStore()

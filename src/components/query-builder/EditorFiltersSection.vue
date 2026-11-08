@@ -1,45 +1,44 @@
 <template>
   <article class="card card--full">
-    <div class="section-head">
-      <div class="section-heading">
-        <span class="section-kicker">Filters</span>
-        <h3>条件编辑器</h3>
-      </div>
-      <div class="section-head-actions">
-        <button
-          v-sqb-tooltip="'新增一条筛选过滤规则'"
-          class="btn btn--solid btn--small"
-          data-add-filter
-          aria-label="添加条件"
-          @click="store.addFilter"
-        >
-          <Plus
-            class="btn__icon sqb-wireframe-icon"
-            style="fill: none !important;"
-            :size="14"
-            :stroke-width="1.75"
+    <CollapsibleSection
+      :expanded="!props.collapsed"
+      hide-toggle
+      @toggle="$emit('toggle')"
+    >
+      <template #lead>
+        <div class="section-heading">
+          <span class="section-kicker">Filters</span>
+          <h3>条件编辑器</h3>
+        </div>
+      </template>
+      <template #actions>
+        <div class="section-head-actions">
+          <button
+            v-sqb-tooltip="'新增一条筛选过滤规则'"
+            class="btn btn--solid btn--small"
+            data-add-filter
+            aria-label="添加条件"
+            @click="store.addFilter"
+          >
+            <Plus
+              class="btn__icon sqb-wireframe-icon"
+              style="fill: none !important;"
+              :size="14"
+              :stroke-width="1.75"
+            />
+            添加条件
+          </button>
+          <CollapsibleToggle
+            :expanded="!props.collapsed"
+            data-section-toggle="filters"
+            expand-label="展开条件编辑器"
+            collapse-label="收起条件编辑器"
+            class="section-toggle"
+            @toggle="$emit('toggle')"
           />
-          添加条件
-        </button>
-        <button
-          v-sqb-tooltip="props.collapsed ? '展开条件编辑器' : '收起条件编辑器'"
-          class="section-toggle"
-          type="button"
-          data-section-toggle="filters"
-          :aria-label="props.collapsed ? '展开条件编辑器' : '收起条件编辑器'"
-          :aria-expanded="!props.collapsed"
-          @click="$emit('toggle')"
-        >
-          <ChevronDown
-            class="sqb-wireframe-icon"
-            style="fill: none !important;"
-            :class="{ 'is-expanded': !props.collapsed }"
-            :size="15"
-            :stroke-width="1.75"
-          />
-        </button>
-      </div>
-    </div>
+        </div>
+      </template>
+    </CollapsibleSection>
     <template v-if="!props.collapsed">
       <div
         v-if="store.draft.template.filters.length"
@@ -157,10 +156,10 @@ import type {
   FilterOperator,
   QueryFilter,
 } from "@/core/query/types"
-import {
-  ChevronDown,
-  Plus,
-} from "lucide-vue-next"
+import { Plus } from "lucide-vue-next"
+
+import CollapsibleSection from "@/components/query-builder/CollapsibleSection.vue"
+import CollapsibleToggle from "@/components/query-builder/CollapsibleToggle.vue"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import { vSqbTooltip } from "@/ui/tooltip"

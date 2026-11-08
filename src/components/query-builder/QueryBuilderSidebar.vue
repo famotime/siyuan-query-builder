@@ -22,41 +22,32 @@
 
     <!-- 场景仪表板 -->
     <div class="card card--dashboards">
-      <div class="section-head">
-        <div class="section-head-main">
-          <div class="section-head-copy">
-            <span class="section-kicker">
-              <Sparkles
-                :size="12"
-                class="section-kicker-icon sqb-wireframe-icon"
-                style="fill: none !important;"
-              /> Dashboards
-            </span>
-            <h2>场景仪表板</h2>
+      <CollapsibleSection
+        :expanded="dashboardsExpanded"
+        :toggle-attrs="{ 'data-section-toggle': 'dashboards' }"
+        expand-label="展开场景仪表板"
+        collapse-label="收起场景仪表板"
+        @toggle="dashboardsExpanded = !dashboardsExpanded"
+      >
+        <template #lead>
+          <div class="section-head-main">
+            <div class="section-head-copy">
+              <span class="section-kicker">
+                <Sparkles
+                  :size="12"
+                  class="section-kicker-icon sqb-wireframe-icon"
+                  style="fill: none !important;"
+                /> Dashboards
+              </span>
+              <h2>场景仪表板</h2>
+            </div>
+            <span
+              data-dashboards-count
+              class="pill pill--accent"
+            >{{ store.dashboards?.length || 0 }}</span>
           </div>
-          <span
-            data-dashboards-count
-            class="pill pill--accent"
-          >{{ store.dashboards?.length || 0 }}</span>
-        </div>
-        <button
-          v-sqb-tooltip="dashboardsExpanded ? '收起场景仪表板' : '展开场景仪表板'"
-          data-section-toggle="dashboards"
-          class="section-toggle"
-          type="button"
-          :aria-label="dashboardsExpanded ? '收起场景仪表板' : '展开场景仪表板'"
-          :aria-expanded="dashboardsExpanded"
-          @click="dashboardsExpanded = !dashboardsExpanded"
-        >
-          <ChevronDown
-            class="sqb-wireframe-icon"
-            style="fill: none !important;"
-            :class="{ 'is-expanded': dashboardsExpanded }"
-            :size="15"
-            :stroke-width="1.75"
-          />
-        </button>
-      </div>
+        </template>
+      </CollapsibleSection>
       <div
         v-if="dashboardsExpanded"
         class="preset-group__body"
@@ -84,35 +75,26 @@
 
     <!-- 预设场景 -->
     <div class="card">
-      <div class="section-head">
-        <div class="section-head-main">
-          <div class="section-head-copy">
-            <span class="section-kicker">Scene Presets</span>
-            <h2>预设场景</h2>
+      <CollapsibleSection
+        :expanded="presetsExpanded"
+        :toggle-attrs="{ 'data-section-toggle': 'presets' }"
+        expand-label="展开预设场景"
+        collapse-label="收起预设场景"
+        @toggle="presetsExpanded = !presetsExpanded"
+      >
+        <template #lead>
+          <div class="section-head-main">
+            <div class="section-head-copy">
+              <span class="section-kicker">Scene Presets</span>
+              <h2>预设场景</h2>
+            </div>
+            <span
+              data-presets-count
+              class="pill"
+            >{{ store.presets.length }}</span>
           </div>
-          <span
-            data-presets-count
-            class="pill"
-          >{{ store.presets.length }}</span>
-        </div>
-        <button
-          v-sqb-tooltip="presetsExpanded ? '收起预设场景' : '展开预设场景'"
-          data-section-toggle="presets"
-          class="section-toggle"
-          type="button"
-          :aria-label="presetsExpanded ? '收起预设场景' : '展开预设场景'"
-          :aria-expanded="presetsExpanded"
-          @click="presetsExpanded = !presetsExpanded"
-        >
-          <ChevronDown
-            class="sqb-wireframe-icon"
-            style="fill: none !important;"
-            :class="{ 'is-expanded': presetsExpanded }"
-            :size="15"
-            :stroke-width="1.75"
-          />
-        </button>
-      </div>
+        </template>
+      </CollapsibleSection>
       <template v-if="presetsExpanded">
         <section
           v-for="group in presetGroups"
@@ -161,57 +143,56 @@
 
     <!-- 已保存模板 -->
     <div class="card">
-      <div class="section-head">
-        <div class="section-head-main">
-          <div class="section-head-copy">
-            <span class="section-kicker">Saved Templates</span>
-            <h2>已保存模板</h2>
+      <CollapsibleSection
+        :expanded="savedTemplatesExpanded"
+        hide-toggle
+        @toggle="savedTemplatesExpanded = !savedTemplatesExpanded"
+      >
+        <template #lead>
+          <div class="section-head-main">
+            <div class="section-head-copy">
+              <span class="section-kicker">Saved Templates</span>
+              <h2>已保存模板</h2>
+            </div>
+            <span class="pill">{{ store.savedTemplateSummaries.length }}</span>
           </div>
-          <span class="pill">{{ store.savedTemplateSummaries.length }}</span>
-        </div>
-        <div class="section-head-actions">
-          <button
-            v-sqb-tooltip="'导入模板文件 (.json)'"
-            data-template-import-trigger
-            class="section-action"
-            type="button"
-            aria-label="导入模板"
-            @click="triggerTemplateImport"
-          >
-            <Upload
-              class="sqb-wireframe-icon"
-              style="fill: none !important;"
-              :size="15"
-              :stroke-width="1.75"
+        </template>
+        <template #actions>
+          <div class="section-head-actions">
+            <button
+              v-sqb-tooltip="'导入模板文件 (.json)'"
+              data-template-import-trigger
+              class="section-action"
+              type="button"
+              aria-label="导入模板"
+              @click="triggerTemplateImport"
+            >
+              <Upload
+                class="sqb-wireframe-icon"
+                style="fill: none !important;"
+                :size="15"
+                :stroke-width="1.75"
+              />
+            </button>
+            <input
+              ref="templateImportInput"
+              data-template-import-input
+              class="visually-hidden"
+              type="file"
+              accept="application/json,.json"
+              @change="handleTemplateImport"
+            >
+            <CollapsibleToggle
+              :expanded="savedTemplatesExpanded"
+              data-section-toggle="saved-templates"
+              expand-label="展开已保存模板"
+              collapse-label="收起已保存模板"
+              class="section-toggle"
+              @toggle="savedTemplatesExpanded = !savedTemplatesExpanded"
             />
-          </button>
-          <input
-            ref="templateImportInput"
-            data-template-import-input
-            class="visually-hidden"
-            type="file"
-            accept="application/json,.json"
-            @change="handleTemplateImport"
-          >
-          <button
-            v-sqb-tooltip="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
-            data-section-toggle="saved-templates"
-            class="section-toggle"
-            type="button"
-            :aria-label="savedTemplatesExpanded ? '收起已保存模板' : '展开已保存模板'"
-            :aria-expanded="savedTemplatesExpanded"
-            @click="savedTemplatesExpanded = !savedTemplatesExpanded"
-          >
-            <ChevronDown
-              class="sqb-wireframe-icon"
-              style="fill: none !important;"
-              :class="{ 'is-expanded': savedTemplatesExpanded }"
-              :size="15"
-              :stroke-width="1.75"
-            />
-          </button>
-        </div>
-      </div>
+          </div>
+        </template>
+      </CollapsibleSection>
       <template v-if="savedTemplatesExpanded">
         <div
           v-for="summary in store.savedTemplateSummaries"
@@ -267,51 +248,50 @@
 
     <!-- 历史记录 -->
     <div class="card card--history">
-      <div class="section-head">
-        <div class="section-head-main">
-          <div class="section-head-copy">
-            <span class="section-kicker">Recent Queries</span>
-            <h2>历史记录</h2>
+      <CollapsibleSection
+        :expanded="historyExpanded"
+        hide-toggle
+        @toggle="historyExpanded = !historyExpanded"
+      >
+        <template #lead>
+          <div class="section-head-main">
+            <div class="section-head-copy">
+              <span class="section-kicker">Recent Queries</span>
+              <h2>历史记录</h2>
+            </div>
+            <span class="pill">{{ store.recentQueryHistory.length }}</span>
           </div>
-          <span class="pill">{{ store.recentQueryHistory.length }}</span>
-        </div>
-        <div class="section-head-actions">
-          <button
-            v-if="store.recentQueryHistory.length"
-            v-sqb-tooltip="'清空历史记录'"
-            data-history-clear
-            class="section-action"
-            type="button"
-            title="清空历史记录"
-            aria-label="清空历史记录"
-            @click.stop="store.clearQueryHistory()"
-          >
-            <Trash2
-              class="sqb-wireframe-icon"
-              style="fill: none !important;"
-              :size="15"
-              :stroke-width="1.75"
+        </template>
+        <template #actions>
+          <div class="section-head-actions">
+            <button
+              v-if="store.recentQueryHistory.length"
+              v-sqb-tooltip="'清空历史记录'"
+              data-history-clear
+              class="section-action"
+              type="button"
+              title="清空历史记录"
+              aria-label="清空历史记录"
+              @click.stop="store.clearQueryHistory()"
+            >
+              <Trash2
+                class="sqb-wireframe-icon"
+                style="fill: none !important;"
+                :size="15"
+                :stroke-width="1.75"
+              />
+            </button>
+            <CollapsibleToggle
+              :expanded="historyExpanded"
+              data-section-toggle="history"
+              expand-label="展开历史记录"
+              collapse-label="收起历史记录"
+              class="section-toggle"
+              @toggle="historyExpanded = !historyExpanded"
             />
-          </button>
-          <button
-            v-sqb-tooltip="historyExpanded ? '收起历史记录' : '展开历史记录'"
-            data-section-toggle="history"
-            class="section-toggle"
-            type="button"
-            :aria-label="historyExpanded ? '收起历史记录' : '展开历史记录'"
-            :aria-expanded="historyExpanded"
-            @click="historyExpanded = !historyExpanded"
-          >
-            <ChevronDown
-              class="sqb-wireframe-icon"
-              style="fill: none !important;"
-              :class="{ 'is-expanded': historyExpanded }"
-              :size="15"
-              :stroke-width="1.75"
-            />
-          </button>
-        </div>
-      </div>
+          </div>
+        </template>
+      </CollapsibleSection>
       <template v-if="historyExpanded">
         <button
           v-for="entry in store.recentQueryHistory"
@@ -342,7 +322,6 @@
 
 <script setup lang="ts">
 import {
-  ChevronDown,
   ChevronRight,
   Download,
   Sparkles,
@@ -355,6 +334,8 @@ import {
   ref,
 } from "vue"
 
+import CollapsibleSection from "@/components/query-builder/CollapsibleSection.vue"
+import CollapsibleToggle from "@/components/query-builder/CollapsibleToggle.vue"
 import { getDashboardIcon } from "@/components/query-builder/dashboard-icons"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import {

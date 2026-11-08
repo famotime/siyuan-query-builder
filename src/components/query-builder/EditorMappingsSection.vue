@@ -1,46 +1,45 @@
 <template>
   <article class="card card--mappings">
-    <div class="section-head">
-      <div class="section-heading">
-        <span class="section-kicker">Field Mapping</span>
-        <h3>字段映射</h3>
-      </div>
-      <div class="section-head-actions">
-        <button
-          v-sqb-tooltip="'一键填充常用的属性映射示例'"
-          class="btn btn--outline btn--small"
-          data-generate-examples
-          type="button"
-          aria-label="生成示例"
-          @click="store.generateExampleDocument"
-        >
-          <Sparkles
-            class="btn__icon sqb-wireframe-icon"
-            style="fill: none !important;"
-            :size="14"
-            :stroke-width="1.75"
+    <CollapsibleSection
+      :expanded="!collapsed"
+      hide-toggle
+      @toggle="$emit('toggle')"
+    >
+      <template #lead>
+        <div class="section-heading">
+          <span class="section-kicker">Field Mapping</span>
+          <h3>字段映射</h3>
+        </div>
+      </template>
+      <template #actions>
+        <div class="section-head-actions">
+          <button
+            v-sqb-tooltip="'一键填充常用的属性映射示例'"
+            class="btn btn--outline btn--small"
+            data-generate-examples
+            type="button"
+            aria-label="生成示例"
+            @click="store.generateExampleDocument"
+          >
+            <Sparkles
+              class="btn__icon sqb-wireframe-icon"
+              style="fill: none !important;"
+              :size="14"
+              :stroke-width="1.75"
+            />
+            生成示例
+          </button>
+          <CollapsibleToggle
+            :expanded="!collapsed"
+            data-section-toggle="mappings"
+            expand-label="展开字段映射"
+            collapse-label="收起字段映射"
+            class="section-toggle"
+            @toggle="$emit('toggle')"
           />
-          生成示例
-        </button>
-        <button
-          v-sqb-tooltip="collapsed ? '展开字段映射' : '收起字段映射'"
-          class="section-toggle"
-          type="button"
-          data-section-toggle="mappings"
-          :aria-label="collapsed ? '展开字段映射' : '收起字段映射'"
-          :aria-expanded="!collapsed"
-          @click="$emit('toggle')"
-        >
-          <ChevronDown
-            class="sqb-wireframe-icon"
-            style="fill: none !important;"
-            :class="{ 'is-expanded': !collapsed }"
-            :size="15"
-            :stroke-width="1.75"
-          />
-        </button>
-      </div>
-    </div>
+        </div>
+      </template>
+    </CollapsibleSection>
     <div
       v-if="!collapsed"
       class="form-grid"
@@ -67,10 +66,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ChevronDown,
-  Sparkles,
-} from "lucide-vue-next"
+import { Sparkles } from "lucide-vue-next"
+
+import CollapsibleSection from "@/components/query-builder/CollapsibleSection.vue"
+import CollapsibleToggle from "@/components/query-builder/CollapsibleToggle.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
 import { vSqbTooltip } from "@/ui/tooltip"
 

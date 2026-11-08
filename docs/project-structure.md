@@ -57,6 +57,7 @@
 - `plugin-settings.ts` — 打开方式等插件设置。
 
 ### `src/components/query-builder/`
+- `CollapsibleSection.vue` / `CollapsibleToggle.vue` — 可折叠区块的通用头部与开关按钮原子(aria/tooltip/chevron/测试锚点透传);Editor 分区、Sidebar 卡片与 Results 预览头共用,折叠正文由宿主以 `v-if` 自控。
 - `QueryBuilderSidebar.vue` / `sidebar-utils.ts` — 模板列表、预设分组、导入导出与历史恢复;文件 API 与格式化逻辑集中在 utils。
 - `QueryBuilderEditor.vue` — 编辑区编排(校验提示 + 12 列网格 + 卡片跨度)。
 - `EditorScopeSection.vue` / `EditorMappingsSection.vue` / `EditorFiltersSection.vue` / `EditorViewSettingsSection.vue` — 四个编辑分区;`EditorFieldPicker.vue` 输出字段多选。

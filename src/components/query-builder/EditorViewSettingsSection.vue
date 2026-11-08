@@ -1,28 +1,19 @@
 <template>
   <article class="card card--full">
-    <div class="section-head">
-      <div class="section-heading">
-        <span class="section-kicker">View Settings</span>
-        <h3>排序、分组与字段</h3>
-      </div>
-      <button
-        v-sqb-tooltip="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
-        class="section-toggle"
-        type="button"
-        data-section-toggle="view"
-        :aria-label="collapsed ? '展开排序、分组与字段' : '收起排序、分组与字段'"
-        :aria-expanded="!collapsed"
-        @click="emit('toggle')"
-      >
-        <ChevronDown
-          class="sqb-wireframe-icon"
-          style="fill: none !important;"
-          :class="{ 'is-expanded': !collapsed }"
-          :size="15"
-          :stroke-width="1.75"
-        />
-      </button>
-    </div>
+    <CollapsibleSection
+      :expanded="!collapsed"
+      :toggle-attrs="{ 'data-section-toggle': 'view' }"
+      expand-label="展开排序、分组与字段"
+      collapse-label="收起排序、分组与字段"
+      @toggle="emit('toggle')"
+    >
+      <template #lead>
+        <div class="section-heading">
+          <span class="section-kicker">View Settings</span>
+          <h3>排序、分组与字段</h3>
+        </div>
+      </template>
+    </CollapsibleSection>
     <template v-if="!collapsed">
       <div class="form-grid form-grid--top">
         <label class="field">
@@ -197,12 +188,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ChevronDown,
-  Plus,
-} from "lucide-vue-next"
+import { Plus } from "lucide-vue-next"
 import { computed } from "vue"
 
+import CollapsibleSection from "@/components/query-builder/CollapsibleSection.vue"
 import DeleteIconButton from "@/components/query-builder/DeleteIconButton.vue"
 import EditorFieldPicker from "@/components/query-builder/EditorFieldPicker.vue"
 import { useQueryBuilderStore } from "@/composables/query-builder-store"
